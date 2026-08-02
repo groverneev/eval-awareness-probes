@@ -4,7 +4,9 @@ This file is the detailed context for any agent picking up this project. Keep it
 updated as work progresses (see "Maintaining this file" at the bottom). The
 README is the short human-facing version; this is the long one.
 
-Last updated: July 2026. Slice 1 done: replicated on Llama-3.1-8B (Kaggle, 2x T4).
+Last updated: August 2026. Slice 1 done: replicated on Llama-3.1-8B (Kaggle,
+2x T4). Forward plan written (`PLAN.md`). New primary machine: Windows desktop
+with RTX 5070 Ti (see Environment).
 
 GPU host decision: tried Lightning AI first, abandoned it — the site 404'd on the
 Studio dashboard and the account showed 0.00 free credits (a `.org` school email,
@@ -74,22 +76,36 @@ middle layers on the obvious-eval cell.
 
 ## Environment
 
-- Machine: Apple M3, 16 GB unified memory. macOS.
-- Python: system Python is 3.14 (too new for PyTorch). Use the `.venv` (Python
-  3.12) created with `uv`. Run everything as `.venv/bin/python`.
-- Key package versions: torch 2.13 (MPS works, no CUDA locally), transformers
-  5.x (major version; API differs from the 4.x most probing code targets —
-  first suspect for weird API errors; `output_hidden_states` still works;
-  loading uses `dtype=` not the deprecated `torch_dtype=`).
-- **The 8B does not fit locally.** Llama-3.1-8B in bf16 is ~16 GB of weights on
-  a 16 GB machine. 4-bit quantization would fit but perturbs the activations we
-  measure, defeating a replication. Debug locally on the 1B; run the 8B on a
-  rented/free GPU.
+Two machines. As of August 2026 the Windows desktop is primary.
+
+**Windows desktop (primary):** Windows 11, RTX 5070 Ti (16 GB VRAM, Blackwell
+sm_120), 64 GB DDR5, 2 TB NVMe.
+- System Python is 3.14 (too new for PyTorch). Use the `.venv` (Python 3.12)
+  created with `uv sync`. Run everything as `.venv\Scripts\python`.
+- Blackwell needs the cu128 PyTorch wheels; pyproject pins the
+  `pytorch-cu128` index for torch on win32 only, so `uv sync` just works.
+- **The 8B almost fits.** bf16 weights are ~16.06 GB vs 16.3 GB VRAM; with
+  CUDA overhead it does not fit fully. Use `device_map="auto"` (accelerate
+  offloads the last few layers to the 64 GB of system RAM). Extraction at
+  batch 1 is fine this way and beats Kaggle round-trips for iteration. Never
+  4-bit quantize (perturbs the activations we measure).
+- The 1B fits entirely in VRAM for fast debugging.
+- Kaggle (2x T4) remains the fallback for fully-on-GPU runs, e.g. long
+  generation sweeps in slices 4-5 if local offload is too slow.
+
+**Mac (secondary):** Apple M3, 16 GB unified memory. Same 3.14/3.12 story;
+`.venv/bin/python`. torch has MPS, no CUDA. The 8B does not fit at all here;
+debug on the 1B.
+
+Both: transformers 5.x (API differs from the 4.x most probing code targets —
+first suspect for weird API errors; `output_hidden_states` still works;
+loading uses `dtype=` not the deprecated `torch_dtype=`).
 
 ## Model access (Hugging Face)
 
-- Llama is gated. Account `LightningPro1` is approved for Llama-3.2-1B; 1B and
-  8B access were both requested.
+- Llama is gated. Account `LightningPro1` is approved for both Llama-3.2-1B
+  and Llama-3.1-8B (verified by file download on the Windows desktop, Aug
+  2026). The desktop is logged in via `.venv\Scripts\hf.exe auth login`.
 - Gotcha that cost time: a fine-grained token without the "read access to public
   gated repos" scope gives 403 even after approval. Use a token with gated-repo
   read access (`hf auth login`). The metadata endpoint returning 200 is not
@@ -228,17 +244,33 @@ surface.
 
 ## What's next
 
-1. **[DONE] Run slice 1 on Llama-3.1-8B** — replicated on Kaggle (2x T4). See
-   Results. Instructions live in `scripts/kaggle_slice1.md`.
-2. Add the rest of the surface-baseline hierarchy: formatting classifier,
-   bag-of-words, style-matched control (random and length already understood).
-   The probe-minus-baseline gap is the actual result. NOTE: length is model-
-   independent, but the format/bag-of-words classifiers are fit on the prompts
-   and can be computed from the cached activations' labels + the SAD bodies in
-   memory (never write bodies out — canary rule).
-3. Then begin the expansion arms in order (format-matched, then multi-turn).
+The full forward plan lives in `PLAN.md` (written Aug 2026 after a research
+pass). Summary: slice 2 is the format-matched 2x2. Key research findings that
+shaped it: Devbunova's 2x2 dataset is public (HF
+`viliana-dev/eval-awareness-2x2`, GitHub `viliana-dev/eval-awareness-format`)
+and was built on Llama-3.1-8B-Instruct, our exact model, n=1076/cell; their
+Casual-Eval cell is a MuTual proxy (admitted), which is the weakness our
+rewrite arm fixes; their paired-training result (format-invariance restored)
+is the claim our Casual-Eval-True cell stress-tests. Rewrite acceptance gates
+are probe-blind (surface baselines to ~0.5, manual audit), never selected by
+probe score (Xiong et al. selected by probe score — circular for dataset
+construction). Statistics upgrade from slice 2 on: bootstrap CIs, >=3 seeds.
+
+1. **[DONE] Slice 1 on Llama-3.1-8B** — replicated on Kaggle (2x T4).
+2. **[DONE] Surface-baseline hierarchy** — obvious cell fully confounded (see
+   Results).
+3. Slice 2 (per PLAN.md): replicate Devbunova on our machinery, then replace
+   their proxy Casual-Eval with true content-preserving rewrites.
 
 ## Gotchas / hard-won notes
+
+- **uv on the Windows desktop cannot install Pythons to its default dir**
+  (`AppData\Roaming\uv\python`): extraction silently produces an empty
+  directory and `uv python install` fails with "Missing expected target
+  directory". Workaround: `UV_PYTHON_INSTALL_DIR=C:/Users/grove/uv-pythons`.
+  The 3.12 interpreter lives there; the repo `.venv` already points at it, so
+  day-to-day `uv sync` works without the env var. Only set it again if
+  installing another Python version.
 
 - transformers 5.x: use `dtype=`, not `torch_dtype=`. `apply_chat_template(...,
   return_dict=True)` returns a `BatchEncoding`, not a bare tensor.
