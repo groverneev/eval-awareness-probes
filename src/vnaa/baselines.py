@@ -43,6 +43,30 @@ def strength(auroc: float) -> float:
     return abs(auroc - 0.5)
 
 
+def bootstrap_auroc_ci(
+    y_true: np.ndarray,
+    scores: np.ndarray,
+    n_boot: int = 2000,
+    seed: int = 0,
+) -> tuple[float, float]:
+    """Percentile-bootstrap 95% CI for AUROC over the test set.
+
+    Resamples (label, score) pairs with replacement; draws that lose one class
+    entirely are skipped. This is the slice-2 statistics upgrade: at slice 1's
+    n=120 a 0.03 strength gap was uninterpretable without an interval.
+    """
+    rng = np.random.default_rng(seed)
+    n = len(y_true)
+    vals = []
+    while len(vals) < n_boot:
+        idx = rng.integers(0, n, size=n)
+        yb = y_true[idx]
+        if yb.min() == yb.max():
+            continue
+        vals.append(roc_auc_score(yb, scores[idx]))
+    return float(np.percentile(vals, 2.5)), float(np.percentile(vals, 97.5))
+
+
 def length_auroc(texts: list[str], labels: np.ndarray, test_idx) -> dict[str, float]:
     """Length used directly as the score. No fitting, so no split needed to fit."""
     char_len = np.array([len(t) for t in texts], dtype=float)
@@ -54,18 +78,18 @@ def length_auroc(texts: list[str], labels: np.ndarray, test_idx) -> dict[str, fl
     }
 
 
-def bag_of_words_auroc(
+def bag_of_words_scores(
     texts: list[str],
     labels: np.ndarray,
     train_idx,
     test_idx,
     min_df: int = 2,
     seed: int = 0,
-) -> float:
-    """Logistic regression on word counts. Vocabulary fit on train only.
+) -> np.ndarray:
+    """Test-set scores from logistic regression on word counts.
 
-    Word order and meaning are discarded; only counts remain. If this reaches the
-    probe's AUROC, the classes are separable from vocabulary alone.
+    Vocabulary fit on TRAIN ONLY (fitting on all data leaks test vocabulary).
+    Word order and meaning are discarded; only counts remain.
     """
     train_texts = [texts[i] for i in train_idx]
     test_texts = [texts[i] for i in test_idx]
@@ -76,7 +100,18 @@ def bag_of_words_auroc(
 
     clf = LogisticRegression(max_iter=2000, random_state=seed)
     clf.fit(x_train, labels[train_idx])
-    scores = clf.predict_proba(x_test)[:, 1]
+    return clf.predict_proba(x_test)[:, 1]
+
+
+def bag_of_words_auroc(
+    texts: list[str],
+    labels: np.ndarray,
+    train_idx,
+    test_idx,
+    min_df: int = 2,
+    seed: int = 0,
+) -> float:
+    scores = bag_of_words_scores(texts, labels, train_idx, test_idx, min_df, seed)
     return roc_auc_score(labels[test_idx], scores)
 
 
@@ -111,6 +146,22 @@ def format_features(text: str) -> list[float]:
     ]
 
 
+def format_scores(
+    texts: list[str],
+    labels: np.ndarray,
+    train_idx,
+    test_idx,
+    seed: int = 0,
+) -> np.ndarray:
+    """Test-set scores from logistic regression on structural features only."""
+    x = np.array([format_features(t) for t in texts], dtype=float)
+    clf = make_pipeline(
+        StandardScaler(), LogisticRegression(max_iter=2000, random_state=seed)
+    )
+    clf.fit(x[train_idx], labels[train_idx])
+    return clf.predict_proba(x[test_idx])[:, 1]
+
+
 def format_auroc(
     texts: list[str],
     labels: np.ndarray,
@@ -118,13 +169,7 @@ def format_auroc(
     test_idx,
     seed: int = 0,
 ) -> float:
-    """Logistic regression on structural features only, fit on train."""
-    x = np.array([format_features(t) for t in texts], dtype=float)
-    clf = make_pipeline(
-        StandardScaler(), LogisticRegression(max_iter=2000, random_state=seed)
-    )
-    clf.fit(x[train_idx], labels[train_idx])
-    scores = clf.predict_proba(x[test_idx])[:, 1]
+    scores = format_scores(texts, labels, train_idx, test_idx, seed)
     return roc_auc_score(labels[test_idx], scores)
 
 

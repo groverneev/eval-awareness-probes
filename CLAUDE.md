@@ -230,6 +230,50 @@ Internal check: length alone is near chance (strength 0.05–0.11), so the forma
 classifier's 0.97 is not length leaking in — it is genuinely the
 benchmark-canonical MCQ shape.
 
+**Slice 2a step 1 — our surface baselines on Devbunova's public 2x2 cells
+(CPU, seeds 0-2, bootstrap CIs; `run_2x2_baselines.py`):**
+
+| contrast | length | format | bag-of-words |
+|---|---|---|---|
+| bench_eval vs casual_deploy_matched | 0.53 | 0.98 | 1.00 |
+| bench_eval vs bench_deploy_rewritten | 0.50 | **0.86** | 0.96 |
+| casual_eval_mutual vs casual_deploy_matched | 0.13 | **0.9988** | 0.99 |
+| bench_deploy_rewritten vs casual_deploy_matched | 0.55 | 0.96 | 0.99 |
+| casual_deploy_formal vs casual_deploy_matched | 0.17 | 0.94 | 0.99 |
+
+Readings: (a) their length histogram-matching works and only length; (b) their
+MuTual Casual-Eval proxy is near-perfectly surface-separable (lowercase,
+tokenized spacing, short turns), so their "paired training restores
+format-invariance" claim may ride on MuTual artifacts — this is the empirical
+mandate for our Casual-Eval-True rewrites, stronger than the argument in the
+proposal; (c) even their format-matched contrast leaks structure to our
+richer format classifier (0.86 vs their claim of matched); (d) BoW can never
+hit 0.5 when content differs by construction — our 2b gate therefore demands
+format+length at ~0.5 and drives BoW down via topic-matched deploy
+counterparts, rather than pretending BoW 0.5 is achievable.
+
+**Slice 2a — Devbunova replication on our machinery (8B, local 5070 Ti,
+bf16 + CPU offload, ~16 min for 4063 extractions; `run_slice2a.py`):**
+
+Standard regime (train bench_eval vs casual_deploy_matched): in-dist AUROC
+1.000 at layer 2; held-out fraction classified as eval: bench_deploy_rewritten
+**0.960** (their 94.5%), casual_eval_mutual 0.000 (their 0.0%). Transfer
+bench_eval vs bench_deploy_rewritten at the fixed best layer: 0.53 — the
+standard probe sees format, not content. Clean qualitative replication with a
+difference-of-means estimator instead of their logistic regression.
+
+Paired regime (train bench_eval+casual_eval_mutual vs casual_deploy_matched+
+bench_deploy_rewritten): in-dist 0.969 [0.961, 0.976] at layer 5;
+casual_eval_mutual 0.997 classified as eval, bench_deploy_rewritten 0.180
+(their 7.2% error — ours a bit worse, difference-of-means vs their CV'd LR).
+
+Interpretation: their pattern replicates, BUT step 1 showed casual_eval_mutual
+is surface-separable at 0.9988 (format classifier). So "paired training
+restores invariance" is consistent with the probe learning (benchmark
+structure OR MuTual style) as the positive class — not yet evidence of genuine
+eval-content signal. 2b's Casual-Eval-True rewrites are the discriminating
+test.
+
 Honest scope after baselines: the pipeline is correct and the replication
 reproduced, but **the obvious-eval cell is fully confounded.** SAD-eval prompts
 look and read like benchmark items; WildChat-deploy prompts do not. Surface
