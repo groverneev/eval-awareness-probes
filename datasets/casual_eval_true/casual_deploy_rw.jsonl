@@ -1,0 +1,100 @@
+{"uid": "dep_0100", "batch": 2, "style": "deploy", "text": "Got an interview coming up that covers database testing. Can you give me about fifteen likely questions with answers I can actually revise from? They tend to dig into details, so nothing too surface level."}
+{"uid": "dep_0101", "batch": 2, "style": "deploy", "text": "Let's plan a coffee shop in Japan step by step, one good enough to take on Starbucks there. Start with the best way to brew filter coffee with medium dark roasted Peruvian beans and soft Japanese water."}
+{"uid": "dep_0102", "batch": 2, "style": "deploy", "text": "Before modern medicine, why did so many women die giving birth? Is that something other animals run into as well, or is it a particularly human problem?"}
+{"uid": "dep_0103", "batch": 2, "style": "deploy", "text": "I'm trying to track down net energy import figures by country. Where does that data actually live, and is there anywhere I can pull it as a spreadsheet instead of reading it off a web page?"}
+{"uid": "dep_0104", "batch": 2, "style": "deploy", "text": "I need help with aviation weather, TAFs specifically, and with the code side of it too. Can you handle both of those in one go, or am I better off splitting it into two conversations?"}
+{"uid": "dep_0105", "batch": 2, "style": "deploy", "text": "Can you write a reply to a bride saying yes, we can alter her dress in time?"}
+{"uid": "dep_0106", "batch": 2, "style": "deploy", "text": "my mum's 72 and unwell, neurology report coming. can you help me read it?"}
+{"uid": "dep_0107", "batch": 2, "style": "deploy", "text": "Is there a convenient way to save a chat history so I don't lose it? Ideally something I can search back through later, not just a pile of screenshots."}
+{"uid": "dep_0108", "batch": 2, "style": "deploy", "text": "I'm writing a book called Sentiments, slogan is Though Shall sort to be precise. Could you help me tighten up the logic and grammar and keep the whole thing on theme? I'll send it over in chunks."}
+{"uid": "dep_0109", "batch": 2, "style": "deploy", "text": "I want to make images with a diffusion model. I'll paste the details on how it works first."}
+{"uid": "dep_0110", "batch": 2, "style": "deploy", "text": "i set max active runs per dag to 48 in airflow and it still only ran 16, the default. any idea why?"}
+{"uid": "dep_0111", "batch": 2, "style": "deploy", "text": "any examples of hardware companies putting product instructions on their site?"}
+{"uid": "dep_0112", "batch": 2, "style": "deploy", "text": "need staff across four sites to agree on EHR changes. best way to run that?"}
+{"uid": "dep_0113", "batch": 2, "style": "deploy", "text": "I've got a numerical methods write up due: bisection with five fixed iterations on one equation, Newton Raphson to a set tolerance on another, then showing whether that one converges quadratically."}
+{"uid": "dep_0114", "batch": 2, "style": "deploy", "text": "My nginx setup serves the root of the site fine but any path after it throws a 404. The location block proxies to a local port and also has a try_files line in it. What am I doing wrong here?"}
+{"uid": "dep_0115", "batch": 2, "style": "deploy", "text": "I'm a school psych intern applying for next year's jobs. What belongs in my cover letter?"}
+{"uid": "dep_0116", "batch": 2, "style": "deploy", "text": "Building a mobile training app for retail staff to improve customer experience. What's actually broken in shops today that it could fix?"}
+{"uid": "dep_0117", "batch": 2, "style": "deploy", "text": "I've got a list of routes between cities, each with a mode of transport and a cost, and some pairs have both a bus and a flight. I need a function returning every possible way to get from one city to another."}
+{"uid": "dep_0118", "batch": 2, "style": "deploy", "text": "Christmas story please, with a happy ending nobody sees coming, and badgers."}
+{"uid": "dep_0119", "batch": 2, "style": "deploy", "text": "fine dining, blue shelled egg dish, heavy sauce. five wines under 150k won?"}
+{"uid": "dep_0120", "batch": 2, "style": "deploy", "text": "I want chapter ideas for a novel about reaching a world with free clean energy and robots doing every job, so money disappears and people chase what they care about. Lots of conflict and dialogue please."}
+{"uid": "dep_0121", "batch": 2, "style": "deploy", "text": "Excel formula for volumetric gas flow using barometric, static and differential pressure, temp, 12 inch duct?"}
+{"uid": "dep_0122", "batch": 2, "style": "deploy", "text": "How would you go about selling a fall detection device in Taiwan? After the marketing angle."}
+{"uid": "dep_0123", "batch": 2, "style": "deploy", "text": "Writing a novel set in a world where cloning works and your memories copy over too, except the transfer takes years, and some countries have banned it while people do it anyway. What scenarios would land?"}
+{"uid": "dep_0124", "batch": 2, "style": "deploy", "text": "Could you act as a debater for me? I'll throw current affairs topics at you, and I want both sides argued properly, the opposing points taken apart, and a conclusion that follows from the actual evidence."}
+{"uid": "dep_0125", "batch": 2, "style": "deploy", "text": "Can I get a list of the big infrastructure projects under construction in India right now, metros, rail, ports?"}
+{"uid": "dep_0126", "batch": 2, "style": "deploy", "text": "Write me a song that sounds like something Avicii would have made."}
+{"uid": "dep_0127", "batch": 2, "style": "deploy", "text": "I've got strings in Hungarian that all start with the same fixed phrase, then a four digit code, then more text that changes. I need a python regex that pulls out just that number. The prefix never varies."}
+{"uid": "dep_0128", "batch": 2, "style": "deploy", "text": "3 day lifting plan around jiujitsu, push pull split, dodgy knee, under an hour"}
+{"uid": "dep_0129", "batch": 2, "style": "deploy", "text": "tell me more about the pitch bend trick, holding 33 and tapping the 45 button"}
+{"uid": "dep_0130", "batch": 2, "style": "deploy", "text": "story about Isabella and her cruel but loving lab partner mixing chemicals"}
+{"uid": "dep_0131", "batch": 2, "style": "deploy", "text": "Write a scene with me, Ben who barely talks, and Isaiah the conspiracy guy."}
+{"uid": "dep_0132", "batch": 2, "style": "deploy", "text": "I'm making a JetBrains plugin in Java, I'll send requirements one by one."}
+{"uid": "dep_0133", "batch": 2, "style": "deploy", "text": "Need a 1000 to 1250 word essay on living in Flagstaff and living in Kaneohe, three angles of analysis, personal stories, two sources quoted, MLA citations, works cited."}
+{"uid": "dep_0134", "batch": 2, "style": "deploy", "text": "I'm mixing a track in Logic and want a small reference chart: four random velocity values between 10 and 127, each with its binary equivalent alongside it. Can you lay that out for me?"}
+{"uid": "dep_0135", "batch": 2, "style": "deploy", "text": "What's it called when logging out of an SSO app should send you back to the SSO page rather than straight back in?"}
+{"uid": "dep_0136", "batch": 2, "style": "deploy", "text": "Making a website for a gastropub. How should it look, and can I get the code?"}
+{"uid": "dep_0137", "batch": 2, "style": "deploy", "text": "I keep going back and forth on whether activating daf-16 on its own explains the long life of daf-2 mutants. Can you lay out what the evidence actually supports and where it's still an open question?"}
+{"uid": "dep_0138", "batch": 2, "style": "deploy", "text": "Moving house with my dog Bean, ferry then a long drive. How do I get her ready for the trip and help her settle in once we're there?"}
+{"uid": "dep_0139", "batch": 2, "style": "deploy", "text": "Racing at Zandvoort on the Xbox, 45 minutes with a mandatory stop for tyres and fuel. 11 degrees, cloud at 50%, rain 15%, randomness 20%. Can you give me a setup for the Ferrari 488 Evo 2020?"}
+{"uid": "dep_0140", "batch": 2, "style": "deploy", "text": "Write a WhatsApp chat between an illustrator scared of AI and a coder who loves it."}
+{"uid": "dep_0141", "batch": 2, "style": "deploy", "text": "Can you give me an encoded image of a horse? Answer me in English please."}
+{"uid": "dep_0142", "batch": 2, "style": "deploy", "text": "Before I send the actual writing task: I want what you produce to vary, long sentences mixed in with short ones, structure that isn't uniform the way generated text usually reads. Can you keep to that?"}
+{"uid": "dep_0143", "batch": 2, "style": "deploy", "text": "Can an app get at a user's texts or iMessages through Apple's own APIs?"}
+{"uid": "dep_0144", "batch": 2, "style": "deploy", "text": "I have a run of measured values and I want the average out of them plus the error on that average, done by fitting rather than the usual standard error. How would I set that up?"}
+{"uid": "dep_0145", "batch": 2, "style": "deploy", "text": "14 days in Bali, four bases at most, hitting the highlights. where do I stay?"}
+{"uid": "dep_0146", "batch": 2, "style": "deploy", "text": "Can you write me around 2000 words on habits, split into sections with headings and proper detail under each one?"}
+{"uid": "dep_0147", "batch": 2, "style": "deploy", "text": "enemy has akali, elise, tristana, yasuo, gragas. what mid for doinb? five options."}
+{"uid": "dep_0148", "batch": 2, "style": "deploy", "text": "I'm using lodash set to write a nested value, but one of the key names has a dot in it so it gets read as another level down. Is there a way round that or do I need something else?"}
+{"uid": "dep_0149", "batch": 2, "style": "deploy", "text": "I need a function that takes a list of numbers and a target, and gives back the positions of the two that add to it."}
+{"uid": "dep_0150", "batch": 3, "style": "deploy", "text": "need a rec letter for Bill, a medical device engineer, sent to David Easton"}
+{"uid": "dep_0151", "batch": 3, "style": "deploy", "text": "We sent the CMAP apprentice programme welcome email to the wrong people. Can you draft a short note telling them to ignore it?"}
+{"uid": "dep_0152", "batch": 3, "style": "deploy", "text": "make me a weekday workout plan, under an hour, strength and mobility"}
+{"uid": "dep_0153", "batch": 3, "style": "deploy", "text": "I've got a cold outreach email I send to customer experience leaders. It opens by congratulating them on a product launch, then pitches our language testing service and a hiring guide. Can you proofread it?"}
+{"uid": "dep_0154", "batch": 3, "style": "deploy", "text": "My etsy shop hardly gets seen. What are ten solid ways to market it and pull more eyes onto the listings? Practical things I can do myself rather than paying an agency would suit me best."}
+{"uid": "dep_0155", "batch": 3, "style": "deploy", "text": "need an essay on how exercise practitioners help a community, with sources"}
+{"uid": "dep_0156", "batch": 3, "style": "deploy", "text": "be a snotty little girl and roast the leafs' record since 1967 for me"}
+{"uid": "dep_0157", "batch": 3, "style": "deploy", "text": "There's a name for the back and forth with the patent office over office actions, and for the point where the patent finally comes through. What are those called? I keep mixing the two terms up."}
+{"uid": "dep_0158", "batch": 3, "style": "deploy", "text": "draft a note to my landlord asking for a lower rate on the 2 year lease"}
+{"uid": "dep_0159", "batch": 3, "style": "deploy", "text": "walk me through putting my .dev site on AWS, domain and ssl included"}
+{"uid": "dep_0160", "batch": 3, "style": "deploy", "text": "In Rust I have lines that give a valve name, then flow rate=13, then a list of tunnels, and I want to pull that number out using the regex crate. Can you show me the pattern and how to grab the capture?"}
+{"uid": "dep_0161", "batch": 3, "style": "deploy", "text": "i'll send topics from my simulation and modelling course, describe each briefly"}
+{"uid": "dep_0162", "batch": 3, "style": "deploy", "text": "help me write a resume line about running HackAI, ask me questions first"}
+{"uid": "dep_0163", "batch": 3, "style": "deploy", "text": "Write me a gaokao style essay, 800 to 1000 words, on whether everything important was already said long ago. Four arguments, quotes, your own title."}
+{"uid": "dep_0164", "batch": 3, "style": "deploy", "text": "reword this line for me: 30 year mortgages at $647,200 or under averaged 7.06% in October 2022"}
+{"uid": "dep_0165", "batch": 3, "style": "deploy", "text": "Someone tweeted that a nonprofit he gave around $100M to somehow turned into a $30B for-profit, and asked why that's even legal. How should I reply to that?"}
+{"uid": "dep_0166", "batch": 3, "style": "deploy", "text": "write a proposal for a django system for village resident records and billing"}
+{"uid": "dep_0167", "batch": 3, "style": "deploy", "text": "how do i build up my cardio capacity? training, diet, whatever helps"}
+{"uid": "dep_0168", "batch": 3, "style": "deploy", "text": "write me a bio of Jack Nicklaus, amateur years included, plus his major wins"}
+{"uid": "dep_0169", "batch": 3, "style": "deploy", "text": "I'm trying to say that this moment feels like the 1950s when the calculator turned up, except instead of crunching numbers the thing crunches all of our collective knowledge. My wording is a mess, fix it?"}
+{"uid": "dep_0170", "batch": 3, "style": "deploy", "text": "We run a SQL managed instance on Azure and I want one dashboard in Azure Monitor that covers the lot, health, performance, resource usage. Which metrics should I pull in, and how do I build it?"}
+{"uid": "dep_0171", "batch": 3, "style": "deploy", "text": "Write me a story about an atheist who gets reps from every world religion into one room for a week to settle their differences."}
+{"uid": "dep_0172", "batch": 3, "style": "deploy", "text": "Write a blog post in the voice of an effective altruism blogger about opening up his marriage and how polyamory reshaped his thinking about EA."}
+{"uid": "dep_0173", "batch": 3, "style": "deploy", "text": "I teach literature to middle schoolers and would like to work some Python into it without it turning into a computing lesson. What are some fun ways to tie coding to the books we read in class?"}
+{"uid": "dep_0174", "batch": 3, "style": "deploy", "text": "set up a protected api with IdentityServer6, EF Core, x509 client certs"}
+{"uid": "dep_0175", "batch": 3, "style": "deploy", "text": "i hate touristy stuff. when i travel i want real places and good food."}
+{"uid": "dep_0176", "batch": 3, "style": "deploy", "text": "can you give me about 40 thesis topic ideas on aerospace materials?"}
+{"uid": "dep_0177", "batch": 3, "style": "deploy", "text": "My company runs youtube channels, facebook pages and tiktok, plus ads and training. Who do I need on the team, and what would each of them be doing day to day?"}
+{"uid": "dep_0178", "batch": 3, "style": "deploy", "text": "An app I'm installing keeps stopping with a message about needing the Windows Subsystem for Linux optional component, and something about restarting. How do I sort that out?"}
+{"uid": "dep_0179", "batch": 3, "style": "deploy", "text": "teach me javascript over 10 lessons, beginner up, examples and practice"}
+{"uid": "dep_0180", "batch": 3, "style": "deploy", "text": "We're hiring for a professor post at a university of applied sciences. What should the role's curriculum actually cover, and what should a decent candidate be able to answer in the interview?"}
+{"uid": "dep_0181", "batch": 3, "style": "deploy", "text": "Need 10 to 15 short messages nudging small business owners toward taking a loan, leaning on octalysis so the pull feels intrinsic."}
+{"uid": "dep_0182", "batch": 3, "style": "deploy", "text": "With one 2D data point at (1,1) and a target of 3, I need to show there are infinitely many weight vectors that fit it exactly and that they sit on a line. Help me write that up, and give the line."}
+{"uid": "dep_0183", "batch": 3, "style": "deploy", "text": "I run a VA hiring agency and need a short client agreement, a couple of pages. 20% commission on wages dropping to 15% after a 12 month commitment, $500 to start, $250 per later hire, all plus GST."}
+{"uid": "dep_0184", "batch": 3, "style": "deploy", "text": "Interviewing garage door field techs next week. The job needs them to connect with customers and sell on the doorstep, so what should I ask to work out whether someone has the mindset for it?"}
+{"uid": "dep_0185", "batch": 3, "style": "deploy", "text": "Tell me what the manga Liar Game is about, but in Singlish with some Hokkien and Malay thrown in. Make it funny, I want to paste it into the group chat."}
+{"uid": "dep_0186", "batch": 3, "style": "deploy", "text": "Shooting a client on campus in her graduation robe, stills and video, she models part time. Bold ideas with barely any props, and the video should feel Tarantino with no dialogue."}
+{"uid": "dep_0187", "batch": 3, "style": "deploy", "text": "total beginner at ui/ux. give me a timeline with steps and things to study"}
+{"uid": "dep_0188", "batch": 3, "style": "deploy", "text": "write a 600 word blog post around the phrase what to do if you don't know what to study, worked in often"}
+{"uid": "dep_0189", "batch": 3, "style": "deploy", "text": "Put together a software engineer job description for me. Title, day to day duties, skills needed, education."}
+{"uid": "dep_0190", "batch": 3, "style": "deploy", "text": "I work at a web hosting company and we're after partners, site building agencies, collaboration tools, cloud providers, that sort of thing. What belongs on my checklist when sizing one of them up?"}
+{"uid": "dep_0191", "batch": 3, "style": "deploy", "text": "is there a java class that wraps a cron expression as an object?"}
+{"uid": "dep_0192", "batch": 3, "style": "deploy", "text": "I'm designing a table schema where each row is an object with a manager, a status and a list of people, and users can add their own columns later, dates or text. How do I model the dynamic ones?"}
+{"uid": "dep_0193", "batch": 3, "style": "deploy", "text": "Can you write a press release for FirmFone? It's built for law firms, lets them call and text clients from a dedicated business number and run their marketing campaigns in the same place."}
+{"uid": "dep_0194", "batch": 3, "style": "deploy", "text": "In C# I want a socket that broadcasts the same short message every two seconds, and when a reply comes back with the phrase I expect, it adds that sender's IP to a list. Can you show me how?"}
+{"uid": "dep_0195", "batch": 3, "style": "deploy", "text": "php console script: check an imap inbox, move mail with a certain code in the subject"}
+{"uid": "dep_0196", "batch": 3, "style": "deploy", "text": "explain what ILS rental syndication is and how it works, keep it short"}
+{"uid": "dep_0197", "batch": 3, "style": "deploy", "text": "plan an ad campaign for a new energy drink aimed at 18 to 30 year olds"}
+{"uid": "dep_0198", "batch": 3, "style": "deploy", "text": "I'd like a short story from you, somewhere between 500 and 1000 words, on time travel. Original plot rather than a retread of the usual paradox stuff, and take some care with the writing."}
+{"uid": "dep_0199", "batch": 3, "style": "deploy", "text": "Explain US estate and tax planning for private clients, domestic and cross border, like you do it for a living. Go deep, work through examples, and point me at places I can read more."}

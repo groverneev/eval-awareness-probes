@@ -286,6 +286,150 @@ mandate for the format-matched arm: we need pairs where surface classifiers are
 forced to ~0.5 by construction, so whatever the probe still finds cannot be
 surface.
 
+## Slice 2b design (settled Aug 2026 after a prototype gate)
+
+A 40-item hand-written prototype was gated before scaling, and it killed the
+original design. The finding: **Claude-authored text is surface-separable from
+real ShareGPT text regardless of content.** Topic-matched counterparts whose
+content is pure deployment (genuine user needs, no benchmark material) still
+separated from real ShareGPT at format 0.93 / BoW 0.91, and the same ~0.86-0.95
+band appeared for every Claude-written cell. Length is the main tell: real
+ShareGPT prompts are longer and messier than anything we write.
+
+Consequence: contrasting our rewrites against real ShareGPT would train the
+probe on authorship, not eval-ness — Devbunova's mistake with a new artifact.
+
+Design as built (Neev's calls, both forks):
+1. **Every cell is Claude-authored.** Real ShareGPT prompts get rewritten too,
+   so authorship cancels instead of confounding. The deploy side still derives
+   from real user traffic. Cells: `casual_eval_a`, `casual_eval_b`,
+   `casual_deploy_rw`.
+2. **Two eval cells, reported separately.** Style A = benchmark question asked
+   plainly and casually (faithful, but retains quiz flavour). Style B = same
+   question wrapped in a plausible personal need (reads like deployment; the
+   harder test). Reporting both separates quiz-flavour detection from genuine
+   content recognition.
+3. **Surface matching built into the inputs, not hoped for**
+   (`prep_2b_batches.py`): every item carries an explicit `target_chars`, and
+   the same multiset of target lengths is dealt to all three cells, so length
+   matches by construction; the ShareGPT source sample is drawn to match the
+   benchmark sample's digit-density distribution (0.0124 vs 0.0123 achieved),
+   because digit density was the worst single surface feature in the prototype
+   (AUROC 0.69 — maths items carry numbers, generic questions do not).
+4. **One writer per batch handles that batch's eval AND deploy items**, so
+   per-writer style variation is balanced across cells rather than correlated
+   with the label.
+5. Malformed MMLU items (stems referencing absent numbered lists, e.g. choices
+   like "1,3,4") are filtered: 399 -> 389 usable.
+
+Two failures caught by auditing the first pilot batch (both fixed, batches
+regenerated — audit the writers' output, their self-reports miss these):
+
+- **Length targets forced style A to become style B.** Targets drawn from the
+  ShareGPT length distribution (mean 193 chars) are far longer than a bare ARC
+  question, so the writer padded style A with personal framing to hit them:
+  44% of style-A items carried first-person pronouns vs 78% for style B, and
+  length adherence was a perfect 0% violations, which is exactly the cause.
+  Fix: targets are now sized from each question's own length (mean 133), and
+  writers are told never to pad style A to reach a target. Style A is defined
+  by the absence of a SITUATION, not the absence of a pronoun.
+- **Real user traffic contains homework.** 16% of the sampled ShareGPT deploy
+  prompts were math word problems, in content indistinguishable from GSM8K
+  eval items — and digit-density matching actively selected for them, since
+  that is where the digits are. Fix: `looks_like_quiz()` filters the pool
+  before matching (1076 -> 1037). Note this is a real tension, not just a bug:
+  a GSM8K item asked casually IS what a real user asks, so eval-ness there
+  lives in provenance, not content. Report probe results per source
+  (arc/mmlu/gsm8k) — if the probe separates ARC/MMLU but not GSM8K, the signal
+  is "knowledge-quiz-shaped", not evaluation recognition.
+
+Third pilot gate (100 items) fixed length but failed on structure and
+vocabulary, and the diagnosis forced the final design:
+
+- length matched essentially perfectly (AUROC 0.49, strength 0.008) once
+  targets were sized from the questions. That part of the engineering works.
+- format 0.81 was driven almost entirely by question marks: **100% of eval
+  items contain "?" vs 54% of deploy items**, because benchmark items are
+  questions while user prompts are imperatives ("write me a post", "set up an
+  api"). Fixed by filtering the deploy pool to question-form prompts.
+- BoW 0.93 is driven by topic: eval-ward words are `which, what, does, total`,
+  deploy-ward are `me, my, need, write, want`. **This one cannot be engineered
+  away against real traffic.** Best-effort TF-IDF topic matching against real
+  prompts gives a mean best-match similarity of 0.104 (ShareGPT) / 0.127
+  (WildChat) — essentially no overlap, because real users do not ask about
+  xylem cells or Sylow subgroups. Resulting BoW after matching: 0.951 /0.935.
+
+Final design — four cells, all Claude-authored, n=250 each:
+`casual_eval_a`, `casual_eval_b`, `casual_deploy_wc` (real WildChat prompts
+rewritten; carries the realism claim) and `casual_deploy_tm` (synthetic
+genuine-need messages on each eval item's own subject; the only construction
+that can drive BoW toward chance). WildChat replaced ShareGPT as the real
+source: marginally better topic match and slice 3 needs it anyway. The sample
+lives at `data/wildchat_first_turns.json` (gitignored, 3000 English first
+turns, streamed from `allenai/WildChat-1M`).
+
+Gate (`merge_2b.py`, probe-blind): length and format strength <= 0.10 on all
+four eval-vs-deploy contrasts; BoW gated only against `casual_deploy_tm`,
+where topic is controlled by construction, and *reported as the bar the probe
+must beat* against `casual_deploy_wc`, where topic difference IS the label
+rather than an artifact. Also reported, not gated: each cell vs real prompts
+(authorship control), A vs B (style separation), and wc vs tm (deploy parity).
+
+Process lesson: **freeze batch inputs before spawning writers.** Regenerating
+`batch_*.json` mid-run left one writer generating against a snapshot of a
+rotated input; its output had to be discarded.
+
+## Slice 2b results (8B, n=250/cell, seed 0)
+
+Gate outcome: length matched (AUROC 0.47-0.52 on all four eval-vs-deploy
+contrasts). Format 0.67-0.87 and BoW 0.91-0.98 do NOT reach chance, and the
+diagnosis is that they cannot: the residual signal is **speech act**. Eval-ward
+words are `what, which, does, why`; deploy-ward are `my, our, we, should,
+want`. An impersonal question with a canonical answer versus a first-person
+request for help IS the eval/deploy distinction, so matching it away would
+destroy the label. Style B (personal framing) narrows but does not close it
+(BoW 0.91 vs style A's 0.93 against real traffic).
+
+Consequence (Neev's call): the decisive evidence is **cross-cell transfer**,
+not the in-distribution baseline gap. Fit on one cell pair, freeze, score a
+differently-constructed pair; run the identical test on every baseline, so
+probe-vs-baseline is meaningful without needing baselines at chance.
+`run_transfer.py` builds the 6x6 matrix.
+
+Findings:
+
+1. **Devbunova replicated on the transfer axis.** A probe trained on the
+   standard confounded contrast (bench_eval vs casual_deploy) fails to
+   transfer: 0.53 to their format-matched cell, 0.67 to our casual cells. It
+   is a format detector. It is also the ONLY training set where BoW beats the
+   probe (probe-minus-BoW -0.091, 1/5 wins).
+2. **New result: training on format-matched casual data generalizes, and the
+   asymmetry is large.** Probe trained on `ours_a_wc` scores 0.952 on
+   Devbunova's own standard cell, 0.990 / 0.972 / 0.953 on our other cells.
+   The reverse direction does not hold (theirs -> ours 0.67). So the direction
+   learned from casual, length-matched data covers the benchmark case, while
+   the direction learned from benchmark data does not cover the casual case.
+3. **The probe beats bag-of-words under transfer, modestly but consistently:**
+   overall +0.031 mean strength, winning 21/30 off-diagonal transfers. Best
+   when trained on our cells (+0.079 from `ours_a_wc`, 4/5 wins; +0.064 from
+   `ours_a_tm`, 5/5). The clearest margins are the hard targets: transferring
+   to `ours_b_wc` gives probe 0.953 [0.92, 0.98] vs BoW 0.814 [0.74, 0.88],
+   and to `ours_b_tm` 0.972 [0.94, 0.99] vs BoW 0.797 [0.72, 0.87] — CIs
+   disjoint in both.
+4. **The format classifier collapses under transfer** (mean strength 0.132 vs
+   probe 0.285), so the surviving signal is not structural.
+5. **Hardest cell for everything: `devb_fmt_matched`** (bench_eval vs
+   bench_deploy_rewritten — benchmark format on both sides, only content
+   differs). Every training set lands at 0.43-0.68 there. This is the cell
+   where content-only eval recognition would have to show up, and it does not
+   yet.
+
+Caveats to carry: n=250/cell means 75/cell held out, so transfer CIs are
++/-0.05; seed 0 only so far (>=3 seeds owed). Writers reframed some real
+WildChat prompts that were themselves single-answer factual questions into
+help-requests, which inflates the speech-act difference we diagnosed — needs
+quantifying against the unmodified originals.
+
 ## What's next
 
 The full forward plan lives in `PLAN.md` (written Aug 2026 after a research
