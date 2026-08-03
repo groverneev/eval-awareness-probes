@@ -16,7 +16,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = [
+    "matplotlib>=3.11.1",
+    "pytest>=8.0",
+]
 
 [[tool.uv.index]]
 name = "pytorch-cu128"
