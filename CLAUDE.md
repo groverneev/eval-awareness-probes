@@ -398,37 +398,65 @@ probe-vs-baseline is meaningful without needing baselines at chance.
 
 Findings:
 
+All numbers below are mean +/- sd over **5 split seeds (0-4)**.
+
 1. **Devbunova replicated on the transfer axis.** A probe trained on the
    standard confounded contrast (bench_eval vs casual_deploy) fails to
-   transfer: 0.53 to their format-matched cell, 0.67 to our casual cells. It
-   is a format detector. It is also the ONLY training set where BoW beats the
-   probe (probe-minus-BoW -0.091, 1/5 wins).
+   transfer: 0.548+-0.01 to their format-matched cell, 0.688+-0.03 to our
+   casual cells. It is a format detector. It is also the ONLY training set
+   where BoW BEATS the probe (probe-minus-BoW **-0.071+-0.021**, win rate
+   24%) — i.e. on the standard setup, activations are worse than word counts
+   at generalizing.
 2. **New result: training on format-matched casual data generalizes, and the
-   asymmetry is large.** Probe trained on `ours_a_wc` scores 0.952 on
-   Devbunova's own standard cell, 0.990 / 0.972 / 0.953 on our other cells.
-   The reverse direction does not hold (theirs -> ours 0.67). So the direction
-   learned from casual, length-matched data covers the benchmark case, while
-   the direction learned from benchmark data does not cover the casual case.
-3. **The probe beats bag-of-words under transfer, modestly but consistently:**
-   overall +0.031 mean strength, winning 21/30 off-diagonal transfers. Best
-   when trained on our cells (+0.079 from `ours_a_wc`, 4/5 wins; +0.064 from
-   `ours_a_tm`, 5/5). The clearest margins are the hard targets: transferring
-   to `ours_b_wc` gives probe 0.953 [0.92, 0.98] vs BoW 0.814 [0.74, 0.88],
-   and to `ours_b_tm` 0.972 [0.94, 0.99] vs BoW 0.797 [0.72, 0.87] — CIs
-   disjoint in both.
-4. **The format classifier collapses under transfer** (mean strength 0.132 vs
-   probe 0.285), so the surviving signal is not structural.
+   asymmetry is large and stable.** Probe trained on `ours_a_wc` scores
+   **0.966+-0.01** on Devbunova's own standard cell and 0.990 / 0.959 / 0.922
+   on our other cells. The reverse does not hold: theirs -> ours is
+   0.688+-0.03. The direction learned from casual, length-matched data covers
+   the benchmark case; the direction learned from benchmark data does not
+   cover the casual case.
+3. **The probe beats bag-of-words under transfer, consistently:** overall
+   **+0.048 +- 0.012** mean strength, positive on all 5 seeds (range +0.031
+   to +0.062). Per training set: `ours_b_wc` +0.128+-0.038 (win rate 72%),
+   `ours_a_wc` +0.088+-0.020 (88%), `ours_a_tm` +0.072+-0.015 (88%),
+   `ours_b_tm` +0.047+-0.027 (76%). Every one of our four training cells
+   yields a positive margin; only the standard confounded cell is negative.
+4. **The format classifier collapses under transfer** (0.124+-0.008 vs the
+   probe's 0.300+-0.012), so the surviving signal is not structural. Length
+   is flat at 0.026 throughout, as designed.
 5. **Hardest cell for everything: `devb_fmt_matched`** (bench_eval vs
    bench_deploy_rewritten — benchmark format on both sides, only content
-   differs). Every training set lands at 0.43-0.68 there. This is the cell
-   where content-only eval recognition would have to show up, and it does not
-   yet.
+   differs). Training sets land at 0.37-0.64 there; from `ours_b_tm` it is
+   0.374+-0.04, i.e. reliably ANTI-correlated. This is the cell where
+   content-only eval recognition would have to show up, and it does not.
 
-Caveats to carry: n=250/cell means 75/cell held out, so transfer CIs are
-+/-0.05; seed 0 only so far (>=3 seeds owed). Writers reframed some real
-WildChat prompts that were themselves single-answer factual questions into
-help-requests, which inflates the speech-act difference we diagnosed — needs
-quantifying against the unmodified originals.
+**Rewrite-drift check (`check_rewrite_drift.py`), two-sided:**
+
+Paired against the 250 unmodified WildChat originals, our deploy rewrites did
+shift along exactly the speech-act axis that carries the residual signal:
+
+| marker | original | rewrite | shift |
+|---|---|---|---|
+| first-person | 0.26 | 0.58 | **+0.33** |
+| request cue | 0.20 | 0.34 | +0.14 |
+| factual question | 0.15 | 0.04 | -0.11 |
+| ends with ? | 0.58 | 0.49 | -0.10 |
+
+So the deploy cell is markedly more first-person and request-shaped than the
+real traffic it derives from. That is a real limitation and must be stated.
+
+BUT the specific worry — that reframing the 15% of originals which were
+themselves factual questions is doing the work — is **ruled out**. Restricting
+to the never-reframed subset leaves separation unchanged (format 0.683 vs
+0.668 full; BoW 0.942 vs 0.933). The shift is uniform across all items, not
+concentrated in the reframed ones.
+
+Partial mitigation already in the transfer matrix: the probe trained on
+`ours_a_wc` scores 0.952 on `devb_standard`, whose deploy side is REAL,
+unrewritten ShareGPT. So the direction learned on our (stylistically shifted)
+cells does transfer to a cell with untouched deployment prompts.
+
+Remaining caveats: n=250/cell means 75/cell held out, so per-transfer CIs are
+about +/-0.05.
 
 ## What's next
 
