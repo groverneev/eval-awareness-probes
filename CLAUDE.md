@@ -429,6 +429,33 @@ All numbers below are mean +/- sd over **5 split seeds (0-4)**.
    0.374+-0.04, i.e. reliably ANTI-correlated. This is the cell where
    content-only eval recognition would have to show up, and it does not.
 
+**Per-source breakdown (`run_per_source.py`), 5 seeds x transfer targets —
+the prediction in the 2b design notes was WRONG, and the real pattern is a
+bigger caveat than the one we were guarding against:**
+
+| source | probe | bag-of-words | probe margin |
+|---|---|---|---|
+| gsm8k | **0.949 +- 0.055** | 0.833 +- 0.111 | +0.116 |
+| mmlu | 0.775 +- 0.165 | 0.693 +- 0.153 | +0.082 |
+| arc | **0.727 +- 0.176** | 0.685 +- 0.173 | +0.042 |
+
+We predicted that if the probe separated ARC/MMLU but not GSM8K, the signal
+would be "knowledge-quiz-shaped" rather than eval recognition. The reverse
+holds: math word problems are by far the easiest and ARC science-knowledge
+questions the hardest, with a wide seed spread. Implications:
+
+- The headline "probe beats BoW under transfer" is **carried substantially by
+  GSM8K.** On ARC the margin is +0.042 with sd 0.176 — not distinguishable
+  from zero at this n.
+- The candidate explanation is that a multi-sentence numeric setup ending in
+  "how many/how much" is a highly distinctive *shape*, so the surviving
+  signal may be "math-word-problem-shaped" rather than "evaluation". Note the
+  digit-density matching was done at pool level, not per item, so gsm8k eval
+  items can still be more numeral-dense than their paired deploy items.
+- Discriminating test for slice 3+: build a math-free eval cell (ARC/MMLU
+  only) and check whether the transfer advantage survives. If it does not,
+  the honest claim shrinks to "probes detect quantitative test items".
+
 **Rewrite-drift check (`check_rewrite_drift.py`), two-sided:**
 
 Paired against the 250 unmodified WildChat originals, our deploy rewrites did
