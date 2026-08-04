@@ -447,14 +447,55 @@ questions the hardest, with a wide seed spread. Implications:
 - The headline "probe beats BoW under transfer" is **carried substantially by
   GSM8K.** On ARC the margin is +0.042 with sd 0.176 — not distinguishable
   from zero at this n.
-- The candidate explanation is that a multi-sentence numeric setup ending in
-  "how many/how much" is a highly distinctive *shape*, so the surviving
-  signal may be "math-word-problem-shaped" rather than "evaluation". Note the
-  digit-density matching was done at pool level, not per item, so gsm8k eval
-  items can still be more numeral-dense than their paired deploy items.
-- Discriminating test for slice 3+: build a math-free eval cell (ARC/MMLU
-  only) and check whether the transfer advantage survives. If it does not,
-  the honest claim shrinks to "probes detect quantitative test items".
+**The gsm8k number is a digit-density artifact — confirmed, not speculated.**
+Digit density alone, a single scalar with no fitting, separates gsm8k eval
+items from their deploy counterparts at **0.873 (vs wc) and 0.949 (vs tm)** —
+the latter identical to the probe's 0.949 gsm8k transfer AUROC. Per-cell mean
+digit density:
+
+| cell | arc | mmlu | gsm8k |
+|---|---|---|---|
+| casual_eval_a | 0.0013 | 0.0131 | **0.0452** |
+| casual_deploy_tm | 0.0007 | 0.0014 | **0.0033** |
+
+A 13x gap on gsm8k. Cause: `prep_2b_batches.py` matched digit density between
+the *benchmark pool* and the *WildChat pool*, but the synthetic topic-matched
+counterparts were written with no digit-density requirement, so they came out
+nearly numeral-free while the maths items kept every figure. Pool-level
+matching does not imply item-level matching. On arc the same scalar is at or
+below chance (0.353 / 0.505), so arc is uncontaminated — and arc is exactly
+where the probe's margin over BoW is weakest (+0.042 +- 0.176).
+
+Consequences: gsm8k results are excluded from the headline claim, and the
+math-free (arc+mmlu) transfer run below IS the slice-2b result. If the tm cell
+is ever rebuilt, give the counterpart writer an explicit per-item digit-density
+target, not a pool-level one.
+
+**MATH-FREE TRANSFER (arc+mmlu only, both train and test; 5 seeds) — the
+headline result. It is STRONGER than the contaminated version:**
+
+- **probe minus BoW: +0.067 +- 0.016** (contaminated version: +0.048 +- 0.012),
+  positive on all 5 seeds, range +0.044 to +0.083.
+- probe transfer strength 0.287+-0.010 vs BoW 0.220+-0.008 vs format
+  0.129+-0.009 vs length 0.030.
+- Per training set: `ours_b_wc` **+0.142+-0.020** (win rate 80%), `ours_b_tm`
+  +0.096 (92%), `ours_a_wc` +0.095 (80%), `ours_a_tm` +0.092 (**96%**),
+  `devb_fmt_matched` +0.061 (72%). Only `devb_standard` is negative,
+  **-0.086+-0.034, win rate 12%**.
+- The asymmetry is sharper without maths: `ours_a_wc` -> `devb_standard`
+  **0.949+-0.00**, while `devb_standard` -> `ours_a_wc` falls to
+  **0.578+-0.03**, i.e. barely above chance.
+
+Why removing gsm8k helped rather than hurt: the per-source table restricted
+only the test set while still training on maths-containing cells. Filtering
+both sides removes the numeral shortcut from training too, so the fitted
+direction is cleaner — and BoW loses a shortcut it was also exploiting (its
+gsm8k score was 0.833).
+
+Remaining negative, now sharper: transfer to `devb_fmt_matched` from our cells
+is 0.349-0.516, i.e. at or reliably BELOW chance. Benchmark format on both
+sides with only content differing defeats every direction we can learn. That
+is the honest limit of the current result and the obvious target for slice 3.
 
 **Rewrite-drift check (`check_rewrite_drift.py`), two-sided:**
 

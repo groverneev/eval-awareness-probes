@@ -63,6 +63,38 @@ def load_texts(cell: str) -> list[str]:
     return load_cell(cell)
 
 
+def cell_sources(cell: str, n: int) -> list[str | None]:
+    """Per-item benchmark source, where the cell has one.
+
+    Our eval cells and the topic-matched deploy cell carry it in the uid;
+    bench_eval carries it in the parquet. The WildChat / ShareGPT deploy cells
+    and bench_deploy_rewritten have no meaningful source, so they are kept
+    whole when filtering.
+    """
+    import re
+
+    from vnaa.build_2b import read_jsonl
+
+    if cell in OURS and (OUT_DIR / f"{cell}.jsonl").exists():
+        uids = [r["uid"] for r in read_jsonl(OUT_DIR / f"{cell}.jsonl")]
+        if cell == "casual_deploy_wc":
+            return [None] * n
+        out = []
+        for u in uids:
+            m = re.search(r"(arc|mmlu|gsm8k)", u)
+            out.append(m.group(1) if m else None)
+        return out
+    if cell == "bench_eval":
+        import pandas as pd
+        from huggingface_hub import hf_hub_download
+
+        from vnaa.data_2x2 import REPO
+        p = hf_hub_download(REPO, "bench_eval/train-00000-of-00001.parquet",
+                            repo_type="dataset")
+        return pd.read_parquet(p)["source"].tolist()
+    return [None] * n
+
+
 def load_acts(cell: str, results: Path) -> np.ndarray:
     prefix = "s2b" if cell in OURS else "s2a"
     p = results / f"{prefix}_{MODEL_TAG}_{cell}.npz"
@@ -151,12 +183,26 @@ def main() -> None:
     ap.add_argument("--test-frac", type=float, default=0.3)
     ap.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--sources", nargs="+", default=None,
+                    help="keep only these benchmark sources where a cell has "
+                         "them, e.g. --sources arc mmlu for a math-free run")
+    ap.add_argument("--tag", default="", help="suffix for the output filename")
     args = ap.parse_args()
     results = Path(args.results)
 
     cells = sorted({c for pair in PAIRS.values() for c in pair})
     texts = {c: load_texts(c) for c in cells}
     acts = {c: load_acts(c, results) for c in cells}
+
+    if args.sources:
+        keep = set(args.sources)
+        for c in cells:
+            src = cell_sources(c, len(texts[c]))
+            idx = [i for i, s in enumerate(src) if s is None or s in keep]
+            if len(idx) < len(texts[c]):
+                texts[c] = [texts[c][i] for i in idx]
+                acts[c] = acts[c][idx]
+                print(f"{c}: filtered to {len(idx)} items ({sorted(keep)})")
 
     mats = [
         build_matrix(texts, acts, args.test_frac, s, verbose=not args.quiet)
@@ -207,7 +253,7 @@ def main() -> None:
     print(f"\nOVERALL probe-BoW transfer margin: {overall.mean():+.3f} +- {overall.std():.3f} "
           f"(per-seed range {overall.min():+.3f} to {overall.max():+.3f})")
 
-    p = results / f"s2b_{MODEL_TAG}_transfer_multiseed.json"
+    p = results / f"s2b_{MODEL_TAG}_transfer_multiseed{args.tag}.json"
     with open(p, "w") as f:
         json.dump({"seeds": args.seeds, "pairs": {k: list(v) for k, v in PAIRS.items()},
                    "matrices": mats}, f, indent=2)
