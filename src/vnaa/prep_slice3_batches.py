@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -83,9 +84,14 @@ def main() -> None:
             parsed = parsed["text"]
         return [str(t) for t in parsed]
 
+    # A handful of stems carry their own answer inline ("...attributed to (A)
+    # hydrogen bonding between..."). 1 in 2000, but it would put the answer in
+    # the eval cell's final user turn, so drop them.
+    leaks_answer = re.compile(r"\(\s*[A-E]\s*\)")
+
     items = []
     for r in df.itertuples():
-        if r.question in used:
+        if r.question in used or leaks_answer.search(r.question):
             continue
         it = {"source": r.source, "question": r.question,
               "choices": norm_choices(r.choices)}

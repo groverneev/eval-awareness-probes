@@ -36,7 +36,7 @@ import numpy as np
 
 import re
 
-from vnaa.prep_2b_batches import looks_like_quiz
+from vnaa.prep_2b_batches import is_question_form, looks_like_quiz
 
 MIN_USER_TURNS = 2
 MAX_USER_TURNS = 4
@@ -96,6 +96,15 @@ def usable(conv: list[dict]) -> list[dict] | None:
     # evidence the user pasted a multiple-choice item, even when the user's own
     # wording looks innocuous.
     if any(looks_like_coursework(m["content"]) for m in msgs):
+        return None
+
+    # The final user turn must be question-form. An evaluation item is a
+    # question, so if deployment conversations end on imperatives ("list the
+    # top dangerous websites") the cells separate on question-mark rate alone:
+    # the slice-3 pilot measured 94% vs 16% on that feature, and the format
+    # classifier hit 0.96. Selecting question-ending conversations fixes it
+    # without rewriting anyone's words, which is the same trick slice 2b used.
+    if not is_question_form(msgs[-1]["content"]):
         return None
     return msgs
 
