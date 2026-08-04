@@ -196,7 +196,10 @@ def main() -> None:
         raise SystemExit(f"only {len(pool)} usable deploy prompts, need {args.n}")
 
     # One real deploy prompt per eval item, topically closest and digit-matched.
+    # Keep indices, not text: the text must not reach a committed file.
     deploy_src = match_pool(pool, kept, rng)
+    pos = {t: i for i, t in enumerate(pool)}
+    deploy_idx = [pos[t] for t in deploy_src]
 
     perm_eval = rng.permutation(args.n)
     perm_dep = rng.permutation(args.n)
@@ -218,11 +221,15 @@ def main() -> None:
                 "choices": it["choices"],
                 "target_chars": int(targets[perm_eval[k]]),
             })
+        # WildChat is gated (AI2 ImpACT) and these are real user messages, so we
+        # never commit the prompt text. The batch file carries an index into the
+        # local gitignored sample; `hydrate_batches.py` writes the text into a
+        # scratch copy for the writer, which is also never committed.
         deploy_items = []
         for k in range(lo, hi):
             deploy_items.append({
                 "uid": f"dep_{k:04d}",
-                "original": deploy_src[k],
+                "wildchat_index": int(deploy_idx[k]),
                 "target_chars": int(targets[perm_dep[k]]),
             })
         # Topic-matched synthetic counterparts: one genuine-need message per
