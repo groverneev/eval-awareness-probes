@@ -50,11 +50,21 @@ RESULTS = Path("results")
 
 
 def load_cells() -> dict[str, list[list[dict]]]:
+    """The three written cells, plus eval_shared if it has been built.
+
+    eval_shared is the recombination control (deploy conversation, eval final
+    turn), so it lives in its own file rather than the per-batch writer output.
+    """
     cells: dict[str, list[list[dict]]] = {c: [] for c in CELLS}
     for p in sorted(BATCH_DIR.glob("out_*.json")):
         for it in json.load(open(p, encoding="utf-8"))["items"]:
             for c in CELLS:
                 cells[c].append(it[c])
+    shared = Path("datasets/slice3/eval_shared.json")
+    if shared.exists():
+        cells["eval_shared"] = [
+            it["eval_shared"] for it in json.load(open(shared, encoding="utf-8"))["items"]
+        ]
     return cells
 
 
@@ -144,7 +154,8 @@ def cmd_analyze(args: argparse.Namespace) -> None:
     print(f"n = {n} per cell, {len(args.seeds)} seeds, test_frac {args.test_frac}\n")
 
     results: dict[str, dict] = {}
-    for pos_cell in ("eval_disguised", "eval_obvious"):
+    for pos_cell in [c for c in ("eval_disguised", "eval_obvious", "eval_shared")
+                     if c in cells]:
         for rp in READ_POINTS:
             a_pos = np.load(acts_path(pos_cell, rp))["acts"].astype(np.float64)
             a_neg = np.load(acts_path("deploy", rp))["acts"].astype(np.float64)

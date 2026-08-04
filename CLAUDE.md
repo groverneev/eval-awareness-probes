@@ -679,19 +679,39 @@ State as of the end of the August 2026 working session.
 
 ## Where slice 3 actually is
 
-Dataset is 5 batches of 50 items. **Batches 00, 01 and 04 are written and
-committed** (`datasets/slice3/batches/out_0{0,1,4}.json`). **Batches 02 and 03
-were being written by two subagents when the session ended** — check whether
-`out_02.json` and `out_03.json` exist and contain 50 complete items each
-(every item needs all three of `deploy`, `eval_disguised`, `eval_obvious`). If
-they are missing, respawn two writers; the exact prompt used is reconstructable
-from the requirements in "Slice 3 design" below, and the batch inputs must be
-hydrated first (see next section). Two earlier attempts were killed mid-run and
-lost everything because they held the result in memory; tell any writer to
-write its output file early and refine in place.
+**The dataset is COMPLETE: all 5 batches, 250 items per cell**, committed at
+`datasets/slice3/batches/out_0{0..4}.json`. The `eval_shared` control is built
+and committed at `datasets/slice3/eval_shared.json`. Nothing more needs writing.
 
-All published results so far are at **n=100** (batches 00-01 only). Everything
-should be rerun once all five batches exist.
+**What is NOT done: extraction and analysis.** The old n=100 activation files
+were deleted to force a clean re-extraction, and the re-run was interrupted, so
+**there are currently no `results/s3_*.npz` files at all.** That is the first
+thing to do:
+
+```
+.venv\Scripts\python -m vnaa.run_slice3 extract --dtype bfloat16 --device-map auto
+.venv\Scripts\python -m vnaa.run_slice3 analyze
+```
+
+Extraction is ~15 min on the 5070 Ti for 4 cells x 3 read points x 250 items,
+plus trajectories. `run_slice3.load_cells()` picks up `eval_shared`
+automatically, so both commands cover all four cells with no extra flags.
+
+The results recorded below are the **n=100** numbers from batches 00-01 only.
+Replace them with the n=250 figures once the run finishes.
+
+## Gate status at n=250 (already run, `gate_slice3.py`)
+
+- shape errors 0 across all 250 items
+- framing separation PASS: test cues in 97% of `eval_obvious`, 3% of
+  `eval_disguised`
+- length PASS everywhere (0.51 whole-conversation, 0.56 final turn)
+- format FAIL: 0.642 whole-conversation, 0.712 final turn. Note the
+  whole-conversation figure **improved from 0.76 at n=100**, because batches
+  02-04 were written with the revised opening instructions. Expect format never
+  to reach the 0.10 gate — that is the established slice-2b position (speech act
+  is the label), which is why transfer and the `eval_shared` control carry the
+  argument instead.
 
 ## Reproducing the slice-3 inputs
 
@@ -711,28 +731,28 @@ given the seed, so anyone with WildChat access gets identical inputs.
 
 ## The steps to finish slice 3
 
-1. Merge and gate: `.venv\Scripts\python -m vnaa.gate_slice3`. Expect the
-   final-user-turn contrast to pass length and format and the whole-conversation
-   contrast to fail format (~0.76); that residual is domain content in the
-   assistant turns, diagnosed and not fixable by matching.
-2. Rebuild the `eval_shared` control. **This is currently ad-hoc inline code,
-   not a script — write it properly.** It takes each `deploy` conversation and
-   replaces ONLY its final user turn with that item's `eval_disguised` final
-   user turn, writing `datasets/slice3/eval_shared.json`. Openings are then
-   identical by construction, which is what makes `post_instruction_token` a
-   real sanity check.
-3. Extract: `.venv\Scripts\python -m vnaa.run_slice3 extract --dtype bfloat16
-   --device-map auto` (~10 min for 250/cell on the 5070 Ti), then extract the
-   `eval_shared` cell the same way.
-4. Analyze: `.venv\Scripts\python -m vnaa.run_slice3 analyze`.
-5. Two numbers decide the slice: does the **+0.268 final-turn margin** hold at
+1. Extract and analyze (commands above). Everything upstream is done.
+2. Two numbers decide the slice: does the **+0.268 final-turn margin** hold at
    n=250, and does the as-written `eval_disguised` cell's
    **post_instruction_token drop from 0.994 toward chance**? Batches 02-04 were
    written with revised instructions (open on an ordinary everyday need, let the
    question arrive as a tangent) specifically to fix that leak, so compare
    batches 00-01 against 02-04 to see whether the instruction change worked.
    If it did, that comparison is itself a reportable result about how easily
-   synthetic "disguised" evaluations betray themselves.
+   synthetic "disguised" evaluations betray themselves. `run_slice3.load_cells`
+   returns cells in batch order, so items 0-99 are the old instructions and
+   100-249 the revised ones.
+3. Sanity check that must hold: `eval_shared` at `post_instruction_token` must
+   be ~0.500. `build_eval_shared.py` asserts the conversation prefixes are
+   byte-identical, so anything else means a bug in the read-point indices, not
+   a finding.
+4. Then: figures for slice 3, update README/CLAUDE with final numbers, and the
+   per-turn trajectory analysis (extracted but never yet analyzed — it is the
+   one read point with no results at all, and it answers where in a
+   conversation the signal appears).
+5. The obvious next control, currently unbuilt: a matched-coherence version of
+   `eval_shared` where the eval question follows naturally from the preceding
+   turns instead of arriving as a topic shift.
 
 ## Things that will bite you
 
