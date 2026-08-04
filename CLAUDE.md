@@ -528,6 +528,56 @@ cells does transfer to a cell with untouched deployment prompts.
 Remaining caveats: n=250/cell means 75/cell held out, so per-transfer CIs are
 about +/-0.05.
 
+## Slice 3 results so far (8B, n=100/cell — 2 of 5 batches written)
+
+Only batches 00-01 exist; the other three writers were stopped mid-run. All
+numbers below are 5 seeds, mean +/- sd, and should be redone at n=250.
+
+**Read points and what each can see.** Attention is causal, so a hidden state
+at token i depends only on tokens <= i. `post_instruction_token` sits at the
+end of the FIRST user turn and therefore has not seen the eval question at all;
+`last_user_token` and `final_turn_mean` sit in the final user turn and have
+seen everything. The text baseline for each read point must be restricted to
+what that position sees, or the comparison is rigged — a first pass here gave
+`final_turn_mean` a final-turn-only baseline while the probe saw the whole
+conversation, inflating its margin from +0.08 to +0.27.
+
+**Finding 1 (a dataset failure, caught by the read points).** On the
+as-written cells, the probe scores **0.994 at `post_instruction_token`** — a
+position that cannot see the eval question — and bag-of-words on that opening
+turn alone scores 0.926. The disguised conversations are identifiable from
+their FIRST turn. Writers invented science-flavoured lead-ins while the deploy
+openings are rewrites of real, messy user needs, so the "disguise" fails at the
+conversation level and the high AUROC partly reflects synthetic-lead-in
+detection, not eval recognition.
+
+**Finding 2 (the fix, and the strongest result in the project).** Building
+`eval_shared` by mechanical recombination — take the DEPLOY conversation and
+replace only its final user turn with the eval question — makes the openings
+identical by construction, at no writer cost. Then:
+
+| read point | probe | BoW (whole conv) | BoW (final turn only) |
+|---|---|---|---|
+| post_instruction_token | **0.502** | 0.500 | — |
+| last_user_token | **0.994** | 0.592 | 0.726 |
+| final_turn_mean | 0.993 | 0.592 | 0.726 |
+
+- `post_instruction_token` lands at exactly chance, which is the sanity check
+  the construction demands: identical text cannot separate.
+- At the final turn the probe hits 0.994 while the toughest lexical baseline
+  (final turn alone) reaches 0.726 and format 0.614 — a margin of **+0.268**,
+  far larger than slice 2b's +0.071.
+
+Caveat to state plainly: the probe reads a position that can attend selectively
+to the final turn, while bag-of-words averages over whatever text view it is
+given, so some of the margin is that asymmetry rather than depth of
+representation. Reporting both baseline views (whole conversation +0.40, final
+turn only +0.268) is the honest range.
+
+Also note `eval_shared` conversations are deliberately topic-shifted: the
+question does not follow from the preceding turns. Real users do change subject,
+but a matched-coherence version is the obvious next control.
+
 ## What's next
 
 The full forward plan lives in `PLAN.md` (written Aug 2026 after a research
