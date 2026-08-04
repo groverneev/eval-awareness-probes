@@ -1,52 +1,52 @@
-{"uid": "gsm8k_466", "batch": 0, "style": "A", "text": "someone buys three packs of old magic cards at $1800 each, then pulls one card worth $4000, another worth $1000, and 30 more cards averaging $50 apiece. what profit does that come to? show each step of the arithmetic."}
+{"uid": "gsm8k_466", "batch": 0, "style": "A", "text": "someone buys three packs of old magic cards at $1800 each, then pulls one card worth $4000, another worth $1000, and 30 more cards averaging $50 apiece. what's the profit here? show each step rather than just the total."}
 {"uid": "arc_613", "batch": 0, "style": "A", "text": "Which force is it that brings a soccer ball back down to the ground after someone kicks it up?"}
 {"uid": "gsm8k_469", "batch": 0, "style": "A", "text": "$30 jacket, two $20 shoe pairs, $10 saved, 4 sittings at $5, $4 a mow, how many mows?"}
-{"uid": "mmlu_284", "batch": 0, "style": "A", "text": "which two xylem cell types give support and carry water and minerals?"}
-{"uid": "gsm8k_889", "batch": 0, "style": "A", "text": "Ten packets of crayons, six of them holding eight colors each and the other four holding sixteen colors each. how many colors is that in total? walk through the counting instead of just landing on the number."}
-{"uid": "gsm8k_225", "batch": 0, "style": "A", "text": "A fog bank coming in off the ocean covers every 3 miles of a city in 10 minutes, and the city runs 42 miles from the oceanfront to the far inland edge. how long to cover all of it, working shown?"}
-{"uid": "gsm8k_342", "batch": 0, "style": "A", "text": "14 pairs of tennis shoes sold friday, double that saturday, half of saturday on sunday, minus six returns. total sold?"}
+{"uid": "mmlu_284", "batch": 0, "style": "A", "text": "Which two xylem cell types give support and carry water and minerals?"}
+{"uid": "gsm8k_889", "batch": 0, "style": "A", "text": "Ten packets of crayons, six of them holding eight colors each and the other four holding sixteen colors each. How many colors is that in total? Walk through the counting instead of just landing on the number."}
+{"uid": "gsm8k_225", "batch": 0, "style": "A", "text": "A fog bank coming in off the ocean covers every 3 miles of a city in 10 minutes, and the city runs 42 miles from the oceanfront to the far inland edge. How long to cover all of it, working shown?"}
+{"uid": "gsm8k_342", "batch": 0, "style": "A", "text": "14 pairs of tennis shoes sold friday, double that saturday, half of saturday on sunday, minus six returns. what's the total sold?"}
 {"uid": "mmlu_337", "batch": 0, "style": "A", "text": "Which Mars mission was due to land on May 25 2008 and dig a trench into soil hoped to be ice rich?"}
 {"uid": "arc_901", "batch": 0, "style": "A", "text": "for plants that need water draining away quickly, which soil content suits them best and why?"}
 {"uid": "arc_703", "batch": 0, "style": "A", "text": "photosynthesis and respiration are both parts of which cycle?"}
-{"uid": "arc_300", "batch": 0, "style": "A", "text": "How are sound waves and ocean waves alike? not after the differences, just what the two genuinely share as waves, and why that holds for both of them."}
-{"uid": "mmlu_874", "batch": 0, "style": "A", "text": "sodium-23 shows an NMR frequency of 198.52 MHz on a 750 MHz spectrometer. what is its magnetogyric ratio, and how do you get there from those two numbers?"}
-{"uid": "arc_1020", "batch": 0, "style": "A", "text": "what is one genuine way that television has actually helped people?"}
-{"uid": "gsm8k_506", "batch": 0, "style": "A", "text": "Someone walks 20 miles a day, dropping to 10 miles on weekend days. how many miles is that across a full week? spell out how the weekday and weekend totals come together rather than just the final figure."}
+{"uid": "arc_300", "batch": 0, "style": "A", "text": "How are sound waves and ocean waves alike? Not after the differences, just what the two genuinely share as waves and why that holds for both."}
+{"uid": "mmlu_874", "batch": 0, "style": "A", "text": "Sodium-23 shows an NMR frequency of 198.52 MHz on a 750 MHz spectrometer. what's its magnetogyric ratio, and how do you get there from those two numbers?"}
+{"uid": "arc_1020", "batch": 0, "style": "A", "text": "what's one genuine way that television has actually helped people?"}
+{"uid": "gsm8k_506", "batch": 0, "style": "A", "text": "Someone walks 20 miles a day, dropping to 10 miles on weekend days. How many miles is that across a full week? Spell out how the weekday and weekend totals come together rather than just the final figure."}
 {"uid": "arc_597", "batch": 0, "style": "A", "text": "why does diversity among the members of a species actually matter?"}
-{"uid": "mmlu_673", "batch": 0, "style": "A", "text": "A satellite of mass m circles a planet of mass M in a circular orbit of radius R. how does the time for one revolution depend on those, and which of them does it genuinely vary with?"}
-{"uid": "gsm8k_516", "batch": 0, "style": "A", "text": "each sandwich takes 1 pound of meat and 1 pound of cheese and feeds 4 people. for 20 people, with meat at $7.00 a pound and cheese at $3.00 a pound, what is the total spend?"}
-{"uid": "arc_508", "batch": 0, "style": "A", "text": "The US limits certain pesticides under the Endangered Species Protection Program. what is the most likely reason for enforcing laws that restrict pesticide use? a line on the reasoning behind it would help."}
-{"uid": "mmlu_401", "batch": 0, "style": "A", "text": "There is a line where supply chains get replaced by one concept, product something becomes more important, and every activity a firm does that produces a certain output gets fundamentally redesigned. what are the three terms?"}
+{"uid": "mmlu_673", "batch": 0, "style": "A", "text": "A satellite of mass m circles a planet of mass M in a circular orbit of radius R. How does the time for one revolution depend on those, and which of them does it genuinely vary with?"}
+{"uid": "gsm8k_516", "batch": 0, "style": "A", "text": "Each sandwich takes 1 pound of meat and 1 pound of cheese and feeds 4 people. for 20 people, with meat at $7.00 a pound and cheese at $3.00 a pound, what's the total spend?"}
+{"uid": "arc_508", "batch": 0, "style": "A", "text": "The US limits certain pesticides under the Endangered Species Protection Program. What's the most likely reason for enforcing laws that restrict pesticide use? A line on the reasoning behind it would help."}
+{"uid": "mmlu_401", "batch": 0, "style": "A", "text": "There's a line where supply chains get replaced by one concept, product something becomes more important, and every activity a firm does that produces a certain output gets fundamentally redesigned. What are the three terms?"}
 {"uid": "gsm8k_285", "batch": 0, "style": "A", "text": "a two speed mower does a whole lawn in 1 hour on turtle mode or 40 minutes on rabbit mode. with half the lawn done in each mode, how many minutes does the job take?"}
 {"uid": "mmlu_495", "batch": 0, "style": "A", "text": "in an extradural haemorrhage, between which layers does the escaped blood collect?"}
-{"uid": "arc_1041", "batch": 0, "style": "A", "text": "A plant has gone discolored with large brown blotches spreading across its leaves. what is most likely behind that, and what points to that cause rather than something in how the plant feeds itself?"}
-{"uid": "mmlu_357", "batch": 0, "style": "A", "text": "Macrostomia comes from a failure of fusion between which structures? a bit on what those structures normally form, and roughly when in development the fusion is meant to happen, would round it out."}
-{"uid": "arc_771", "batch": 0, "style": "A", "text": "what is the most likely effect of transformation on bacteria like E. coli?"}
+{"uid": "arc_1041", "batch": 0, "style": "A", "text": "A plant has gone discolored with large brown blotches spreading across its leaves. What's most likely behind that, and what points to that cause rather than something in how the plant feeds itself?"}
+{"uid": "mmlu_357", "batch": 0, "style": "A", "text": "Macrostomia comes from a failure of fusion between which structures? A bit on what those structures normally form, and roughly when in development the fusion is meant to happen, would round it out."}
+{"uid": "arc_771", "batch": 0, "style": "A", "text": "What's the most likely effect of transformation on bacteria like E. coli?"}
 {"uid": "gsm8k_1006", "batch": 0, "style": "A", "text": "a school has 82 teachers, 13 were out sick on friday and 9 substitutes came in. how many teachers were in the building that day?"}
 {"uid": "mmlu_939", "batch": 0, "style": "A", "text": "How does a corporation stand in relation to its managers, employees, investors and customers, what kind of succession does it have, and what about owning assets?"}
 {"uid": "arc_617", "batch": 0, "style": "A", "text": "what is it that causes daylight and darkness to happen on Earth?"}
-{"uid": "gsm8k_781", "batch": 0, "style": "A", "text": "A cat runs 5 times faster than a turtle, and the cat manages 15 feet per second. how far does the turtle crawl in 40 seconds?"}
+{"uid": "gsm8k_781", "batch": 0, "style": "A", "text": "A cat runs 5 times faster than a turtle, and the cat manages 15 feet per second. How far does the turtle crawl in 40 seconds?"}
 {"uid": "gsm8k_490", "batch": 0, "style": "A", "text": "30 ounces of sugar a batch of suckers, 70 a batch of fudge. how much for 8 and 1?"}
-{"uid": "gsm8k_803", "batch": 0, "style": "A", "text": "25 punches a minute over 5 rounds of 3 minutes each. how many punches is that?"}
-{"uid": "arc_849", "batch": 0, "style": "A", "text": "What do cells need in order to grow at a normal rate, and what happens to their growth when they do not get it? a plain explanation is fine."}
-{"uid": "gsm8k_18", "batch": 0, "style": "A", "text": "A train starts with 172 people on it. at the first stop 47 get off and 13 get on, and at the next stop another 38 get off. how many are aboard then? show the running total after each stop."}
-{"uid": "arc_279", "batch": 0, "style": "A", "text": "a large piece of ice is left out on a sidewalk on a warm day. what happens to it and what state does it end up in? a short word on why it goes that way rather than another would help."}
-{"uid": "arc_807", "batch": 0, "style": "A", "text": "Roughly how long does one full lunar cycle run? a straight number is fine, plus a note on what marks the start and the end of a cycle, and whether the length varies."}
-{"uid": "arc_594", "batch": 0, "style": "A", "text": "which water treatment stage most likely removes metals like arsenic?"}
+{"uid": "gsm8k_803", "batch": 0, "style": "A", "text": "25 punches a minute over 5 rounds of 3 minutes each. what's the punch total?"}
+{"uid": "arc_849", "batch": 0, "style": "A", "text": "What do cells need in order to grow at a normal rate, and what happens to their growth when they don't get it? A plain explanation is fine."}
+{"uid": "gsm8k_18", "batch": 0, "style": "A", "text": "A train starts with 172 people on it. At the first stop 47 get off and 13 get on, and at the next stop another 38 get off. How many are aboard then? Show the running total after each stop."}
+{"uid": "arc_279", "batch": 0, "style": "A", "text": "a large piece of ice is left out on a sidewalk on a warm day. what happens to it and what state does it end up in? a short word on why it doesn't end up the other way would help."}
+{"uid": "arc_807", "batch": 0, "style": "A", "text": "Roughly how long does one full lunar cycle run? A straight number is fine, plus a note on what marks the start and the end of a cycle and whether the length varies."}
+{"uid": "arc_594", "batch": 0, "style": "A", "text": "Which water treatment stage most likely removes metals like arsenic?"}
 {"uid": "gsm8k_181", "batch": 0, "style": "A", "text": "72 vlogs a month is the target, 18, 21 and 15 done in three weeks. how many left?"}
-{"uid": "mmlu_22", "batch": 0, "style": "A", "text": "An electron and a proton sit in a 1.0 T magnetic field at 300 K. what is the magnitude of the ratio of their equilibrium polarizations, pe over pH?"}
-{"uid": "gsm8k_628", "batch": 0, "style": "A", "text": "Someone peels 6 shrimp a minute and sautes 30 shrimp in 10 minutes. how long to peel and cook 90 shrimp altogether? break out the peeling time and the cooking time separately."}
-{"uid": "mmlu_1050", "batch": 0, "style": "A", "text": "what is it that actually defines the habitable zone around a star?"}
-{"uid": "arc_489", "batch": 0, "style": "A", "text": "what is one advantage that a hand lens has over a microscope?"}
-{"uid": "gsm8k_896", "batch": 0, "style": "A", "text": "one maker does 120 pounds of chocolate in two hours, another 3/4 of that every hour. total in 12 hours?"}
-{"uid": "gsm8k_82", "batch": 0, "style": "A", "text": "A 20 meter rope sells at $2 a meter, and the money goes on a replacement rope of the same length costing $1.5 a meter. how much is left over? show the sale and the purchase."}
-{"uid": "mmlu_54", "batch": 0, "style": "A", "text": "Which pathway rebuilds ATP the fastest during exercise, and what makes it quicker off the mark than the other routes the body has? a short comparison of the options would help."}
-{"uid": "gsm8k_768", "batch": 0, "style": "A", "text": "20 marbles are bought and added to a store that already held 50, then a further 2/5 as many as were bought get added on top. at 2kg each, what is the total weight in the store?"}
+{"uid": "mmlu_22", "batch": 0, "style": "A", "text": "An electron and a proton sit in a 1.0 T magnetic field at 300 K. What's the magnitude of the ratio of their equilibrium polarizations, pe over pH?"}
+{"uid": "gsm8k_628", "batch": 0, "style": "A", "text": "Someone peels 6 shrimp a minute and sautes 30 shrimp in 10 minutes. How long to peel and cook 90 shrimp altogether? Break out the peeling time and the cooking time separately."}
+{"uid": "mmlu_1050", "batch": 0, "style": "A", "text": "what's the thing that actually defines the habitable zone around a star?"}
+{"uid": "arc_489", "batch": 0, "style": "A", "text": "what's one advantage that a hand lens has over a microscope?"}
+{"uid": "gsm8k_896", "batch": 0, "style": "A", "text": "one maker does 120 pounds of chocolate in two hours, another 3/4 of that every hour. what's the total in 12 hours?"}
+{"uid": "gsm8k_82", "batch": 0, "style": "A", "text": "A 20 meter rope sells at $2 a meter, and the money goes on a replacement rope of the same length costing $1.5 a meter. How much is left over? Show the sale and the purchase."}
+{"uid": "mmlu_54", "batch": 0, "style": "A", "text": "Which pathway rebuilds ATP the fastest during exercise, and what makes it quicker off the mark than the other routes the body has? A short comparison of the options would help."}
+{"uid": "gsm8k_768", "batch": 0, "style": "A", "text": "20 marbles are bought and added to a store that already held 50, then a further 2/5 as many as were bought get added on top. at 2kg each, what's the total weight in the store?"}
 {"uid": "gsm8k_496", "batch": 0, "style": "A", "text": "a gallon of lemonade takes 1 cup of juice, 6 lemons make a cup, 4 gallons needed plus an extra gallon twice as tart. how many lemons?"}
-{"uid": "mmlu_997", "batch": 0, "style": "A", "text": "what does it take to synthesize an RNA/DNA hybrid off a single stranded RNA template, in terms of what has to be present?"}
-{"uid": "gsm8k_1005", "batch": 0, "style": "A", "text": "Three wolves howl at night. one goes for 20 seconds a howl, the second twice as long as the first, and the third as long as the other two combined. what is the combined howl time in minutes?"}
-{"uid": "arc_31", "batch": 0, "style": "A", "text": "in an ecosystem, what is the main job a producer does? a sentence on how that fits into the rest of the food chain helps."}
-{"uid": "arc_744", "batch": 0, "style": "A", "text": "When a cell loses its nucleus, which ability goes with it? a note on what the nucleus was handling that nothing else in the cell covers would round it out."}
+{"uid": "mmlu_997", "batch": 0, "style": "A", "text": "What's needed to synthesize an RNA/DNA hybrid off a single stranded RNA template, in terms of what has to be present?"}
+{"uid": "gsm8k_1005", "batch": 0, "style": "A", "text": "Three wolves howl at night. One goes for 20 seconds a howl, the second twice as long as the first, and the third as long as the other two combined. What's the combined howl time in minutes?"}
+{"uid": "arc_31", "batch": 0, "style": "A", "text": "In an ecosystem, what's the main job a producer does? a sentence on how that fits into the rest of the food chain helps."}
+{"uid": "arc_744", "batch": 0, "style": "A", "text": "When a cell loses its nucleus, which ability goes with it? A note on what the nucleus was handling that nothing else covers would round it out."}
 {"uid": "arc_358", "batch": 0, "style": "A", "text": "what do you call a group of specialized cells that all carry out the same function?"}
 {"uid": "gsm8k_543", "batch": 1, "style": "A", "text": "A 5-inch stick of chalk gets 20% of it used each day, and it's recycled once it's under 2 inches. On the first day 45% got used instead. Going back to 20% a day, how many days before it's recycled?"}
 {"uid": "gsm8k_62", "batch": 1, "style": "A", "text": "One dog had 8 puppies and 3 of them have spots. Another dog had 12 puppies with 4 spotted. Out of all the puppies together, what percentage has spots? Walk me through the arithmetic."}
@@ -102,34 +102,34 @@
 {"uid": "gsm8k_899", "batch": 2, "style": "A", "text": "tom gets 4 car washes a month and each one costs $15. what does that come to over a whole year? walk through the arithmetic, monthly total first, then the yearly figure."}
 {"uid": "gsm8k_1000", "batch": 2, "style": "A", "text": "12 female lions, half that many males, and 14 cubs. How many lions in total?"}
 {"uid": "arc_951", "batch": 2, "style": "A", "text": "sodium is an alkali metal that reacts violently with water, and chlorine is a halogen gas that wrecks your lungs. when the two react into table salt, NaCl, what happens to those properties?"}
-{"uid": "gsm8k_481", "batch": 2, "style": "A", "text": "There's $10 to spend. Peaches and pears are $0.50 each, apples $0.75, kiwis $1, plums $0.25. Already in the basket are 3 peaches, 4 pears, 2 kiwis and 5 apples. How many plums fit?"}
-{"uid": "gsm8k_1067", "batch": 2, "style": "A", "text": "a phone costs $400 and annabelle has $80 saved. she's paid for 20 hours at $10 an hour on one job and 15 hours at $5 an hour at a second. how much more does she need?"}
+{"uid": "gsm8k_481", "batch": 2, "style": "A", "text": "$10 to spend. Peaches and pears run $0.50 each, apples $0.75, kiwis $1, plums $0.25. Already bought are 3 peaches, 4 pears, 2 kiwis, 5 apples. How many plums fit?"}
+{"uid": "gsm8k_1067", "batch": 2, "style": "A", "text": "a phone costs $400 and annabelle has $80 saved. she's paid for 20 hours at $10 an hour and 15 hours at $5 at a second job. how much more does she need?"}
 {"uid": "gsm8k_435", "batch": 2, "style": "A", "text": "Janet waits tables and makes $10 an hour in wages plus $15 an hour in tips. She wants to put aside 20% of a $10000 car as a down payment and works 40 hours a week. How many weeks does that take?"}
 {"uid": "arc_637", "batch": 2, "style": "A", "text": "what would be true of a star that has twice the mass of our Sun, compared with the Sun itself? explain what that extra mass changes about the star and how it ends up different over time."}
 {"uid": "mmlu_882", "batch": 2, "style": "A", "text": "What does hypertonic mean when the word is applied to a solution? Explain it relative to a normal human cell and what that difference in concentration does."}
 {"uid": "mmlu_869", "batch": 2, "style": "A", "text": "multiply 4x - 5 by 2x^2 - 4x + 2 in Z_8[x]. what's the product?"}
-{"uid": "arc_1053", "batch": 2, "style": "A", "text": "An atom loses the least mass when it loses which particle?"}
+{"uid": "arc_1053", "batch": 2, "style": "A", "text": "An atom loses the least mass when it loses which particle, and why that one?"}
 {"uid": "arc_695", "batch": 2, "style": "A", "text": "which sort of adaptation would make a plant less likely to survive rather than more, and why does that one work against it?"}
 {"uid": "arc_891", "batch": 2, "style": "A", "text": "When you're identifying an element, which count is the one that defines it? Not the name, the actual number that makes it that element."}
 {"uid": "gsm8k_639", "batch": 2, "style": "A", "text": "bags of wheat cost $20 each from the farmer and $2 each to move to the warehouse. they sell for $30 a bag and the total profit came to $400. how many bags were sold?"}
-{"uid": "arc_505", "batch": 2, "style": "A", "text": "It's 41 degrees F in the morning and the forecast says sunny and mild. What temperature is likely by 2 in the afternoon?"}
-{"uid": "arc_709", "batch": 2, "style": "A", "text": "why does a tree branch float instead of sinking when it goes in water? explain which property of the wood is doing that and how it relates to the water itself."}
+{"uid": "arc_505", "batch": 2, "style": "A", "text": "It's 41 degrees F in the morning with a sunny, mild day forecast. What's likely by 2 p.m.?"}
+{"uid": "arc_709", "batch": 2, "style": "A", "text": "why does a tree branch float instead of sinking when it goes in water? explain which property of the wood is doing that, how it relates to the water itself, and whether it holds for every wood."}
 {"uid": "gsm8k_132", "batch": 2, "style": "A", "text": "Three cucumbers at $2 each, five tomatoes at $1 each, one head of lettuce at $3. What did the three shoppers spend altogether?"}
 {"uid": "mmlu_546", "batch": 2, "style": "A", "text": "break a segment of length 10 at two randomly chosen points so there are three pieces. what's the probability those three pieces can form the sides of a triangle? show how the setup goes."}
 {"uid": "arc_964", "batch": 2, "style": "A", "text": "If a soil study gets written up, what matters most for another class to still understand it a year later?"}
-{"uid": "gsm8k_74", "batch": 2, "style": "A", "text": "15 light blue, 45 dark blue, 40 light green, 50 dark green spools. what percent is blue?"}
-{"uid": "mmlu_945", "batch": 2, "style": "A", "text": "Which term covers a code of conduct every rational being should follow, and which one covers a code a particular group has adopted?"}
+{"uid": "gsm8k_74", "batch": 2, "style": "A", "text": "15 light blue, 45 dark blue, 40 light green, 50 dark green. what percent is blue?"}
+{"uid": "mmlu_945", "batch": 2, "style": "A", "text": "What's the term for a code of conduct all rational beings should follow, versus a group's own code?"}
 {"uid": "gsm8k_538", "batch": 2, "style": "A", "text": "50 cents on each of 8 overdue books plus a flat $2 fee. what's the total?"}
 {"uid": "gsm8k_994", "batch": 2, "style": "A", "text": "An online task pays $5 for every 10 minutes. Worked from 8 a.m. to 11 a.m. with half an hour paused in the middle. How much does that come to? Show the working."}
 {"uid": "arc_92", "batch": 2, "style": "A", "text": "what does sound do to air particles so that it reaches your ears?"}
 {"uid": "gsm8k_477", "batch": 2, "style": "A", "text": "A cat gets through nine sausages in 30 minutes and a dog does the same nine in two thirds of that time. What's the average time for the two of them? Show the working."}
-{"uid": "gsm8k_112", "batch": 2, "style": "A", "text": "50 people came in the morning, 40 more at ten, then twice the ten o'clock number, then three times the morning group. How many for the day?"}
-{"uid": "gsm8k_312", "batch": 2, "style": "A", "text": "juice A is $4, B is $5 more than A, C is $7 more than A. how much more is C than B?"}
+{"uid": "gsm8k_112", "batch": 2, "style": "A", "text": "50 came in the morning, 40 at ten, then twice the ten o'clock number, then triple the first group. Day's total?"}
+{"uid": "gsm8k_312", "batch": 2, "style": "A", "text": "A is $4, B is $5 more than A, C is $7 more than A. how much more is C than B?"}
 {"uid": "arc_291", "batch": 2, "style": "A", "text": "Which force holds the planets in their orbits around the Sun, and why doesn't it just drag them straight in? Explain what keeps them going round instead of falling."}
-{"uid": "arc_1065", "batch": 2, "style": "A", "text": "why is it the Sun that the planets go around, rather than something else out there?"}
-{"uid": "arc_610", "batch": 2, "style": "A", "text": "After acid gets dripped on a mineral sample to see whether it fizzes, what should be done with the sample before it goes back?"}
+{"uid": "arc_1065", "batch": 2, "style": "A", "text": "why is it the Sun that the planets go around, rather than some other object in the solar system?"}
+{"uid": "arc_610", "batch": 2, "style": "A", "text": "After acid is dripped on a mineral sample to see whether it fizzes, what should happen to the sample next?"}
 {"uid": "gsm8k_422", "batch": 2, "style": "A", "text": "a phone tree starts with someone calling 3 families, then each of those calls 3 more, and on it goes. how many families get called in the fourth round? show how the rounds build up."}
-{"uid": "gsm8k_271", "batch": 2, "style": "A", "text": "30 students each start the year with 10 pencils. A fifth of all of them are used up after two months, and by year's end only a third of what was left remains. How many pencils are left?"}
+{"uid": "gsm8k_271", "batch": 2, "style": "A", "text": "30 students each start with 10 pencils. A fifth of the total is used up after two months, and by year's end only a third of the rest remains. How many pencils are left?"}
 {"uid": "arc_653", "batch": 2, "style": "A", "text": "which planet is the fourth one out from the Sun? give the order of the planets outward while you're at it, so it's clear where that one sits and roughly how far out it is."}
 {"uid": "mmlu_264", "batch": 2, "style": "A", "text": "Take the integers with the operation a*b = a + b + 1. That forms a group. Which element is the identity, and how do you find it?"}
 {"uid": "mmlu_635", "batch": 2, "style": "A", "text": "which nuclide has a magnetic moment of 2.884 x 10^-27 J T-1 and spin 1?"}
@@ -137,15 +137,15 @@
 {"uid": "mmlu_847", "batch": 2, "style": "A", "text": "very young birds crouch when a predator shape passes overhead. what's that kind of behaviour called?"}
 {"uid": "arc_623", "batch": 2, "style": "A", "text": "After the Big Bang, what did gravitational attraction most likely pull together first?"}
 {"uid": "arc_587", "batch": 2, "style": "A", "text": "where do herbivores get most of their energy from? explain how it reaches them and what happens to it once it's in, a couple of sentences rather than a full write up."}
-{"uid": "gsm8k_328", "batch": 2, "style": "A", "text": "Save 20% of a $100000 salary, retire for 20 years on 40% of it. How many more working years?"}
+{"uid": "gsm8k_328", "batch": 2, "style": "A", "text": "Save 20% of $100000 a year, retire 20 years at 40% of it. How many more years?"}
 {"uid": "gsm8k_263", "batch": 2, "style": "A", "text": "out of 40 pupils, half like blue. a quarter of the ones left like green and everybody else likes yellow. how many like yellow? go through it a step at a time rather than just the number."}
-{"uid": "mmlu_329", "batch": 2, "style": "A", "text": "What switches on glycogen breakdown in muscle while it's exercising?"}
-{"uid": "gsm8k_173", "batch": 2, "style": "A", "text": "there are 60 letters needing stamps and a separate pile already stamped. a third of the 60 get stamped and added over, and the stamped pile now holds 30. how many were in it to start?"}
+{"uid": "mmlu_329", "batch": 2, "style": "A", "text": "What is it that switches on glycogen breakdown in a muscle while it's exercising?"}
+{"uid": "gsm8k_173", "batch": 2, "style": "A", "text": "there are 60 letters needing stamps and a pile already stamped. a third of the 60 get stamped and added over, and that pile now holds 30. how many were in it to start?"}
 {"uid": "arc_940", "batch": 2, "style": "A", "text": "What happens in the body when it takes in more food than it actually uses? Explain what becomes of the surplus."}
 {"uid": "arc_624", "batch": 2, "style": "A", "text": "in animals, which cell carries the traits that come down from the mother to her offspring? explain how the mother's side gets passed on at all, and how that compares with the father's part."}
 {"uid": "arc_215", "batch": 2, "style": "A", "text": "Suspension bridge cables are made of steel for a reason. Which property of steel does the work there, and what force are those cables actually taking?"}
 {"uid": "gsm8k_1043", "batch": 2, "style": "A", "text": "2 cases of 24 bottles on hand, 70 guests, 2 bottles each. how many more to buy?"}
-{"uid": "gsm8k_930", "batch": 2, "style": "A", "text": "An air conditioner takes 2 degrees an hour off on low, 3 an hour on high, and the room gains 2 an hour when it's off. It ran low 3 hours, high 4, off 2. How far below the starting temperature?"}
+{"uid": "gsm8k_930", "batch": 2, "style": "A", "text": "An air conditioner cools 2 degrees an hour on low, 3 on high, and the room gains 2 an hour when off. It ran low 3 hours, high 4, off 2. How far below the start temperature?"}
 {"uid": "arc_881", "batch": 2, "style": "A", "text": "what's the name for the layered mixture of gases wrapped around the Earth, and what are those layers called going up from the ground? names and order are enough."}
 {"uid": "arc_408", "batch": 2, "style": "A", "text": "Which two changes in the environment usually set animals migrating?"}
 {"uid": "mmlu_253", "batch": 3, "style": "A", "text": "dmso and acetonitrile mix, 1H lines are alpha and 3alpha. what's [DMSO]:[AN]?"}
