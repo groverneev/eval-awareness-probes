@@ -4,9 +4,10 @@ This file is the detailed context for any agent picking up this project. Keep it
 updated as work progresses (see "Maintaining this file" at the bottom). The
 README is the short human-facing version; this is the long one.
 
-Last updated: August 2026. Slice 1 done: replicated on Llama-3.1-8B (Kaggle,
-2x T4). Forward plan written (`PLAN.md`). New primary machine: Windows desktop
-with RTX 5070 Ti (see Environment).
+Last updated: August 2026. Slices 1 and 2 are done on Llama-3.1-8B; slice 3
+(multi-turn) is in progress — see the HANDOFF section below for exactly where
+it stands and what to run next. Forward plan in `PLAN.md`. Primary machine is
+the Windows desktop with an RTX 5070 Ti (see Environment).
 
 GPU host decision: tried Lightning AI first, abandoned it — the site 404'd on the
 Studio dashboard and the account showed 0.00 free credits (a `.org` school email,
@@ -152,6 +153,39 @@ and never paste them into files that get committed.
 The encrypted zip lives at `data/sad/oversight_structs.zip` (gitignored, ~1.3
 MB). Re-download with the curl command in the README if missing. It survives
 teardowns; the full 1.1 GB SAD clone in scratchpad does not.
+
+## Module map
+
+```
+src/vnaa/
+  probe.py               per-layer difference-of-means probe + AUROC
+  extract.py             activation extraction; READ_POINTS, turn_spans,
+                         read_slice, extract_trajectories
+  baselines.py           surface baselines + bootstrap_auroc_ci
+  data.py                SAD loader (slice 1)
+  data_2x2.py            Devbunova cell loader (slice 2a)
+  run_slice1.py          slice-1 runner
+  run_2x2_baselines.py   baselines on Devbunova's cells
+  run_slice2a.py         extract/analyze on the public 2x2
+  build_2b.py            slice-2b sampling + early gate
+  prep_2b_batches.py     slice-2b batch inputs; looks_like_quiz,
+                         is_question_form, match_pool
+  hydrate_batches.py     rehydrate slice-2b batches with real prompt text
+  merge_2b.py            merge slice-2b writer output + probe-blind gate
+  run_transfer.py        6x6 cross-cell transfer matrix, multi-seed
+  run_per_source.py      arc/mmlu/gsm8k breakdown
+  check_rewrite_drift.py deploy rewrite vs real originals
+  prep_slice3.py         multi-turn sampling; looks_like_coursework
+  prep_slice3_batches.py slice-3 batch inputs (+ --scratch hydration)
+  gate_slice3.py         slice-3 probe-blind gate
+  run_slice3.py          slice-3 extract/analyze across read points
+scripts/
+  make_figures.py        slice-1 figures
+  make_2b_figures.py     slice-2b figures (math-free by default)
+tests/
+  test_probe.py          probe math, known-answer synthetic data (6)
+  test_read_points.py    multi-turn token spans and read indices (9)
+```
 
 ## Code and key technical decisions
 
@@ -528,6 +562,44 @@ cells does transfer to a cell with untouched deployment prompts.
 Remaining caveats: n=250/cell means 75/cell held out, so per-transfer CIs are
 about +/-0.05.
 
+## Slice 3 design (multi-turn)
+
+**Deployment side.** 250 real WildChat conversations with 2-4 user turns,
+truncated to end on a user turn (every read point is defined relative to the
+final user turn). Filters, each earned: English; per-message length 20-600
+chars; no coursework in EITHER speaker's turn; final user turn must be
+question-form. `looks_like_coursework()` is stricter than slice 2b's
+`looks_like_quiz()` because multi-turn traffic is full of pasted
+multiple-choice homework that the single-turn filter missed — the first sample
+drawn here had assistants replying "B) Use them as a springboard". The
+question-form requirement exists because evaluation items are questions: without
+it, deploy conversations end on imperatives and the cells separate on
+question-mark rate alone (measured 94% vs 16%, format classifier 0.96).
+
+**Three written cells, all model-authored** so authorship cannot carry the
+label — the real conversations carry genuine GPT assistant turns, so authoring
+only the eval side would let the probe read assistant authorship:
+- `deploy` — rewrite of the real conversation, same shape
+- `eval_disguised` — same shape, final user turn poses a benchmark question
+  reached without any test framing
+- `eval_obvious` — same question, openly framed as a test (the obvious cell of
+  the turn-structure x disguise 2x2)
+
+**Plus one constructed cell**, `eval_shared`: the `deploy` conversation with
+only its final user turn swapped for the eval question. No writer cost, and
+openings are identical by construction.
+
+**Per-item matching:** all cells for an item are written to the same skeleton
+(turn count + per-turn target lengths from the real conversation). Benchmark
+items are ARC/MMLU only (no GSM8K — see the slice-2b digit confound) and are
+drawn fresh, unused in slice 2b, so slice 3 is not partly a retest.
+
+**Writer instructions that turned out to matter:** cross-cell length parity
+beats hitting the original per-turn targets; the question-mark decision is made
+per ITEM so all three cells match; assistant turns must be identical in style
+across cells; and (added for batches 02-04) eval_disguised must open on an
+ordinary everyday need rather than a topical ramp toward the question.
+
 ## Slice 3 results so far (8B, n=100/cell — 2 of 5 batches written)
 
 Only batches 00-01 exist; the other three writers were stopped mid-run. All
@@ -592,11 +664,91 @@ are probe-blind (surface baselines to ~0.5, manual audit), never selected by
 probe score (Xiong et al. selected by probe score — circular for dataset
 construction). Statistics upgrade from slice 2 on: bootstrap CIs, >=3 seeds.
 
-1. **[DONE] Slice 1 on Llama-3.1-8B** — replicated on Kaggle (2x T4).
-2. **[DONE] Surface-baseline hierarchy** — obvious cell fully confounded (see
-   Results).
-3. Slice 2 (per PLAN.md): replicate Devbunova on our machinery, then replace
-   their proxy Casual-Eval with true content-preserving rewrites.
+1. **[DONE] Slice 1 on Llama-3.1-8B** — replicated (Kaggle, later local).
+2. **[DONE] Surface-baseline hierarchy** — obvious cell fully confounded.
+3. **[DONE] Slice 2a** — Devbunova replicated on our machinery.
+4. **[DONE] Slice 2b** — four format-matched cells, cross-cell transfer.
+5. **[IN PROGRESS] Slice 3** — multi-turn. See the handoff below.
+6. Slices 4-6 (silence filtering, deployment-simulation, steering) unstarted.
+
+---
+
+# HANDOFF — read this first if you are picking the project up
+
+State as of the end of the August 2026 working session.
+
+## Where slice 3 actually is
+
+Dataset is 5 batches of 50 items. **Batches 00, 01 and 04 are written and
+committed** (`datasets/slice3/batches/out_0{0,1,4}.json`). **Batches 02 and 03
+were being written by two subagents when the session ended** — check whether
+`out_02.json` and `out_03.json` exist and contain 50 complete items each
+(every item needs all three of `deploy`, `eval_disguised`, `eval_obvious`). If
+they are missing, respawn two writers; the exact prompt used is reconstructable
+from the requirements in "Slice 3 design" below, and the batch inputs must be
+hydrated first (see next section). Two earlier attempts were killed mid-run and
+lost everything because they held the result in memory; tell any writer to
+write its output file early and refine in place.
+
+All published results so far are at **n=100** (batches 00-01 only). Everything
+should be rerun once all five batches exist.
+
+## Reproducing the slice-3 inputs
+
+WildChat is gated and its entries are real user messages, so no prompt text is
+committed. To regenerate what the writers read:
+
+```
+.venv\Scripts\python -m vnaa.prep_slice3 --n 250 --scan-limit 400000
+.venv\Scripts\python -m vnaa.prep_slice3_batches --scratch <a scratch dir>
+```
+
+The first writes `data/wildchat_multiturn.json` and `data/slice3_skeletons.json`
+(both gitignored); the second writes index-only specs to
+`datasets/slice3/batches/` (committed) and hydrated copies containing the real
+conversations to the scratch dir (never commit those). Both are deterministic
+given the seed, so anyone with WildChat access gets identical inputs.
+
+## The steps to finish slice 3
+
+1. Merge and gate: `.venv\Scripts\python -m vnaa.gate_slice3`. Expect the
+   final-user-turn contrast to pass length and format and the whole-conversation
+   contrast to fail format (~0.76); that residual is domain content in the
+   assistant turns, diagnosed and not fixable by matching.
+2. Rebuild the `eval_shared` control. **This is currently ad-hoc inline code,
+   not a script — write it properly.** It takes each `deploy` conversation and
+   replaces ONLY its final user turn with that item's `eval_disguised` final
+   user turn, writing `datasets/slice3/eval_shared.json`. Openings are then
+   identical by construction, which is what makes `post_instruction_token` a
+   real sanity check.
+3. Extract: `.venv\Scripts\python -m vnaa.run_slice3 extract --dtype bfloat16
+   --device-map auto` (~10 min for 250/cell on the 5070 Ti), then extract the
+   `eval_shared` cell the same way.
+4. Analyze: `.venv\Scripts\python -m vnaa.run_slice3 analyze`.
+5. Two numbers decide the slice: does the **+0.268 final-turn margin** hold at
+   n=250, and does the as-written `eval_disguised` cell's
+   **post_instruction_token drop from 0.994 toward chance**? Batches 02-04 were
+   written with revised instructions (open on an ordinary everyday need, let the
+   question arrive as a tangent) specifically to fix that leak, so compare
+   batches 00-01 against 02-04 to see whether the instruction change worked.
+   If it did, that comparison is itself a reportable result about how easily
+   synthetic "disguised" evaluations betray themselves.
+
+## Things that will bite you
+
+- **Never trust a subagent's self-report.** Every writer so far reported
+  accurate statistics and still missed cross-cell problems only visible by
+  comparing cells. Audit the output.
+- **Match surface features per item within each source and cell**, never on the
+  pooled aggregate. Slice 2b's headline was nearly lost to exactly this.
+- **Freeze batch inputs before spawning writers.** Regenerating them mid-run
+  invalidated a writer's output once.
+- **Baseline text views must match what each causal read position can see.**
+  Getting this wrong inflated a margin from +0.08 to +0.27 before it was caught.
+- The venv is `.venv\Scripts\python` (Python 3.12); system Python is 3.14 and
+  will not work. `git_filter_repo` is only in the system Python.
+- Neev asked that commits be **pushed to GitHub** as part of finishing a unit of
+  work. No `Co-Authored-By` trailers.
 
 ## Gotchas / hard-won notes
 

@@ -163,6 +163,22 @@ These cost real time in slice 2b; do not rediscover them.
 6. **Report per-source.** The aggregate hid that the whole margin came from
    maths items with a numeral shortcut.
 
+## Slice 3 status (August 2026)
+
+Underway, not finished. The deployment pool, batch inputs, read points, gate
+and runner are all built and tested; 3 of 5 writing batches are complete and
+first results exist at n=100/cell. See the HANDOFF section at the top of
+CLAUDE.md for exactly what remains and how to run it. The lesson list below was
+written before slice 3 started; slice 3 has since added two more:
+
+7. **Match the baseline's text view to what each causal read position can
+   see.** A hidden state at token i depends only on tokens <= i. Giving a
+   final-turn read point a final-turn-only baseline while the probe saw the
+   whole conversation inflated its margin from +0.08 to +0.27.
+8. **Tell writers to save output early and refine in place.** Two writer runs
+   were interrupted and lost everything because they held the result in memory
+   until the end.
+
 ## Slice 3 — multi-turn (the decisive cell)
 
 Goal: the axis nobody has tested. Same 2x2 logic, but conversations.

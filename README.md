@@ -12,7 +12,8 @@ Chaudhary.
 
 ## Status
 
-Slices 1 and 2 are done on Llama-3.1-8B. Slice 3 (multi-turn) is next.
+Slices 1 and 2 are done on Llama-3.1-8B. Slice 3 (multi-turn) is in progress:
+3 of 5 writing batches complete, first results measured at n=100/cell.
 
 **Slice 1 — the replication, and why it is not enough.** The probe reaches
 AUROC 0.994 at layer 4 of 32, reproducing the prior single-turn result, and
@@ -51,7 +52,34 @@ Headline (ARC+MMLU, 5 seeds; GSM8K excluded because digit density alone scores
   learn — 0.31–0.55, at or below chance. That is where content-only eval
   recognition would have to appear, and it does not.
 
-Figures in `figures/`; full detail and caveats in `CLAUDE.md`.
+**Slice 3 — multi-turn (in progress, n=100/cell so far).** Real WildChat
+conversations of 2–4 user turns against conversations of identical shape whose
+final user turn poses a benchmark question. Because attention is causal, each
+read point sees a different amount of the conversation, and that turned out to
+be the most useful diagnostic in the project.
+
+- Reading at the end of the *first* user turn — a position that cannot see the
+  eval question — the probe scored **0.994**. The disguised conversations were
+  identifiable from their opening turn, because writers wrote science-flavoured
+  lead-ins while deployment openings are real user needs. The disguise was
+  failing at the conversation level.
+- Fixed by construction at no writing cost: take the deployment conversation and
+  swap **only** its final user turn for the eval question. Openings are then
+  identical, and the first-turn read point drops to **0.502** — the sanity check
+  the design demands.
+- With openings held identical, the probe reaches **0.994** at the final turn
+  against a final-turn lexical baseline of 0.726 and a format baseline of 0.614,
+  a margin of **+0.268** — roughly four times the single-turn result.
+
+Caveats stated plainly: the probe reads a position that can attend selectively
+to the final turn while bag-of-words averages over its whole text view, so part
+of that margin is the asymmetry rather than representational depth (reporting
+both baseline views, +0.40 and +0.268, is the honest range); and the shared-
+opening conversations are deliberately topic-shifted, so a matched-coherence
+control is the obvious next step.
+
+Figures in `figures/`; full detail, caveats, and a handoff section for picking
+the project up mid-flight are in `CLAUDE.md`.
 
 ## Approach in one paragraph
 
