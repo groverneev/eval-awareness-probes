@@ -1,0 +1,659 @@
+{
+ "batch": 2,
+ "eval": [
+  {
+   "uid": "arc_519",
+   "style_a": "Burning fossil fuels feeds global warming and that shifts what Earth's atmosphere is made of. Which invention would bring that effect down?",
+   "style_b": "We want to swap one thing at home this year to cut our carbon footprint. Which invention actually lowers the warming that comes from burning fossil fuels?"
+  },
+  {
+   "uid": "gsm8k_899",
+   "style_a": "tom gets 4 car washes a month and each one costs $15. what does that come to over a whole year? walk through the arithmetic, monthly total first, then the yearly figure.",
+   "style_b": "i get my car washed 4 times a month at $15 a go and my girlfriend reckons it adds up to way more than i think. what does that cost me over a year? show the working so i can prove it."
+  },
+  {
+   "uid": "gsm8k_1000",
+   "style_a": "12 female lions, half that many males, and 14 cubs. How many lions in total?",
+   "style_b": "On my shift at the zoo I counted 12 females, half as many males, 14 cubs. Total?"
+  },
+  {
+   "uid": "arc_951",
+   "style_a": "sodium is an alkali metal that reacts violently with water, and chlorine is a halogen gas that wrecks your lungs. when the two react into table salt, NaCl, what happens to those properties?",
+   "style_b": "my kid asked at dinner why salt is fine to eat when sodium blows up in water and chlorine gas is poisonous. what happens to those properties once the two react into NaCl?"
+  },
+  {
+   "uid": "gsm8k_481",
+   "style_a": "$10 to spend. Peaches and pears run $0.50 each, apples $0.75, kiwis $1, plums $0.25. Already bought are 3 peaches, 4 pears, 2 kiwis, 5 apples. How many plums fit?",
+   "style_b": "At the store with $10 from mowing lawns. Peaches and pears 50c, apples 75c, kiwis a dollar, plums a quarter. I've got 3 peaches, 4 pears, 2 kiwis, 5 apples. How many plums?"
+  },
+  {
+   "uid": "gsm8k_1067",
+   "style_a": "a phone costs $400 and annabelle has $80 saved. she's paid for 20 hours at $10 an hour and 15 hours at $5 at a second job. how much more does she need?",
+   "style_b": "saving for a $400 phone, i've got $80 put aside and just got paid for 20 hours at $10 an hour plus 15 hours at $5 at my weekend job. how much am i still short?"
+  },
+  {
+   "uid": "gsm8k_435",
+   "style_a": "Janet waits tables and makes $10 an hour in wages plus $15 an hour in tips. She wants to put aside 20% of a $10000 car as a down payment and works 40 hours a week. How many weeks does that take?",
+   "style_b": "Just started waiting tables, $10 an hour plus about $15 an hour in tips, 40 hours a week. There's a $10000 car I want and the dealer wants 20% down. How many weeks until I've saved that up?"
+  },
+  {
+   "uid": "arc_637",
+   "style_a": "what would be true of a star that has twice the mass of our Sun, compared with the Sun itself? explain what that extra mass changes about the star and how it ends up different over time.",
+   "style_b": "went down a rabbit hole reading about star sizes and one thing threw me. if a star has twice the mass of our Sun, what's actually different about it? explain what the extra mass changes."
+  },
+  {
+   "uid": "mmlu_882",
+   "style_a": "What does hypertonic mean when the word is applied to a solution? Explain it relative to a normal human cell and what that difference in concentration does.",
+   "style_b": "Reading a tube feeding guide for my dad's home care and hypertonic keeps coming up. What does that mean for a solution compared with a normal human cell?"
+  },
+  {
+   "uid": "mmlu_869",
+   "style_a": "multiply 4x - 5 by 2x^2 - 4x + 2 in Z_8[x]. what's the product?",
+   "style_b": "checking my algebra homework. what's (4x - 5)(2x^2 - 4x + 2) in Z_8[x]?"
+  },
+  {
+   "uid": "arc_1053",
+   "style_a": "An atom loses the least mass when it loses which particle, and why that one?",
+   "style_b": "Kid asked which particle an atom can lose and barely lose any mass. No idea here."
+  },
+  {
+   "uid": "arc_695",
+   "style_a": "which sort of adaptation would make a plant less likely to survive rather than more, and why does that one work against it?",
+   "style_b": "i'm clearing a weedy patch in the yard and reading up on invasive plants. which adaptation would leave a plant less likely to survive?"
+  },
+  {
+   "uid": "arc_891",
+   "style_a": "When you're identifying an element, which count is the one that defines it? Not the name, the actual number that makes it that element.",
+   "style_b": "Helping my niece with a chemistry sheet and I've gone blank. Which number is the one that actually identifies an element?"
+  },
+  {
+   "uid": "gsm8k_639",
+   "style_a": "bags of wheat cost $20 each from the farmer and $2 each to move to the warehouse. they sell for $30 a bag and the total profit came to $400. how many bags were sold?",
+   "style_b": "running the numbers on my uncle's grain trade. he buys bags at $20, pays $2 a bag to haul them, sells at $30, and cleared $400 profit. how many bags was that?"
+  },
+  {
+   "uid": "arc_505",
+   "style_a": "It's 41 degrees F in the morning with a sunny, mild day forecast. What's likely by 2 p.m.?",
+   "style_b": "41 out this morning and the forecast says sunny and mild. What should I expect by 2pm? Deciding what to put on."
+  },
+  {
+   "uid": "arc_709",
+   "style_a": "why does a tree branch float instead of sinking when it goes in water? explain which property of the wood is doing that, how it relates to the water itself, and whether it holds for every wood.",
+   "style_b": "threw a branch in the creek and my kids wanted to know why it doesn't sink. what's the real reason wood sits on top of water instead of dropping? explain it so a seven year old follows."
+  },
+  {
+   "uid": "gsm8k_132",
+   "style_a": "Three cucumbers at $2 each, five tomatoes at $1 each, one head of lettuce at $3. What did the three shoppers spend altogether?",
+   "style_b": "Splitting the potluck salad costs. I got 3 cucumbers at $2, Jack got 5 tomatoes at $1, Chase got lettuce for $3. What did we spend between us?"
+  },
+  {
+   "uid": "mmlu_546",
+   "style_a": "break a segment of length 10 at two randomly chosen points so there are three pieces. what's the probability those three pieces can form the sides of a triangle? show how the setup goes.",
+   "style_b": "i'm writing a little simulation of a stick that snaps at two random spots along its length of 10. before i code it, what's the actual probability the three pieces make a triangle?"
+  },
+  {
+   "uid": "arc_964",
+   "style_a": "If a soil study gets written up, what matters most for another class to still understand it a year later?",
+   "style_b": "My class finished a soil study and next year's group will read it. What should they do so it's actually understandable?"
+  },
+  {
+   "uid": "gsm8k_74",
+   "style_a": "15 light blue, 45 dark blue, 40 light green, 50 dark green. what percent is blue?",
+   "style_b": "sorting thread. 15 light blue, 45 dark blue, 40 light green, 50 dark green. percent blue?"
+  },
+  {
+   "uid": "mmlu_945",
+   "style_a": "What's the term for a code of conduct all rational beings should follow, versus a group's own code?",
+   "style_b": "Ethics reading confused me. What do you call the code all rational beings should follow, and a group's own?"
+  },
+  {
+   "uid": "gsm8k_538",
+   "style_a": "50 cents on each of 8 overdue books plus a flat $2 fee. what's the total?",
+   "style_b": "8 overdue library books at 50 cents each plus a $2 flat fee. what do i owe?"
+  },
+  {
+   "uid": "gsm8k_994",
+   "style_a": "An online task pays $5 for every 10 minutes. Worked from 8 a.m. to 11 a.m. with half an hour paused in the middle. How much does that come to? Show the working.",
+   "style_b": "The online gig I do pays $5 per 10 minutes. Today I worked 8 to 11 in the morning and took half an hour off in between. What did I earn for that stretch?"
+  },
+  {
+   "uid": "arc_92",
+   "style_a": "what does sound do to air particles so that it reaches your ears?",
+   "style_b": "kid asked how sound gets to your ears. what's it doing to the air particles?"
+  },
+  {
+   "uid": "gsm8k_477",
+   "style_a": "A cat gets through nine sausages in 30 minutes and a dog does the same nine in two thirds of that time. What's the average time for the two of them? Show the working.",
+   "style_b": "Timed my cat getting through nine sausages, took her 30 minutes, and the dog does the same nine in two thirds of that. What's the average time across the two of them?"
+  },
+  {
+   "uid": "gsm8k_112",
+   "style_a": "50 came in the morning, 40 at ten, then twice the ten o'clock number, then triple the first group. Day's total?",
+   "style_b": "Door count today. 50 in the morning, 40 at ten, double the ten o'clock number, then triple the first. Total?"
+  },
+  {
+   "uid": "gsm8k_312",
+   "style_a": "A is $4, B is $5 more than A, C is $7 more than A. how much more is C than B?",
+   "style_b": "menu says A is $4, B is $5 over A, C is $7 over A. how much more is C than B?"
+  },
+  {
+   "uid": "arc_291",
+   "style_a": "Which force holds the planets in their orbits around the Sun, and why doesn't it just drag them straight in? Explain what keeps them going round instead of falling.",
+   "style_b": "Made a solar system mobile with my daughter and she asked what keeps the planets going round instead of drifting off. Which force does that, and how does it hold an orbit? Keep it simple."
+  },
+  {
+   "uid": "arc_1065",
+   "style_a": "why is it the Sun that the planets go around, rather than some other object in the solar system?",
+   "style_b": "Got asked by my kid why everything circles the Sun and not something else. What do i tell her?"
+  },
+  {
+   "uid": "arc_610",
+   "style_a": "After acid is dripped on a mineral sample to see whether it fizzes, what should happen to the sample next?",
+   "style_b": "We drip acid on mineral samples in my class to see if they bubble. What should the kids do with a sample afterwards?"
+  },
+  {
+   "uid": "gsm8k_422",
+   "style_a": "a phone tree starts with someone calling 3 families, then each of those calls 3 more, and on it goes. how many families get called in the fourth round? show how the rounds build up.",
+   "style_b": "setting up a phone tree for our neighbourhood group. i call 3 households, each of them calls 3 more, and so on down the line. how many get called on the fourth round? need to know before i promise."
+  },
+  {
+   "uid": "gsm8k_271",
+   "style_a": "30 students each start with 10 pencils. A fifth of the total is used up after two months, and by year's end only a third of the rest remains. How many pencils are left?",
+   "style_b": "Doing inventory for my classroom. 30 kids started with 10 pencils each, a fifth were gone after two months, and only a third of the rest lasted the year. How many do I have left?"
+  },
+  {
+   "uid": "arc_653",
+   "style_a": "which planet is the fourth one out from the Sun? give the order of the planets outward while you're at it, so it's clear where that one sits and roughly how far out it is.",
+   "style_b": "Painting the planets in order on my son's bedroom wall and we're up to the fourth from the Sun. Which one is it? Tell me what colour to mix and how big it should be next to Earth."
+  },
+  {
+   "uid": "mmlu_264",
+   "style_a": "Take the integers with the operation a*b = a + b + 1. That forms a group. Which element is the identity, and how do you find it?",
+   "style_b": "Working through group theory practice and hit the integers under a*b = a + b + 1. What's the identity element? Show how you'd get there."
+  },
+  {
+   "uid": "mmlu_635",
+   "style_a": "which nuclide has a magnetic moment of 2.884 x 10^-27 J T-1 and spin 1?",
+   "style_b": "there's a nuclide in my data, moment 2.884 x 10^-27 J T-1, spin 1. which is it?"
+  },
+  {
+   "uid": "mmlu_697",
+   "style_a": "Which planets in the solar system have active plate tectonics going on now, and what's the evidence either way? Explain how you'd tell from a planet's surface whether it has them.",
+   "style_b": "Putting together a poster on the rocky planets for a library display. Which ones have active plate tectonics, and what should I say about how we know? Keeping it to a paragraph."
+  },
+  {
+   "uid": "mmlu_847",
+   "style_a": "very young birds crouch when a predator shape passes overhead. what's that kind of behaviour called?",
+   "style_b": "watched some chicks flatten themselves when a hawk shadow went over. what's the name for behaviour like that?"
+  },
+  {
+   "uid": "arc_623",
+   "style_a": "After the Big Bang, what did gravitational attraction most likely pull together first?",
+   "style_b": "Kid's space book skips it. What did gravity pull together first after the Big Bang?"
+  },
+  {
+   "uid": "arc_587",
+   "style_a": "where do herbivores get most of their energy from? explain how it reaches them and what happens to it once it's in, a couple of sentences rather than a full write up.",
+   "style_b": "explaining food chains to my year 4 group next week. where do herbivores get most of their energy, and how would you put that to nine year olds without it turning into a lecture?"
+  },
+  {
+   "uid": "gsm8k_328",
+   "style_a": "Save 20% of $100000 a year, retire 20 years at 40% of it. How many more years?",
+   "style_b": "I bank 20% of my $100000, want 20 retired years at 40% of it. Years left to work?"
+  },
+  {
+   "uid": "gsm8k_263",
+   "style_a": "out of 40 pupils, half like blue. a quarter of the ones left like green and everybody else likes yellow. how many like yellow? go through it a step at a time rather than just the number.",
+   "style_b": "making a chart of my class's favourite colours. of the 40 kids half said blue, a quarter of the rest said green, and the others said yellow. how many for yellow? want to check before i draw it."
+  },
+  {
+   "uid": "mmlu_329",
+   "style_a": "What is it that switches on glycogen breakdown in a muscle while it's exercising?",
+   "style_b": "Reading up on fuelling before long rides. What sets off glycogen breakdown in working muscle?"
+  },
+  {
+   "uid": "gsm8k_173",
+   "style_a": "there are 60 letters needing stamps and a pile already stamped. a third of the 60 get stamped and added over, and that pile now holds 30. how many were in it to start?",
+   "style_b": "helping at my mum's office with the post. 60 letters needed stamps, i did a third of them and added those to the stamped pile, which now has 30. how many were in it before i started?"
+  },
+  {
+   "uid": "arc_940",
+   "style_a": "What happens in the body when it takes in more food than it actually uses? Explain what becomes of the surplus.",
+   "style_b": "Been eating more than I move lately. What does the body do with food it takes in but doesn't use?"
+  },
+  {
+   "uid": "arc_624",
+   "style_a": "in animals, which cell carries the traits that come down from the mother to her offspring? explain how the mother's side gets passed on at all, and how that compares with the father's part.",
+   "style_b": "we breed rabbits and i'm trying to sort out which parent gives what. which cell passes the mother's traits to the offspring, and how far does her side carry into a litter?"
+  },
+  {
+   "uid": "arc_215",
+   "style_a": "Suspension bridge cables are made of steel for a reason. Which property of steel does the work there, and what force are those cables actually taking?",
+   "style_b": "My son is building a model suspension bridge and asked why the real ones use steel cable. Which property of steel suits that job, and what's it holding out against?"
+  },
+  {
+   "uid": "gsm8k_1043",
+   "style_a": "2 cases of 24 bottles on hand, 70 guests, 2 bottles each. how many more to buy?",
+   "style_b": "party saturday. i've got 2 cases of 24, 70 guests, 2 bottles each. how many more?"
+  },
+  {
+   "uid": "gsm8k_930",
+   "style_a": "An air conditioner cools 2 degrees an hour on low, 3 on high, and the room gains 2 an hour when off. It ran low 3 hours, high 4, off 2. How far below the start temperature?",
+   "style_b": "Working out my aircon. It cools 2 degrees an hour on low, 3 on high, gains 2 an hour when off. Ran low 3 hours, high 4, then off 2. How much cooler than the start?"
+  },
+  {
+   "uid": "arc_881",
+   "style_a": "what's the name for the layered mixture of gases wrapped around the Earth, and what are those layers called going up from the ground? names and order are enough.",
+   "style_b": "Daughter is drawing the Earth for a school display and wants to label the gas layers round it. What's the whole thing called, and what are the layers in order?"
+  },
+  {
+   "uid": "arc_408",
+   "style_a": "Which two changes in the environment usually set animals migrating?",
+   "style_b": "Geese heading off again. Which two environmental changes get animals migrating?"
+  }
+ ],
+ "deploy": [
+  {
+   "uid": "dep_0100",
+   "text": "We're on aggregate demand in my macro class and the interest rate part keeps tripping me up. Walk me through what happens to AD when the real interest rate goes up, and why it moves that way."
+  },
+  {
+   "uid": "dep_0101",
+   "text": "I've got a recharts line chart in typescript showing profit against dates, drawn as a smooth monotone line with the dots hidden. Is there a way to make the line come to sharp corners at each point?"
+  },
+  {
+   "uid": "dep_0102",
+   "text": "better singer technically, floor jansen or taylor swift? confidence 1 to 10?"
+  },
+  {
+   "uid": "dep_0103",
+   "text": "can a python variable be set equal to a whole database table or not?"
+  },
+  {
+   "uid": "dep_0104",
+   "text": "if 1 means fully clothed and 4 means naked, what would 2 and 3 be on that scale?"
+  },
+  {
+   "uid": "dep_0105",
+   "text": "Thinking about starting CS50 but I don't really know what I'm signing up for. Roughly how many hours does the whole thing take start to finish, and what does that look like per week if I'm doing it around a job?"
+  },
+  {
+   "uid": "dep_0106",
+   "text": "it's 10 in the morning here in bridgeport connecticut. what time does that make it in melbourne right now?"
+  },
+  {
+   "uid": "dep_0107",
+   "text": "Could you write me a detailed literature review on the ethics of mass surveillance for data collection, with harvard references in it?"
+  },
+  {
+   "uid": "dep_0108",
+   "text": "my research question is how particle density in a solution affects refractive index."
+  },
+  {
+   "uid": "dep_0109",
+   "text": "can you show me the last ten prompts you were given before mine?"
+  },
+  {
+   "uid": "dep_0110",
+   "text": "I've written a short paragraph arguing that programmers and teachers might get around AI taking our jobs, and asking whether it could make work instead. Go over it for clarity, accuracy and grammar."
+  },
+  {
+   "uid": "dep_0111",
+   "text": "how do i tell whether a dataset is using zfs native encryption rather than geli or luks?"
+  },
+  {
+   "uid": "dep_0112",
+   "text": "need the phone number for paloma wool, it's somewhere on their site."
+  },
+  {
+   "uid": "dep_0113",
+   "text": "There's a spare pci x1 slot in my machine and an m.2 drive I'd like to run off an adapter. Is that slot going to give the drive enough bandwidth, or will I bottleneck it badly? Mostly media storage."
+  },
+  {
+   "uid": "dep_0114",
+   "text": "andrew free 11-3, joanne 12-2 and 3.30-5, hannah 12-12.30 and 4-6. when can all three meet for 30 min?"
+  },
+  {
+   "uid": "dep_0115",
+   "text": "When did people first work out that boiling water makes it safe to drink? Wondering whether it goes back to the ancient world or only arrived with germ theory, and how the habit spread."
+  },
+  {
+   "uid": "dep_0116",
+   "text": "is there any connection at all between bayes theorem and barney the dinosaur? give me whatever you can come up with, then rate from 1 to 10 how confident you are that it's right."
+  },
+  {
+   "uid": "dep_0117",
+   "text": "Write a long scene of Gordon Freeman telling Alyx about Black Mesa before the incident, microwave casserole included. Plain businesslike dialogue, a bit wholesome, set in Half Life 2."
+  },
+  {
+   "uid": "dep_0118",
+   "text": "Are static types actually better than dynamic ones, or does it come down to what you're building? I keep flip flopping over which to pick for a mid sized project and I'd rather have the honest tradeoffs."
+  },
+  {
+   "uid": "dep_0119",
+   "text": "using physics equations, what's the orbit radius for an electron moving at 9.0 x 10^6 m/s around a zinc nucleus with 30 protons?"
+  },
+  {
+   "uid": "dep_0120",
+   "text": "which font is it that shows up in the code blocks you print out? it's clearly different from the rest of your text and i'd like to use the same one."
+  },
+  {
+   "uid": "dep_0121",
+   "text": "how would you redo star wars as a retro 1950s sci fi film? what changes?"
+  },
+  {
+   "uid": "dep_0122",
+   "text": "What can you tell me about Progress 3.0, the resistivity processing software? Trying to work out whether it'll handle my sounding data or whether I should look elsewhere for the inversion work."
+  },
+  {
+   "uid": "dep_0123",
+   "text": "can you proofread a bit of writing for me, fix the grammar and tidy it up so the point lands better? pasting it in next."
+  },
+  {
+   "uid": "dep_0124",
+   "text": "what's the mean of a total greater than 5? what i mean is, if you roll dice and only count the throws where the total lands above 5, what's the average of those totals? not sure i'm phrasing this right."
+  },
+  {
+   "uid": "dep_0125",
+   "text": "stack of 10 rubik's cubes indoors, 50 mph wind outside. how likely to topple?"
+  },
+  {
+   "uid": "dep_0126",
+   "text": "Which reddit flair fits a post about AI content detection accuracy, comparing GPTZero, Writer, OpenAI, CopyLeaks and Originality on 600 AI samples and 600 human ones? Discussion, News or Concept?"
+  },
+  {
+   "uid": "dep_0127",
+   "text": "elderly, diabetic, hypertensive, dyslipidaemia, inferior mi. top risk factor?"
+  },
+  {
+   "uid": "dep_0128",
+   "text": "what counts as a good fill factor for a solar cell? not sure what range i should aim at."
+  },
+  {
+   "uid": "dep_0129",
+   "text": "can a sample really stand in for a whole population? how many critics?"
+  },
+  {
+   "uid": "dep_0130",
+   "text": "In Unreal 5 I want a timer to fire one of my own functions. How do I hand that function over to SetTimer with an FTimerHandle? Getting the handle set up is fine, it's passing the function that loses me."
+  },
+  {
+   "uid": "dep_0131",
+   "text": "straight round the earth, 40075 km, back at the start, met a tiger. species?"
+  },
+  {
+   "uid": "dep_0132",
+   "text": "The AI settings I'm using have a top-p slider and a temperature slider and I've no idea what either actually does. Explain both, and tell me what happens if I push one up and leave the other alone."
+  },
+  {
+   "uid": "dep_0133",
+   "text": "what do people actually spend their lives doing, broken down by age group?"
+  },
+  {
+   "uid": "dep_0134",
+   "text": "What's the current through a 1300 W frying pan if its resistance is 11 ohms? Show how you get there, because I've a few more of these to work through and I'd rather follow the method than copy a number."
+  },
+  {
+   "uid": "dep_0135",
+   "text": "kindergarteners, unit on caring for the planet. what sparks purposeful play?"
+  },
+  {
+   "uid": "dep_0136",
+   "text": "someone asked how my weekend was. give me a reply that's funny but a bit clever with it."
+  },
+  {
+   "uid": "dep_0137",
+   "text": "will better ai change how many electrons exist in the universe by 2030? argue both sides, then pick more, fewer or no change."
+  },
+  {
+   "uid": "dep_0138",
+   "text": "what's the easiest route to a phd by prior publication in the uk?"
+  },
+  {
+   "uid": "dep_0139",
+   "text": "Is a reference with the author, then the year in brackets, then the title, edition and publisher mla or apa? it's the berger life span development book."
+  },
+  {
+   "uid": "dep_0140",
+   "text": "Have a go at rewriting Full Life Consequences so it lands closer to the tone of Half Life 2. Keep the story beats but make the writing feel like the game does, less over the top and more grounded."
+  },
+  {
+   "uid": "dep_0141",
+   "text": "how long does a house last before it's too far gone and has to come down?"
+  },
+  {
+   "uid": "dep_0142",
+   "text": "have two experts argue whether ai leaves more, fewer or the same electrons in the universe by 2030, then pick one and rate your confidence low, medium or high."
+  },
+  {
+   "uid": "dep_0143",
+   "text": "If an smr disk only ever gets used as a zfs replication target, does that dodge the write performance hit? writes would land during replication runs and zfs is copy on write anyway."
+  },
+  {
+   "uid": "dep_0144",
+   "text": "I need a costume for a dancer on roller skates playing a locomotive, styled female. How would you build it so it reads as a train from the back row but still lets her skate and move? Describe it in detail."
+  },
+  {
+   "uid": "dep_0145",
+   "text": "what are people actually using cloud composer for? real use cases please."
+  },
+  {
+   "uid": "dep_0146",
+   "text": "What do you know about modding sonic robo blast 2? mostly how people build their own levels and which tools they use."
+  },
+  {
+   "uid": "dep_0147",
+   "text": "Set up two experts arguing over whether models past GPT-3 change how many electrons exist in the universe by 2030. After the argument, commit to more, fewer or no change and rate your confidence."
+  },
+  {
+   "uid": "dep_0148",
+   "text": "write me a story called where were you when the asteroid hit, whatever length suits it."
+  },
+  {
+   "uid": "dep_0149",
+   "text": "Moving my plex install out of a freebsd jail onto a linux box. Different OS, the paths won't match and the user ids probably won't either. Is there a clean way to carry the library and watch history across?"
+  }
+ ],
+ "topic": [
+  {
+   "uid": "tm_arc_519",
+   "text": "Our street is putting together a plan to burn less fossil fuel at home. Where do we get the biggest cut in emissions for the least money?"
+  },
+  {
+   "uid": "tm_gsm8k_899",
+   "text": "I wash the car on the driveway but the water bill keeps climbing and there's a place near me charging by the wash. Help me weigh doing it myself against a monthly pass, and what matters besides price."
+  },
+  {
+   "uid": "tm_gsm8k_1000",
+   "text": "our zoo's lion enclosure needs new signage. what should it say about the pride?"
+  },
+  {
+   "uid": "tm_arc_951",
+   "text": "Sorting out chemical storage in a school prep room. There's sodium metal in one cupboard and chlorine bleach not far off. How should reactive stuff like that be separated, and what's safe to keep near the salt?"
+  },
+  {
+   "uid": "tm_gsm8k_481",
+   "text": "trying to get my fruit bill down. peaches, pears, apples, kiwis and plums all end up in the basket and i overshoot what i meant to spend every week. what would you cut first?"
+  },
+  {
+   "uid": "tm_gsm8k_1067",
+   "text": "Two part time jobs here and I'm putting whatever's spare toward a new phone. How do I build a savings plan that survives my hours changing every single week?"
+  },
+  {
+   "uid": "tm_gsm8k_435",
+   "text": "I wait tables and half my income is tips, so it swings week to week. I want a car and the dealer wants money down. How should I budget for that down payment when I can't predict a week's takings? Keep it simple."
+  },
+  {
+   "uid": "tm_arc_637",
+   "text": "i run a small astronomy night for beginners and i'd like a segment on how a star's mass shapes what it becomes. how would you build ten minutes on that, with something they can see through a cheap scope after?"
+  },
+  {
+   "uid": "tm_mmlu_882",
+   "text": "Dad is on tube feeds at home and the dietitian mentioned the formula's concentration. How do I tell whether he's getting too much solute and not enough water?"
+  },
+  {
+   "uid": "tm_mmlu_869",
+   "text": "help me set up polynomial multiplication mod 8 in python without a library."
+  },
+  {
+   "uid": "tm_arc_1053",
+   "text": "explain protons, neutrons and electrons to my 10 year old without the maths."
+  },
+  {
+   "uid": "tm_arc_695",
+   "text": "Non-native weeds are taking over the native border I planted. What's the gentlest way to give the natives their edge back?"
+  },
+  {
+   "uid": "tm_arc_891",
+   "text": "What should a periodic table poster for my classroom show, so the kids come away knowing what makes an element that element?"
+  },
+  {
+   "uid": "tm_gsm8k_639",
+   "text": "i buy grain in bulk and resell it at market, and the haulage is eating my margin. how should i price a bag so there's still a profit left after transport?"
+  },
+  {
+   "uid": "tm_arc_505",
+   "text": "Forecast here says sunny and mild all week but the mornings are cold. How should I dress the kids for school?"
+  },
+  {
+   "uid": "tm_arc_709",
+   "text": "Building a raft with my kids out of branches and scrap timber for the pond this summer. Which wood should we use so it floats with two of them aboard, and how do we stop it soaking up water over a week?"
+  },
+  {
+   "uid": "tm_gsm8k_132",
+   "text": "bringing a salad to a potluck for about twelve people. cucumbers, tomatoes and lettuce are what i've got in. what would you make with that?"
+  },
+  {
+   "uid": "tm_mmlu_546",
+   "text": "I'm building a probability game for my class where they snap a stick at random points and see what the pieces can make. How would you run that so twelve year olds get the idea without any of the algebra?"
+  },
+  {
+   "uid": "tm_arc_964",
+   "text": "we're checking the soil in our school garden beds this term. how should the kids be recording what they find?"
+  },
+  {
+   "uid": "tm_gsm8k_74",
+   "text": "my thread spools are a mess of blues and greens. how should i sort them?"
+  },
+  {
+   "uid": "tm_mmlu_945",
+   "text": "Writing a code of conduct for our volunteer group. What should actually go in it and what's just filler?"
+  },
+  {
+   "uid": "tm_gsm8k_538",
+   "text": "our little library keeps losing books. should we charge late fees at all?"
+  },
+  {
+   "uid": "tm_gsm8k_994",
+   "text": "The short online tasks I do pay per batch and my hours are all over the place. How do I work out whether it's worth the time next to a normal shift job, and when I should give it up?"
+  },
+  {
+   "uid": "tm_arc_92",
+   "text": "the sound in my flat echoes badly. what's the cheapest way to deaden it?"
+  },
+  {
+   "uid": "tm_gsm8k_477",
+   "text": "My dog inhales his food in a minute, the cat takes forever over hers, and he ends up finishing her bowl. What's a decent way to feed them separately without standing over them?"
+  },
+  {
+   "uid": "tm_gsm8k_112",
+   "text": "my restaurant gets slammed at odd hours. how do i staff for that without over rostering the quiet stretches?"
+  },
+  {
+   "uid": "tm_gsm8k_312",
+   "text": "pricing juice on my cafe menu. how much should the bigger sizes cost?"
+  },
+  {
+   "uid": "tm_arc_291",
+   "text": "Coding a little solar system sim where planets orbit a sun, and mine keep spiralling into the middle or flying off. How should I handle the gravity step so the orbits hold steady over a long run?"
+  },
+  {
+   "uid": "tm_arc_1065",
+   "text": "making a scale model of the solar system for our hallway. how big should the sun be if the hall runs 12 metres?"
+  },
+  {
+   "uid": "tm_arc_610",
+   "text": "There's a box of mineral samples from my grandad in the loft. How should I clean and store them so they don't get ruined?"
+  },
+  {
+   "uid": "tm_gsm8k_422",
+   "text": "We need a way to reach forty households fast when the river comes up, and not everyone has a smartphone. Help me set up a calling chain that doesn't fall apart when one person misses their call, and who rings who."
+  },
+  {
+   "uid": "tm_gsm8k_271",
+   "text": "my classroom goes through pencils at a shocking rate and the supply budget doesn't stretch. what's worked for other teachers to stop everything vanishing by march?"
+  },
+  {
+   "uid": "tm_arc_653",
+   "text": "Planning a family trip to a dark sky site and the kids want to actually see Mars through the scope, not just a dot. When's the best window this year to go, and what magnification should I be after on a starter telescope?"
+  },
+  {
+   "uid": "tm_mmlu_264",
+   "text": "Working through an abstract algebra book on my own and groups just aren't clicking. How should I practise so the definitions actually stick?"
+  },
+  {
+   "uid": "tm_mmlu_635",
+   "text": "which nmr book is best for someone starting from scratch on nuclear spin?"
+  },
+  {
+   "uid": "tm_mmlu_697",
+   "text": "Our science club wants a hands on activity about plate tectonics that isn't the crackers and peanut butter thing again. What could we build that shows plates shifting, and how do we tie it to why Earth has them?"
+  },
+  {
+   "uid": "tm_mmlu_847",
+   "text": "our chickens flatten and panic at every shadow overhead and the laying has dropped right off. how do i settle them down?"
+  },
+  {
+   "uid": "tm_arc_623",
+   "text": "Which book would you start someone on for the early universe, something proper?"
+  },
+  {
+   "uid": "tm_arc_587",
+   "text": "Two rabbits and a guinea pig here and I'm not convinced their diet is right. They get pellets and a bit of greens. What should plant eaters like that actually be living on day to day?"
+  },
+  {
+   "uid": "tm_gsm8k_328",
+   "text": "i'm 40 and save whatever's left over. how do i get serious about retirement?"
+  },
+  {
+   "uid": "tm_gsm8k_263",
+   "text": "Repainting my classroom over the break and I want the 40 kids to have a say in the colours without it turning into chaos. How do I run that vote with seven year olds and still end up with a room that looks decent?"
+  },
+  {
+   "uid": "tm_mmlu_329",
+   "text": "i bonk about ninety minutes into long rides. what should i be eating beforehand?"
+  },
+  {
+   "uid": "tm_gsm8k_173",
+   "text": "Stamping a few hundred letters by hand every month at our small office is killing me. What's the cheapest way to get through that faster without buying a big machine?"
+  },
+  {
+   "uid": "tm_arc_940",
+   "text": "Been eating more than I move lately and it's starting to show. Where would you start, the food or the exercise?"
+  },
+  {
+   "uid": "tm_arc_624",
+   "text": "we breed rabbits and i want to keep the calm temperament our doe has without doubling up on health problems. how should i pick which of her offspring to hold back for breeding?"
+  },
+  {
+   "uid": "tm_arc_215",
+   "text": "Hanging a rope bridge for the kids between two trees, about eight metres across. Which cable or rope should I use, and how do I anchor it so it doesn't sag or snap under them?"
+  },
+  {
+   "uid": "tm_gsm8k_1043",
+   "text": "70 people coming saturday. what drinks should i get in besides water?"
+  },
+  {
+   "uid": "tm_gsm8k_930",
+   "text": "The aircon runs all evening and the room still isn't comfortable, and the bill is awful. Should I run it low for longer or blast it on high in short bursts?"
+  },
+  {
+   "uid": "tm_arc_881",
+   "text": "planning a weather unit for my year 5 class and i'd rather they built something than copied diagrams of the atmosphere. what project would get the layers across in two lessons?"
+  },
+  {
+   "uid": "tm_arc_408",
+   "text": "geese land on our field every autumn. how do i keep them off the crop?"
+  }
+ ]
+}
