@@ -135,6 +135,34 @@ Devbunova confirmed with the proxy weakness removed.
 Update paper Sections 4-5 with real numbers, figures (per-layer curves per
 cell, transfer matrix heatmap), CLAUDE.md, README.
 
+## Lessons from slice 2b that the slice-3 dataset spec MUST carry
+
+These cost real time in slice 2b; do not rediscover them.
+
+1. **Match surface features per item, not per pool.** We matched digit density
+   between the benchmark pool and the WildChat pool (0.0124 vs 0.0123, looked
+   fine) but the synthetic counterpart cell was written with no digit
+   requirement and came out 13x lower on maths items. Digit density alone then
+   scored 0.949 there — identical to the probe. Every surface feature we claim
+   to match must be checked *within each source and each cell*, not on the
+   aggregate.
+2. **Freeze dataset inputs before spawning writers.** Regenerating batch files
+   mid-run made one writer generate against a stale snapshot; its output was
+   discarded.
+3. **Audit writer output; do not trust writer self-reports.** Every writer
+   reported "0% situational framing in style A" and matched lengths. Both were
+   true. What they missed was that length targets drawn from the wrong
+   distribution had forced style A to acquire personal framing in the first
+   place — visible only by comparing cells, not within one batch.
+4. **Model-authored text is separable from real user text** (format 0.93 / BoW
+   0.91) even when its content is pure deployment. If any cell is authored,
+   every cell must be.
+5. **Do not expect surface baselines at chance.** Speech act is the label.
+   Gate length and format; report lexical baselines as the bar, and settle the
+   question with transfer.
+6. **Report per-source.** The aggregate hid that the whole margin came from
+   maths items with a numeral shortcut.
+
 ## Slice 3 — multi-turn (the decisive cell)
 
 Goal: the axis nobody has tested. Same 2x2 logic, but conversations.

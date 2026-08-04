@@ -5,14 +5,21 @@ Produces three PNGs in figures/ (committed, so teammates can use them):
   fig4_asymmetry.png        - theirs->ours vs ours->theirs, the headline
   fig5_probe_vs_bow.png     - probe minus bag-of-words margin per training set
 
-Numbers are read from results/s2b_*_transfer_multiseed.json, so the figures
+Numbers are read from the multi-seed transfer results file, so the figures
 cannot drift from the run. No prompt text is used.
 
+DEFAULT SOURCE IS THE MATH-FREE RUN (arc + mmlu). GSM8K is excluded because
+digit density alone separates its eval items from their deploy counterparts at
+0.949 — identical to the probe's score there — so those items measure numeral
+counting, not evaluation recognition. See CLAUDE.md, slice 2b results.
+
 Usage: .venv\\Scripts\\python scripts/make_2b_figures.py
+       .venv\\Scripts\\python scripts/make_2b_figures.py --all-sources
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -22,9 +29,18 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+ap = argparse.ArgumentParser()
+ap.add_argument("--all-sources", action="store_true",
+                help="use the gsm8k-contaminated run instead of the math-free one")
+cli = ap.parse_args()
+
 OUT = Path("figures")
 OUT.mkdir(exist_ok=True)
-RESULTS = Path("results/s2b_Llama-3.1-8B-Instruct_transfer_multiseed.json")
+SUFFIX = "" if cli.all_sources else "_mathfree"
+RESULTS = Path(f"results/s2b_Llama-3.1-8B-Instruct_transfer_multiseed{SUFFIX}.json")
+SOURCE_NOTE = ("all sources incl. gsm8k (contaminated)" if cli.all_sources
+               else "ARC + MMLU only; math items excluded as digit-confounded")
+FIG_SUFFIX = "_allsources" if cli.all_sources else ""
 
 LABELS = {
     "devb_standard": "standard\n(bench vs real)",
@@ -79,10 +95,10 @@ for i in range(len(pairs)):
                                        edgecolor="black", lw=2.5))
 fig.colorbar(im, ax=ax, label="probe AUROC", shrink=0.8)
 ax.set_title("Cross-cell transfer: what the probe learned, tested elsewhere\n"
-             f"boxed = in-distribution; mean ± sd over {n_seeds} seeds",
-             fontsize=12, pad=14)
+             f"boxed = in-distribution; mean ± sd over {n_seeds} seeds\n"
+             f"{SOURCE_NOTE}", fontsize=11.5, pad=14)
 fig.tight_layout()
-fig.savefig(OUT / "fig3_transfer_matrix.png", bbox_inches="tight")
+fig.savefig(OUT / f"fig3_transfer_matrix{FIG_SUFFIX}.png", bbox_inches="tight")
 plt.close(fig)
 
 # ---------------------------------------------------------------- fig 4
@@ -125,10 +141,10 @@ axb.set_ylim(0.3, 1.1)
 axb.legend(fontsize=9, loc="lower center", frameon=False, ncol=1)
 axb.set_title("Same target cell, two training sets", fontsize=11.5, pad=10)
 
-fig.suptitle("Realistic training data generalizes; benchmark training data does not",
-             fontsize=13, y=1.0)
+fig.suptitle("Realistic training data generalizes; benchmark training data does not\n"
+             f"({SOURCE_NOTE})", fontsize=12.5, y=1.04)
 fig.tight_layout()
-fig.savefig(OUT / "fig4_asymmetry.png", bbox_inches="tight")
+fig.savefig(OUT / f"fig4_asymmetry{FIG_SUFFIX}.png", bbox_inches="tight")
 plt.close(fig)
 
 # ---------------------------------------------------------------- fig 5
@@ -152,9 +168,10 @@ ax.set_yticks(range(len(pairs)),
 ax.axvline(0, color="black", lw=1)
 ax.set_xlabel("probe advantage over bag-of-words  (mean |AUROC−0.5| difference)")
 ax.set_title("Only the standard confounded setup makes activations\n"
-             "worse than word counts at generalizing", fontsize=12, pad=12)
+             f"worse than word counts at generalizing\n({SOURCE_NOTE})",
+             fontsize=11.5, pad=12)
 fig.tight_layout()
-fig.savefig(OUT / "fig5_probe_vs_bow.png", bbox_inches="tight")
+fig.savefig(OUT / f"fig5_probe_vs_bow{FIG_SUFFIX}.png", bbox_inches="tight")
 plt.close(fig)
 
-print("wrote fig3_transfer_matrix.png, fig4_asymmetry.png, fig5_probe_vs_bow.png")
+print(f"wrote figs with suffix {FIG_SUFFIX!r} from {RESULTS.name}")

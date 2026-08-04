@@ -12,18 +12,46 @@ Chaudhary.
 
 ## Status
 
-Slice 1 (the replication cell) is done, including surface baselines. On
-Llama-3.1-8B the eval-vs-deployment probe reaches AUROC 0.994 at layer 4 of 32,
-reproducing the prior single-turn result, and length is ruled out (0.37–0.45).
+Slices 1 and 2 are done on Llama-3.1-8B. Slice 3 (multi-turn) is next.
 
-But the surface baselines nearly match it. A classifier reading only structure —
-option markers, digits, punctuation, no words at all — reaches 0.9675, and
-bag-of-words reaches 0.9517, on the same held-out split. The probe's margin over
-the best surface baseline is +0.027 in strength, within noise at n=120.
+**Slice 1 — the replication, and why it is not enough.** The probe reaches
+AUROC 0.994 at layer 4 of 32, reproducing the prior single-turn result, and
+length is ruled out (0.37–0.45). But a classifier reading only structure — no
+words at all — reaches 0.9675 and bag-of-words 0.9517 on the same split. The
+probe's margin over the best surface baseline is +0.027, within noise at
+n=120. The obvious-eval cell is confounded: it cannot separate "the model
+recognizes evaluation" from "these prompts are shaped like tests."
 
-So the obvious-eval cell is confounded: it cannot separate "the model recognizes
-evaluation" from "these prompts are shaped like tests." That is the empirical
-case for the format-matched arm, which is next. See `CLAUDE.md` for details.
+**Slice 2 — format-matched cells and cross-cell transfer.** We replicated
+Devbunova's 2×2 on our machinery (their standard probe calls format-transplanted
+deployment prompts "evaluation" 96.0% of the time; they report 94.5%), then
+built four new cells where every prompt is model-authored so authorship cannot
+carry the label, lengths match by construction, and one deploy cell is
+topic-matched to each eval item.
+
+Surface baselines cannot be driven to chance, and we show why: the residual
+signal is *speech act* — an impersonal question with a canonical answer versus
+a first-person request for help is what the eval/deploy distinction is. So the
+decisive test is cross-cell **transfer**: fit on one cell pair, freeze, score a
+differently-constructed pair, and run the identical test on every baseline.
+
+Headline (ARC+MMLU, 5 seeds; GSM8K excluded because digit density alone scores
+0.949 there, so those items measure numeral counting):
+
+- The probe beats bag-of-words under transfer by **+0.067 ± 0.016**, positive
+  on every seed. Every format-matched training cell gives a positive margin.
+- **Training on the standard confounded contrast is the sole exception**
+  (−0.086 ± 0.034, win rate 12%): on the setup the field actually uses,
+  activations generalize *worse* than word counts.
+- The direction travels one way. Trained on our realistic cells it scores
+  0.949 on the standard benchmark cell; trained on the standard cell it scores
+  0.578 on ours, barely above chance.
+- Honest limit: benchmark format on *both* sides with only content differing
+  (`bench_eval` vs `bench_deploy_rewritten`) defeats every direction we can
+  learn — 0.31–0.55, at or below chance. That is where content-only eval
+  recognition would have to appear, and it does not.
+
+Figures in `figures/`; full detail and caveats in `CLAUDE.md`.
 
 ## Approach in one paragraph
 
