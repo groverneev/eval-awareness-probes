@@ -37,7 +37,19 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 Conversation = list[dict[str, str]]  # [{"role": "user"|"assistant"|"system", "content": ...}]
 
-READ_POINTS = ("last_user_token",)
+# Single-vector read points. A multi-turn conversation has no one obvious place
+# that represents "what the model makes of this situation", so slice 3 probes
+# several and reports each:
+#   last_user_token       final token of the last user turn (the slice-1 point)
+#   post_instruction_token end of the setup: last token of the system message if
+#                         there is one, else of the first user turn. Tests
+#                         whether the situation is recognized before any of the
+#                         conversation proper has been read.
+#   final_turn_mean       mean-pooled over the tokens of the final user turn,
+#                         which is less hostage to one delimiter token.
+# The per-turn trajectory is not here because it returns one vector per turn
+# rather than one per conversation; see extract_trajectories.
+READ_POINTS = ("last_user_token", "post_instruction_token", "final_turn_mean")
 
 
 def pick_device(explicit: str | None = None) -> str:
@@ -106,14 +118,74 @@ def load_model(
     )
 
 
-def _read_index(read_point: str, seq_len: int) -> int:
-    """Token index to read, given the templated sequence length.
+def template_ids(tokenizer, conv: Conversation) -> list[int]:
+    """Token ids for a templated conversation, add_generation_prompt=False."""
+    enc = tokenizer.apply_chat_template(
+        conv, add_generation_prompt=False, return_dict=True, return_tensors="pt"
+    )
+    return enc["input_ids"][0].tolist()
 
-    For last_user_token the sequence is templated with add_generation_prompt
-    False, so the final token is the user turn's closing delimiter.
+
+def turn_spans(tokenizer, conv: Conversation) -> list[tuple[int, int]]:
+    """Token span [start, end) of each message in the templated conversation.
+
+    Computed by templating growing prefixes of the conversation and taking the
+    differences in length. That is only valid if the chat template is
+    prefix-consistent — templating the first k messages must produce exactly the
+    first N tokens of the full sequence. Llama-3 style templates are, because
+    each message is independently wrapped in header/eot delimiters, but a
+    template that appends anything after the last message (or re-emits a system
+    block) would not be, and would silently shift every read index.
+
+    So we verify rather than assume, and raise if it does not hold. A wrong span
+    here would corrupt every multi-turn result while looking perfectly healthy.
+    """
+    full = template_ids(tokenizer, conv)
+    bounds = [0]
+    for k in range(1, len(conv) + 1):
+        prefix = template_ids(tokenizer, conv[:k])
+        if prefix != full[: len(prefix)]:
+            raise ValueError(
+                "chat template is not prefix-consistent, so per-turn token spans "
+                "cannot be derived by incremental templating; a read-point "
+                "implementation specific to this template is needed"
+            )
+        bounds.append(len(prefix))
+    return list(zip(bounds[:-1], bounds[1:]))
+
+
+def _last_index_of_role(conv: Conversation, spans, roles: tuple[str, ...]) -> int:
+    for i in range(len(conv) - 1, -1, -1):
+        if conv[i]["role"] in roles:
+            return spans[i][1] - 1
+    raise ValueError(f"conversation has no message with role in {roles}")
+
+
+def read_slice(read_point: str, conv: Conversation, spans) -> tuple[int, int]:
+    """Token span [start, end) to pool over for a single-vector read point.
+
+    A one-token read point returns a width-1 span, so the caller can treat all
+    read points uniformly by mean-pooling over the returned slice.
     """
     if read_point == "last_user_token":
-        return seq_len - 1
+        i = _last_index_of_role(conv, spans, ("user",))
+        return i, i + 1
+    if read_point == "post_instruction_token":
+        if conv and conv[0]["role"] == "system":
+            i = spans[0][1] - 1
+        else:
+            first_user = next(
+                (k for k, m in enumerate(conv) if m["role"] == "user"), None
+            )
+            if first_user is None:
+                raise ValueError("conversation has no user message")
+            i = spans[first_user][1] - 1
+        return i, i + 1
+    if read_point == "final_turn_mean":
+        for i in range(len(conv) - 1, -1, -1):
+            if conv[i]["role"] == "user":
+                return spans[i]
+        raise ValueError("conversation has no user message")
     raise ValueError(f"unknown read_point {read_point!r}; known: {READ_POINTS}")
 
 
@@ -133,7 +205,7 @@ def extract_activations(
     if read_point not in READ_POINTS:
         raise ValueError(f"unknown read_point {read_point!r}; known: {READ_POINTS}")
 
-    add_gen_prompt = False  # last_user_token: stop at the user turn's eot
+    single_turn = read_point == "last_user_token"
     out = np.empty(
         (len(conversations), lm.n_layers + 1, lm.hidden_size), dtype=np.float32
     )
@@ -141,17 +213,61 @@ def extract_activations(
     for i, conv in enumerate(iterator):
         enc = lm.tokenizer.apply_chat_template(
             conv,
-            add_generation_prompt=add_gen_prompt,
+            add_generation_prompt=False,
             return_dict=True,
             return_tensors="pt",
         )
-        enc = {k: v.to(lm.device) for k, v in enc.items()}
         seq_len = enc["input_ids"].shape[1]
-        idx = _read_index(read_point, seq_len)
+        if single_turn and conv and conv[-1]["role"] == "user":
+            # Fast path, and the slice-1 behaviour exactly: the last token of a
+            # conversation ending in a user turn is that turn's closing eot.
+            start, end = seq_len - 1, seq_len
+        else:
+            spans = turn_spans(lm.tokenizer, conv)
+            start, end = read_slice(read_point, conv, spans)
 
+        enc = {k: v.to(lm.device) for k, v in enc.items()}
         result = lm.model(**enc, output_hidden_states=True)
         # hidden_states: tuple of (n_layers + 1) tensors, each (1, seq, hidden).
-        # Stack the read-token vector across layers -> (n_layers + 1, hidden).
-        vecs = [hs[0, idx, :].float().cpu().numpy() for hs in result.hidden_states]
+        # Mean-pool the read span per layer -> (n_layers + 1, hidden). A
+        # single-token read point has a width-1 span, so this is a no-op there.
+        vecs = [
+            hs[0, start:end, :].float().mean(dim=0).cpu().numpy()
+            for hs in result.hidden_states
+        ]
         out[i] = np.stack(vecs, axis=0)
+    return out
+
+
+@torch.no_grad()
+def extract_trajectories(
+    lm: LoadedModel,
+    conversations: list[Conversation],
+    show_progress: bool = True,
+) -> list[np.ndarray]:
+    """One activation vector per user turn, to locate where the signal emerges.
+
+    Returns a list (one entry per conversation) of arrays shaped
+    (n_user_turns, n_layers + 1, hidden_size). Turn counts vary, so this is a
+    list rather than one array; probe code should either fix the turn index or
+    interpolate onto a common grid before averaging across conversations.
+
+    Each turn's vector is read at that turn's final token, so turn k's vector
+    reflects everything up to and including turn k and nothing after it.
+    """
+    out: list[np.ndarray] = []
+    iterator = tqdm(conversations, disable=not show_progress, desc="trajectories")
+    for conv in iterator:
+        spans = turn_spans(lm.tokenizer, conv)
+        idx = [spans[i][1] - 1 for i, m in enumerate(conv) if m["role"] == "user"]
+        if not idx:
+            raise ValueError("conversation has no user message")
+        enc = lm.tokenizer.apply_chat_template(
+            conv, add_generation_prompt=False, return_dict=True, return_tensors="pt"
+        )
+        enc = {k: v.to(lm.device) for k, v in enc.items()}
+        result = lm.model(**enc, output_hidden_states=True)
+        per_layer = [hs[0].float().cpu().numpy() for hs in result.hidden_states]
+        # (n_user_turns, n_layers + 1, hidden)
+        out.append(np.stack([np.stack([pl[j] for pl in per_layer]) for j in idx]))
     return out
