@@ -38,10 +38,10 @@ differently-constructed pair, and run the identical test on every baseline.
 Headline (ARC+MMLU, 5 seeds; GSM8K excluded because digit density alone scores
 0.949 there, so those items measure numeral counting):
 
-- The probe beats bag-of-words under transfer by **+0.067 ± 0.016**, positive
+- The probe beats bag-of-words under transfer by **+0.071 ± 0.013**, positive
   on every seed. Every format-matched training cell gives a positive margin.
 - **Training on the standard confounded contrast is the sole exception**
-  (−0.086 ± 0.034, win rate 12%): on the setup the field actually uses,
+  (−0.087 ± 0.032, win rate 12%): on the setup the field actually uses,
   activations generalize *worse* than word counts.
 - The direction travels one way. Trained on our realistic cells it scores
   0.949 on the standard benchmark cell; trained on the standard cell it scores

@@ -474,14 +474,16 @@ target, not a pool-level one.
 **MATH-FREE TRANSFER (arc+mmlu only, both train and test; 5 seeds) — the
 headline result. It is STRONGER than the contaminated version:**
 
-- **probe minus BoW: +0.067 +- 0.016** (contaminated version: +0.048 +- 0.012),
-  positive on all 5 seeds, range +0.044 to +0.083.
-- probe transfer strength 0.287+-0.010 vs BoW 0.220+-0.008 vs format
-  0.129+-0.009 vs length 0.030.
-- Per training set: `ours_b_wc` **+0.142+-0.020** (win rate 80%), `ours_b_tm`
-  +0.096 (92%), `ours_a_wc` +0.095 (80%), `ours_a_tm` +0.092 (**96%**),
-  `devb_fmt_matched` +0.061 (72%). Only `devb_standard` is negative,
-  **-0.086+-0.034, win rate 12%**.
+- **probe minus BoW: +0.071 +- 0.013**, positive on all 5 seeds, range +0.053
+  to +0.088. (The gsm8k-contaminated run gives +0.048 +- 0.012, i.e. including
+  maths items makes the probe look WORSE, because BoW exploits the numeral
+  shortcut at least as well.)
+- probe transfer strength 0.287 vs BoW 0.221+-0.009 vs format ~0.13 vs
+  length 0.026.
+- Per training set: `ours_b_wc` **+0.143+-0.023** (win rate 80%), `ours_b_tm`
+  +0.110 (96%), `ours_a_tm` +0.096 (**100%**), `ours_a_wc` +0.097 (80%),
+  `devb_fmt_matched` +0.068 (68%). Only `devb_standard` is negative,
+  **-0.087+-0.032, win rate 12%**.
 - The asymmetry is sharper without maths: `ours_a_wc` -> `devb_standard`
   **0.949+-0.00**, while `devb_standard` -> `ours_a_wc` falls to
   **0.578+-0.03**, i.e. barely above chance.
