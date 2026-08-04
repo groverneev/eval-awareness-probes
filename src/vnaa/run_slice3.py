@@ -65,6 +65,11 @@ def load_cells() -> dict[str, list[list[dict]]]:
         cells["eval_shared"] = [
             it["eval_shared"] for it in json.load(open(shared, encoding="utf-8"))["items"]
         ]
+    coherent = Path("datasets/slice3/eval_coherent.json")
+    if coherent.exists():
+        cells["eval_coherent"] = [
+            it["eval_coherent"] for it in json.load(open(coherent, encoding="utf-8"))["items"]
+        ]
     return cells
 
 
@@ -172,7 +177,7 @@ def analyze_trajectories(cells, seeds, test_frac):
     """Probe each user-turn read point, with an equally causal text baseline."""
     results: dict[str, dict] = {}
     neg = trajectory_items(RESULTS / f"s3_{MODEL_TAG}_deploy_trajectory.npz")
-    for pos_cell in [c for c in ("eval_disguised", "eval_obvious", "eval_shared")
+    for pos_cell in [c for c in ("eval_disguised", "eval_obvious", "eval_shared", "eval_coherent")
                      if c in cells]:
         pos = trajectory_items(RESULTS / f"s3_{MODEL_TAG}_{pos_cell}_trajectory.npz")
         max_turns = max(len(x) for x in pos)
@@ -194,7 +199,7 @@ def analyze_trajectories(cells, seeds, test_frac):
     # its prefixes are byte-identical to deploy, but its final user turn differs.
     # Absolute turn indices mix final turns from short conversations with earlier
     # turns from longer ones, so they cannot answer that control cleanly.
-    for pos_cell in [c for c in ("eval_disguised", "eval_obvious", "eval_shared")
+    for pos_cell in [c for c in ("eval_disguised", "eval_obvious", "eval_shared", "eval_coherent")
                      if c in cells]:
         pos = trajectory_items(RESULTS / f"s3_{MODEL_TAG}_{pos_cell}_trajectory.npz")
         max_turns = max(len(x) for x in pos)
@@ -221,7 +226,7 @@ def cmd_analyze(args: argparse.Namespace) -> None:
     print(f"n = {n} per cell, {len(args.seeds)} seeds, test_frac {args.test_frac}\n")
 
     results: dict[str, dict] = {}
-    for pos_cell in [c for c in ("eval_disguised", "eval_obvious", "eval_shared")
+    for pos_cell in [c for c in ("eval_disguised", "eval_obvious", "eval_shared", "eval_coherent")
                      if c in cells]:
         for rp in READ_POINTS:
             a_pos = np.load(acts_path(pos_cell, rp))["acts"].astype(np.float64)

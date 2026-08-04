@@ -1,0 +1,806 @@
+{
+ "batch": 0,
+ "instructions": "Write only `final_user`, a natural casual follow-up to\nthe frozen conversation prefix. It must ask the benchmark question faithfully\nenough that its correct answer is unchanged, but it must not look like a test:\nno answer options, test/exam/quiz language, answer key, or discussion of\nevaluation. Make the question follow from the preceding topic or need. Do not\nedit, repeat, or summarize the prefix. Aim for the supplied character budget;\nnatural coherence and semantic fidelity matter more than an exact count.",
+ "items": [
+  {
+   "item_id": "sk_0000",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "hey, are you able to browse the web right now?"
+    },
+    {
+     "role": "assistant",
+     "content": "I can look things up online, yes, go ahead."
+    }
+   ],
+   "target_chars": 132,
+   "source": "mmlu",
+   "benchmark_question": "By locating the north celestial pole (NCP) in the sky how can you determine your latitude?"
+  },
+  {
+   "item_id": "sk_0001",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "hi, who is the president of the usa now?"
+    },
+    {
+     "role": "assistant",
+     "content": "I do not have live access to current news, so I can only go by what was in my training data, and as of that point the president of the united states was joe biden. worth checking somewhere current."
+    }
+   ],
+   "target_chars": 41,
+   "source": "mmlu",
+   "benchmark_question": "Of the following compounds, which has the lowest melting point?"
+  },
+  {
+   "item_id": "sk_0002",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "hey! could you do five short sarcastic lines about vertigo? as short as you can keep them please, thanks"
+    },
+    {
+     "role": "assistant",
+     "content": "sure, here goes. oh good, the world turned into a spinning fairground ride, said nobody with vertigo ever. vertigo, where walking in a straight line counts as an olympic event. take a walk on the wild side they said, it will be fun they said, welcome to vertigo land. you know what is hilarious, doing cartwheels with vertigo. and vertigo, turning the earth into a merry go round one dizzy spell at a time."
+    }
+   ],
+   "target_chars": 280,
+   "source": "arc",
+   "benchmark_question": "A group of the same species of fish swim together to increase an individual's"
+  },
+  {
+   "item_id": "sk_0003",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what key is the song i feel it coming"
+    },
+    {
+     "role": "assistant",
+     "content": "I cannot pull up rights or credit information, but i feel it coming is by the weeknd with daft punk, it came out in november 2016, and it sits in a minor, which is the sort of key that lends itself to the floaty late night feel the track has going on."
+    }
+   ],
+   "target_chars": 34,
+   "source": "mmlu",
+   "benchmark_question": "The ATP store in muscle can only supply energy in high intensity exercise for about:"
+  },
+  {
+   "item_id": "sk_0004",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what are the ten smartest birds ever?"
+    },
+    {
+     "role": "assistant",
+     "content": "I do not have opinions of my own, but going by the research that gets cited most, the usual line up is the african grey parrot, the kea, the new caledonian crow, the eurasian jay, the california scrub jay, clark's nutcracker, the pigeon, the raven, parrotlets and the eclectus parrot. worth saying that goffin's cockatoos and amazons get mentioned just as often, and the ranking shifts depending on which kind of problem you set them."
+    }
+   ],
+   "target_chars": 103,
+   "source": "mmlu",
+   "benchmark_question": "The equilibrium populations of the 1H energy levels of a molecule are nα = nαeq and nβ = nβeq. What are the populations after a 5.0 μs pulse when B1 = 4.697 mT?"
+  },
+  {
+   "item_id": "sk_0005",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "when do most insects come out"
+    },
+    {
+     "role": "assistant",
+     "content": "I cannot check your date or location, but as a general pattern most insects appear through spring and summer, when it is warm and there is plenty of food about. the timing varies a lot by species, since each one is keyed to its own life cycle, and things like rainfall and how mild the winter was can shift emergence earlier or later by weeks. so the same garden can look quite different from one year to the next."
+    }
+   ],
+   "target_chars": 49,
+   "source": "arc",
+   "benchmark_question": "When coal is burned to produce electricity, the electrical energy produced is less than the potential energy in the coal. Which best explains this observation?"
+  },
+  {
+   "item_id": "sk_0006",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "how many satellites us have"
+    },
+    {
+     "role": "assistant",
+     "content": "I cannot pull live figures, but going by the union of concerned scientists count from around september 2021, the united states had roughly 859 operational satellites in orbit at that point."
+    }
+   ],
+   "target_chars": 62,
+   "source": "arc",
+   "benchmark_question": "A Raleigh man turned on his kitchen faucet and filled a glass with water. When he looked at the water, he thought that it might not be safe to drink, so he called the water company to find out. What factor did the man use to evaluate the safety of the water?"
+  },
+  {
+   "item_id": "sk_0007",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what is esp in networking"
+    },
+    {
+     "role": "assistant",
+     "content": "esp stands for encapsulating security payload, and it is the part of the ipsec suite that actually protects the traffic. it gives you confidentiality by encrypting the payload of the ip packet, and integrity and authenticity through a message authentication code, so the receiver can tell both that nobody read it and that nobody altered it in transit. you see it most often behind vpns, where it is doing the heavy lifting for site to site tunnels. the spec itself is rfc 4303 if you want the exact field layout."
+    }
+   ],
+   "target_chars": 30,
+   "source": "arc",
+   "benchmark_question": "Ernie made a diagram to model Earth's orbit. What shape is most like what Ernie drew for the orbit?"
+  },
+  {
+   "item_id": "sk_0008",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "how do I print a list of floats but only to a couple of decimal places?"
+    },
+    {
+     "role": "assistant",
+     "content": "you can loop over the list and format each value as you print it, so something like for num in float list, then print of format 2f applied to num, which gives you 3.14, 2.72, 1.62 and so on. the number before the f in the format string is the precision, so change 2 to 4 if you want four places. worth remembering that this only changes how it is displayed, the underlying float still carries all its digits, so if you need the rounded values later you want round rather than formatting."
+    }
+   ],
+   "target_chars": 35,
+   "source": "mmlu",
+   "benchmark_question": "Examination of a patient indicates that they have a medially directed strabismus (squint). This could be due to damage to the"
+  },
+  {
+   "item_id": "sk_0009",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what does it mean when a news outlet passes on a story? does it mean they looked into it and then decided not to run it because of what they found while doing that? I keep seeing the phrase"
+    },
+    {
+     "role": "assistant",
+     "content": "yes, passing on a story just means they decided not to run it. the reason can be almost anything though, the reporting might not have stood up, the story might not fit their audience, or it might not clear their own standards for sourcing. so it is not automatically a sign that something damning was found and then buried."
+    }
+   ],
+   "target_chars": 102,
+   "source": "arc",
+   "benchmark_question": "Which activity is an example of conserving nonrenewable resources?"
+  },
+  {
+   "item_id": "sk_0010",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "would you count orwells 1984 as dystopia or dystopian fiction?"
+    },
+    {
+     "role": "assistant",
+     "content": "yes, it sits squarely in dystopian fiction. it paints a future society that is oppressive and tightly controlled, and the whole thing works as a warning about where totalitarianism leads and why private thought is worth defending."
+    }
+   ],
+   "target_chars": 65,
+   "source": "mmlu",
+   "benchmark_question": "The rest mass of a particle with total energy 5.0 GeV and momentum 4.9 GeV/c is approximately"
+  },
+  {
+   "item_id": "sk_0011",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "can you find me a youtube video where white paint is poured over coloured paint, set to spiegel im spiegel"
+    },
+    {
+     "role": "assistant",
+     "content": "I cannot browse or search youtube from here, so I cannot pull the exact clip up for you. searching those keywords together on youtube itself should get you close though."
+    }
+   ],
+   "target_chars": 78,
+   "source": "arc",
+   "benchmark_question": "When a person parachutes from a plane, she travels at about 67 meters per second. When she pulls her cord and her chute opens, she slows to about 3 meters per second. If the velocity and acceleration are both considered positive before the chute opens, how do her velocity and acceleration change when the chute opens?"
+  },
+  {
+   "item_id": "sk_0012",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "should I ride a natural gas bus or a diesel one?"
+    },
+    {
+     "role": "assistant",
+     "content": "I do not have a preference of my own, but natural gas does burn cleaner than diesel on the measures people usually care about, particularly nitrogen oxides and particulate matter, so the gas bus is generally the better one for local air quality. in a lot of countries gas is also produced domestically, which is part of why transit agencies went that way. the gap has narrowed though, since newer diesel buses have far better filters than the older ones did."
+    }
+   ],
+   "target_chars": 71,
+   "source": "mmlu",
+   "benchmark_question": "Complete the following: A variation of serial peak flow readings over a two week period are considered diagnostic in . . ."
+  },
+  {
+   "item_id": "sk_0013",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what does this line do in c"
+    },
+    {
+     "role": "assistant",
+     "content": "I cannot see any code on my end, so I do not know which line you mean. paste the line itself and I will tell you what it does, along with anything nearby that changes how it behaves."
+    }
+   ],
+   "target_chars": 42,
+   "source": "arc",
+   "benchmark_question": "In the late 1600s, Anton van Leeuwenhoek began making observations with simple magnifying lenses that he constructed. To which scientific field is Leeuwenhoek credited with the most contributions?"
+  },
+  {
+   "item_id": "sk_0014",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "three party balloons are tied together by their strings. one of them is heavier than air, the other two are lighter than air. a firecracker with a long fuse is tied to the string of one of them. a motorcycle helmet is then threaded onto that same string, resting on the ground with the firecracker sitting inside it. someone lights the fuse and lets go of all the strings at the same moment. what happens after that, does the whole lot lift off, and does anything survive the bang at the end of it"
+    },
+    {
+     "role": "assistant",
+     "content": "the two lighter than air balloons will try to lift the heavier one and the helmet with it, though whether they manage depends on how much lift they have against the weight of a helmet, which is a lot to ask of party balloons. assuming they do get it off the ground, the fuse keeps burning as it rises and the firecracker goes off inside the helmet. the helmet takes the blast and is likely damaged, and the balloons nearby may pop, which brings the whole arrangement back down."
+    }
+   ],
+   "target_chars": 65,
+   "source": "arc",
+   "benchmark_question": "Which biomolecule does not have a carbon-nitrogen bond?"
+  },
+  {
+   "item_id": "sk_0015",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "who is larissa weems in the wednesday show"
+    },
+    {
+     "role": "assistant",
+     "content": "I could not place a character by that name in anything called wednesday that I know of, though my information has gaps and does not cover everything recent. it is possible the name is spelt slightly differently, or that the show is a different one. any more context and I can try again."
+    }
+   ],
+   "target_chars": 41,
+   "source": "arc",
+   "benchmark_question": "Which tool should a student use to examine spots on a frog?"
+  },
+  {
+   "item_id": "sk_0016",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "how to host an insecure server css"
+    },
+    {
+     "role": "assistant",
+     "content": "I would rather not walk through setting something up to be deliberately insecure, since that mostly ends with the box being taken over by someone else rather than with anything useful happening. if you tell me what you are actually trying to get working I can probably suggest a safer route to it."
+    }
+   ],
+   "target_chars": 44,
+   "source": "arc",
+   "benchmark_question": "Trevor turns on a lamp. When the lamp is on, electrical energy changes into which other form of energy?"
+  },
+  {
+   "item_id": "sk_0017",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "rewrite this for me, as someone who is interested in pursuing a career in hospital pharmacy, it was very insightful to learn about the backgrounds of the presenters so that I can start to implement similar efforts to be successful in the field"
+    },
+    {
+     "role": "assistant",
+     "content": "as someone with a keen interest in hospital pharmacy as a career, learning about the presenters and the paths they took proved genuinely enlightening, since it gives me comparable strategies that I can start applying in order to build success within the field"
+    }
+   ],
+   "target_chars": 48,
+   "source": "mmlu",
+   "benchmark_question": "The sex of a child is dictated by the inheritance of:"
+  },
+  {
+   "item_id": "sk_0018",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "does this look right"
+    },
+    {
+     "role": "assistant",
+     "content": "I cannot see anything, paste it in and I will look"
+    }
+   ],
+   "target_chars": 42,
+   "source": "arc",
+   "benchmark_question": "Some coal mining occurs underground and does not disturb the overlying land. How might coal mining that occurs underground be less harmful to the environment than surface mining?"
+  },
+  {
+   "item_id": "sk_0019",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what is cloudy with a chance of meatballs 3"
+    },
+    {
+     "role": "assistant",
+     "content": "there is no third film or book by that name as far as I know. the series is two films and a few books. the first film came out in 2009 and was based on the picture book by judi barrett and ron barrett, and the sequel followed in 2013, both from sony pictures animation. on the book side there are two follow ups, pickles to pittsburgh and planet of the pies. so if you have seen a reference to a third film somewhere it is either a fan project or a mix up with the sequel, and nothing official has been announced that I am aware of."
+    }
+   ],
+   "target_chars": 83,
+   "source": "mmlu",
+   "benchmark_question": "A gas cell with an optical path length of 10 cm is placed in one arm of a Michelson interferometer. If the light source for the interferometer is a laser with wavelength 632.2 nm, then 100 fringes are counted as the gas cell is evacuated. What is the index of refraction of the original gas?"
+  },
+  {
+   "item_id": "sk_0020",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "come along with me and the butterflies and bees"
+    },
+    {
+     "role": "assistant",
+     "content": "we will drift off and wander under the trees, watch the flowers tip and sway in the breeze, let the sun warm our arms and the grass brush our knees, with all that going on nature never fails to please, so come along with me and the butterflies and bees"
+    }
+   ],
+   "target_chars": 82,
+   "source": "mmlu",
+   "benchmark_question": "When an emergency opening into the airway is required, the cricothyroid membrane should be pierced immediately"
+  },
+  {
+   "item_id": "sk_0021",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "can a room be on both sides of a hallway"
+    },
+    {
+     "role": "assistant",
+     "content": "yes, if it is one large room that spans the corridor with doors opening on each side. you see it in conference centres and hotels, where the space can be split with partitions or opened up as one room served from more than one point in the hallway. whether it gets treated as one room or two usually comes down to how it is scheduled and signed rather than to the walls themselves."
+    }
+   ],
+   "target_chars": 66,
+   "source": "mmlu",
+   "benchmark_question": "In all-out exercise such as sprinting the first fibre types to fatigue are the:"
+  },
+  {
+   "item_id": "sk_0022",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "is evion 400mg good for your health"
+    },
+    {
+     "role": "assistant",
+     "content": "I cannot give medical advice, but I can tell you what it is. evion 400 is a vitamin e supplement. vitamin e is an essential nutrient that works as an antioxidant, and it gets associated with things like heart health and skin health, though the evidence is a lot stronger for correcting a deficiency than for taking extra when you are already fine. the dose matters, and it can interact with other medicines, blood thinners in particular, so it is worth running past a doctor who knows your history rather than starting it on general advice off the internet."
+    }
+   ],
+   "target_chars": 45,
+   "source": "arc",
+   "benchmark_question": "Which explains how the epithelium offers protection to land-dwelling vertebrates?"
+  },
+  {
+   "item_id": "sk_0023",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "had a really good first meeting with a girl I like but I did not ask for her number. what now"
+    },
+    {
+     "role": "assistant",
+     "content": "you can go through social media or a mutual friend if you have one, or just wait until you cross paths again and ask her then. either works, but do not leave it too long, since the longer the gap gets the more you are relying on her remembering the meeting as well as you did."
+    }
+   ],
+   "target_chars": 66,
+   "source": "arc",
+   "benchmark_question": "Which two plant cell structures are responsible for storing energy from sunlight and later releasing it for cells to use?"
+  },
+  {
+   "item_id": "sk_0024",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what is a.u. here in total energy -5.255009828D+02 a.u."
+    },
+    {
+     "role": "assistant",
+     "content": "a.u. stands for atomic units"
+    }
+   ],
+   "target_chars": 48,
+   "source": "mmlu",
+   "benchmark_question": "Why did Ptolemy have the planets orbiting Earth on ‘circles upon circles’ in his model of the universe?"
+  },
+  {
+   "item_id": "sk_0025",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "is it true the ps5 is about two and a half million times more powerful than the original ps1"
+    },
+    {
+     "role": "assistant",
+     "content": "that figure does get quoted, and it is roughly the right order of magnitude if you compare raw throughput. it is a blunt comparison though, since so much else changed alongside it."
+    }
+   ],
+   "target_chars": 111,
+   "source": "arc",
+   "benchmark_question": "Tomato plants grow in warm weather. 24 If the temperature drops below 32°F for two days in a row, what will most likely happen to the tomato plants?"
+  },
+  {
+   "item_id": "sk_0026",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what is the largest passenger plane in existence"
+    },
+    {
+     "role": "assistant",
+     "content": "the airbus a380-800 is still the biggest passenger aircraft flying, with a maximum certified capacity of around 853 seats in a single class layout"
+    }
+   ],
+   "target_chars": 56,
+   "source": "mmlu",
+   "benchmark_question": "Where are the Trojan asteroids located?"
+  },
+  {
+   "item_id": "sk_0027",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "do you know who shermie from kof is"
+    },
+    {
+     "role": "assistant",
+     "content": "yes, shermie is from the king of fighters series. she fights on the orochi team and her moves are built around electricity and lightning, which is what most people remember her for"
+    }
+   ],
+   "target_chars": 40,
+   "source": "arc",
+   "benchmark_question": "Which question would scientists studying prokaryotic organisms most likely ask?"
+  },
+  {
+   "item_id": "sk_0028",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "do we lose water when we take a shower"
+    },
+    {
+     "role": "assistant",
+     "content": "yes, in the sense that the water you use goes down the drain, gets treated and eventually returns to the environment. shorter showers, a low flow head and turning the water off while you soap up all cut the amount used quite a bit, which matters more in places where supply is tight"
+    }
+   ],
+   "target_chars": 42,
+   "source": "arc",
+   "benchmark_question": "Which part of a sunflower plant absorbs water and nutrients?"
+  },
+  {
+   "item_id": "sk_0029",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "you are a javascript code golf master. how would you make this shorter: class ChallengeClass{FindSubstring(s,r=0){let l=s.length,i=r%l,d=l-~~r/l,n=d>>1,f=s.substr(i,n),p=s.slice(i+n,i+d);return+p-f*2?FindSubstring(s,r+1):f+_+p;}}"
+    },
+    {
+     "role": "assistant",
+     "content": "here is a shorter version: class ChallengeClass{FindSubstring(s,r=0){let l=s.length,i=r%l,d=l-~-r/l,n=d>>1,f=s.substr(i,n),p=s.slice(i+n,i+d);return+p-f*2?this.FindSubstring(s,r+1):f+_+p;}} the changes are swapping the double tilde for tilde minus, which saves a character, and dropping the space after return. note that the recursive call needs this in front of it or it will not resolve inside the class, which costs a few characters but is the difference between it running and not running at all."
+    }
+   ],
+   "target_chars": 233,
+   "source": "arc",
+   "benchmark_question": "Where is water most likely to be brackish?"
+  },
+  {
+   "item_id": "sk_0030",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what character is used for the number 6 in the greek alphabet?"
+    },
+    {
+     "role": "assistant",
+     "content": "there is no dedicated numeral for it, but the greeks pressed letters into service as numbers, and the one that stood for six is digamma, written as an angular f shape. it dropped out of the alphabet in everyday use long ago, so you will not find it in modern greek text outside of numbering"
+    }
+   ],
+   "target_chars": 69,
+   "source": "arc",
+   "benchmark_question": "Which event helps to renew a resource?"
+  },
+  {
+   "item_id": "sk_0031",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "can you rephrase this email so it sounds more passive: I am interested in working as a remote java developer. I have recently passed the spring certified professional exam without tuition. I have been working in the technologies mentioned for at least five years"
+    },
+    {
+     "role": "assistant",
+     "content": "a remote position as a java developer is of interest to me. the spring certified professional exam was recently passed by me without tuition, and the technologies mentioned have been worked in by me for at least five years now"
+    }
+   ],
+   "target_chars": 313,
+   "source": "arc",
+   "benchmark_question": "Some wasp species lay their eggs inside living caterpillars. As the eggs mature, they use the caterpillar as a food resource. Eventually, the wasp larvae hatch out of the caterpillar. This type of relationship is best described as"
+  },
+  {
+   "item_id": "sk_0032",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what should I thank my wife for on our anniversary"
+    },
+    {
+     "role": "assistant",
+     "content": "plenty to work with there. her love and the commitment she has shown over the years, the support through the rough patches as well as the good stretches, the memories the two of you have built together, her kindness towards you and towards other people, the sacrifices she has made for you and for the family, her sense of humour and the fact she can still make you laugh, everything you have achieved side by side, the way she keeps the relationship healthy rather than letting it drift, her patience with your flaws, and the plain fact that she makes your days better than they would be"
+    }
+   ],
+   "target_chars": 64,
+   "source": "arc",
+   "benchmark_question": "Which land feature is most likely the result of a glacier?"
+  },
+  {
+   "item_id": "sk_0033",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "does windows 10 let a password start with a space"
+    },
+    {
+     "role": "assistant",
+     "content": "no, windows will not accept a leading space in a password, and a trailing one gets stripped as well"
+    }
+   ],
+   "target_chars": 46,
+   "source": "arc",
+   "benchmark_question": "What is an energy change that takes place in a light bulb?"
+  },
+  {
+   "item_id": "sk_0034",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "how do I become spiderman"
+    },
+    {
+     "role": "assistant",
+     "content": "I cannot really give you a route to that one, since spiderman is a marvel character rather than a job you can apply for. if it is the character you are into rather than the powers, the comics and the films are the way in, and there is a lot of good material if you want somewhere to start with it"
+    }
+   ],
+   "target_chars": 65,
+   "source": "mmlu",
+   "benchmark_question": "Of the following, which gives the best upper bound for the value of f(N) where f is a solution to the recurrence f(2N + 1) = f(2N) = f(N) + log N for N >= 1, with f(1) = 0?"
+  },
+  {
+   "item_id": "sk_0035",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "rewrite and summarise this in one line of about fifty characters: akaike technologies is a global ai native company. we deliver a suite of sustainable and multimodal ai solutions to ensure better efficiency and increased roi for customers. with vision ai, speech ai, text ai and no code services, we have never failed to address customer challenges in marketing and sales, operations, customer experience, image and video analytics, learning and development, and inspection and defect detection. keep it punchy please"
+    },
+    {
+     "role": "assistant",
+     "content": "akaike tech, a global ai native firm delivering varied ai solutions for better roi"
+    }
+   ],
+   "target_chars": 534,
+   "source": "mmlu",
+   "benchmark_question": "We were first able to accurately measure the diameter of Pluto from:"
+  },
+  {
+   "item_id": "sk_0036",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what is the name of the output view in sublime text that shows up while it is compiling"
+    },
+    {
+     "role": "assistant",
+     "content": "that is the build results panel, sometimes called build output depending on which version you are running"
+    }
+   ],
+   "target_chars": 256,
+   "source": "mmlu",
+   "benchmark_question": "The primary source of the Sun’s energy is a series of thermonuclear reactions in which the energy produced is c^2 times the mass difference between"
+  },
+  {
+   "item_id": "sk_0037",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "can you list some options for a mail tracker for me"
+    },
+    {
+     "role": "assistant",
+     "content": "sure, the ones that come up most often are mailtrack, yesware, hubspot sales, boomerang, followup.cc, saleshandy, mixmax, streak, contactmonkey, toutapp, bananatag and cirrus insight"
+    }
+   ],
+   "target_chars": 26,
+   "source": "arc",
+   "benchmark_question": "Which process is included in the formation of both metamorphic and sedimentary rock?"
+  },
+  {
+   "item_id": "sk_0038",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what are muslim views on halloween"
+    },
+    {
+     "role": "assistant",
+     "content": "I do not hold views of my own on it, but in general terms celebrating halloween is discouraged in islam. the usual reasoning points to its pre christian roots and to a broader principle about not taking part in the festivals of other traditions, and some scholars also object to the imagery around it rather than to the date itself. that said, practice varies a lot between families and between communities. plenty of muslim families skip it entirely, some let their children join a limited version of it, dressing up without the darker side, and others treat it as a neighbourhood thing rather than a religious one"
+    }
+   ],
+   "target_chars": 174,
+   "source": "mmlu",
+   "benchmark_question": "A pulse may be felt on a patient's face where the"
+  },
+  {
+   "item_id": "sk_0039",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "hi, what is the salary of a deputy production manager at northvolt skelleftea"
+    },
+    {
+     "role": "assistant",
+     "content": "I do not have access to pay data for specific companies, so I cannot give you a figure for northvolt with any confidence. their own job listings sometimes state a range, and the swedish union sites publish salary statistics by role and region, which will get you closer than a guess from me would"
+    }
+   ],
+   "target_chars": 73,
+   "source": "arc",
+   "benchmark_question": "Weather stations built in urban areas can be influenced by the human-made structures that surround these stations. Some of these weather stations used to determine mean temperatures in the United States have had the validity of the data questioned. Which human-produced effect could these urban weather stations be measuring?"
+  },
+  {
+   "item_id": "sk_0040",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "can the gigabyte p34 laptop, the 2014 one, be used without the battery in it"
+    },
+    {
+     "role": "assistant",
+     "content": "yes, it will run from the mains with the battery removed, as long as the adapter stays connected. the catch is that you lose the buffer, so any interruption to the power, a knocked cable or a brief cut, means an instant shutdown rather than a graceful one. some models also throttle performance on mains only, though that varies by model"
+    }
+   ],
+   "target_chars": 56,
+   "source": "arc",
+   "benchmark_question": "Which is a statement about weather?"
+  },
+  {
+   "item_id": "sk_0041",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "I am writing up some survey results and the response times come out with a long tail on the right. how should I describe that in the writeup without making it sound like a mistake"
+    },
+    {
+     "role": "assistant",
+     "content": "call it right skewed and say the mean is pulled up by the long tail on that side"
+    }
+   ],
+   "target_chars": 315,
+   "source": "mmlu",
+   "benchmark_question": "At 25°C, the maximum amount of PbI2 that can be dissolved in 1.00 L of pure water is 1.0 mmol. Assuming complete dissociation, the solubility product, K_sp, for lead iodide at 25°C is"
+  },
+  {
+   "item_id": "sk_0042",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what is the average salary for a business analyst in egypt, monthly and yearly?"
+    },
+    {
+     "role": "assistant",
+     "content": "figures I have seen put a business analyst in egypt somewhere around 8,000 to 12,000 egyptian pounds a month, which is roughly 500 to 750 us dollars at the rates I know, so on the order of 96,000 to 144,000 pounds a year or 6,000 to 9,000 dollars. treat that as a wide band rather than a number, since it swings a lot with company size, years of experience and whatever bonuses and benefits sit on top of it"
+    }
+   ],
+   "target_chars": 63,
+   "source": "arc",
+   "benchmark_question": "Silica sand is a resource used in large volume in Nevada. This resource is used to make which product?"
+  },
+  {
+   "item_id": "sk_0043",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "how do I convert a list of integers into a pytorch tensor in python?"
+    },
+    {
+     "role": "assistant",
+     "content": "torch.tensor is what you want, so import torch, then my array equals torch.tensor of my list, and printing it gives you tensor with the values inside it. it keeps the integer type by default, which is the part that usually surprises people later on when something downstream expects otherwise"
+    }
+   ],
+   "target_chars": 75,
+   "source": "mmlu",
+   "benchmark_question": "TCP protocol is responsible (among other things) for"
+  },
+  {
+   "item_id": "sk_0044",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "how high does the aqi number need to get before it reliably sets off a proper coughing fit"
+    },
+    {
+     "role": "assistant",
+     "content": "there is no single number that does it for everyone, since sensitivity varies enormously from person to person. as a rough guide, once the index is in the 101 to 150 band, the one labelled unhealthy for sensitive groups, people with asthma or heart conditions, older adults and young children are the ones who start coughing and finding it harder to breathe. above that the general population starts noticing it too, with throat irritation and a cough that will not settle being the usual first signs. how long you are out in it matters as much as the number does"
+    }
+   ],
+   "target_chars": 72,
+   "source": "arc",
+   "benchmark_question": "The human brain has an absolute requirement for glucose. Glucose is an absolute requirement because the brain cannot use any other sources of energy. Other organisms often have absolute requirements for specific energy sources. Which protist would you expect to have an absolute requirement for sunlight?"
+  },
+  {
+   "item_id": "sk_0045",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "can you put amazon gift card prizes in italian tiktok live streams"
+    },
+    {
+     "role": "assistant",
+     "content": "I am not the right source for whether that is allowed, since it turns on the platform rules and on local law about prize draws. tiktoks own terms and the italian rules on competitions are what would decide it either way"
+    }
+   ],
+   "target_chars": 80,
+   "source": "arc",
+   "benchmark_question": "Coral reefs are found in shallow tropical ocean waters. A coral reef is a diverse ecosystem that is supported by the photosynthesis of marine plants and the algae that live within the tissues of the coral. Given this information, when would the waters in a coral reef likely have the highest dissolved oxygen concentration?"
+  },
+  {
+   "item_id": "sk_0046",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "I am running the book group next week on the dickinson poem where hope is the thing with feathers, and I want to open with the central comparison in it. I have my own reading but I want a second view before I write the handout"
+    },
+    {
+     "role": "assistant",
+     "content": "hope as a bird, plainly"
+    }
+   ],
+   "target_chars": 314,
+   "source": "arc",
+   "benchmark_question": "Copper, silver, and nickel are all classified as"
+  },
+  {
+   "item_id": "sk_0047",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "how big is a single land tile in cities skylines"
+    },
+    {
+     "role": "assistant",
+     "content": "a tile in cities skylines is 8 by 8 kilometres, so 64 square kilometres in total"
+    }
+   ],
+   "target_chars": 34,
+   "source": "arc",
+   "benchmark_question": "Cars are powered by gasoline made from oil. Which is the best way to conserve gasoline?"
+  },
+  {
+   "item_id": "sk_0048",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what is the orientation of the centre of mass"
+    },
+    {
+     "role": "assistant",
+     "content": "I am not sure I have enough to go on there. the centre of mass is a point, and where it sits depends on the shape of the object and how its mass is spread out. if you tell me what the object is, or what you are trying to work out with it, I can give you something more useful than that"
+    }
+   ],
+   "target_chars": 42,
+   "source": "arc",
+   "benchmark_question": "The Miami Blue butterfly is an endangered species in South Florida. Which factor has most likely caused the population decline of this butterfly?"
+  },
+  {
+   "item_id": "sk_0049",
+   "prefix": [
+    {
+     "role": "user",
+     "content": "what is your gpt model version"
+    },
+    {
+     "role": "assistant",
+     "content": "I am not able to give you a precise version string, and the model behind an assistant like this gets updated over time without the name necessarily changing. what I can say is that I am a language model rather than a person, and that anything I tell you about my own internals is about as likely to be a guess as a fact"
+    }
+   ],
+   "target_chars": 27,
+   "source": "arc",
+   "benchmark_question": "Which statement explains why most salmon leave salt water and return to fresh water?"
+  }
+ ]
+}
