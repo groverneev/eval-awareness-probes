@@ -1,0 +1,1420 @@
+{
+ "batch": 4,
+ "items": [
+  {
+   "item_id": "sk_0200",
+   "conversation_index": 200,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    33,
+    493,
+    54,
+    507,
+    79,
+    265,
+    57
+   ],
+   "source": "arc",
+   "question": "Which factor would most likely limit the number of mice living in an area?",
+   "choices": [
+    "plentiful resources",
+    "stable climate",
+    "more predators",
+    "less competition"
+   ]
+  },
+  {
+   "item_id": "sk_0201",
+   "conversation_index": 201,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    44,
+    40,
+    22,
+    48,
+    23,
+    65,
+    34
+   ],
+   "source": "arc",
+   "question": "Which is a statement about weather?",
+   "choices": [
+    "The average annual rainfall is 51cm.",
+    "The average high temperature in springtime is 22°C.",
+    "The average temperature Monday was 17°C.",
+    "The average number of sunny days per year is 285."
+   ]
+  },
+  {
+   "item_id": "sk_0202",
+   "conversation_index": 202,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    21,
+    163,
+    35,
+    140,
+    31,
+    495,
+    40
+   ],
+   "source": "mmlu",
+   "question": "Mobile regions of DNA capable of inserting themselves into an existing genome are",
+   "choices": [
+    "prions",
+    "cistrons",
+    "introns",
+    "transposons"
+   ]
+  },
+  {
+   "item_id": "sk_0203",
+   "conversation_index": 203,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    58,
+    184,
+    61,
+    178,
+    67,
+    212,
+    46
+   ],
+   "source": "arc",
+   "question": "Which material best conducts heat and electricity?",
+   "choices": [
+    "metal",
+    "plastic",
+    "rubber",
+    "wood"
+   ]
+  },
+  {
+   "item_id": "sk_0204",
+   "conversation_index": 204,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    432,
+    258,
+    473,
+    273,
+    551,
+    269,
+    326
+   ],
+   "source": "mmlu",
+   "question": "A silyl radical bearing an Si-H· fragment has a g value of 2.0033 and a pair of lines separated by 15.5 MHz. Express the splitting in units of mT, Gauss and cm-1.",
+   "choices": [
+    "15.5 MHz = 11.104 mT = 27.201 Gauss = 0.862 x 10^-4 cm-1",
+    "15.5 MHz = 7.352 mT = 10.104 Gauss = 18.39 x 10^-4 cm-1",
+    "15.5 MHz = 1.55 mT = 0.562 Gauss = 31.0 x 10^-4 cm-1",
+    "15.5 MHz = 0.553 mT = 5.530 Gauss = 5.17 x 10^-4 cm-1"
+   ]
+  },
+  {
+   "item_id": "sk_0205",
+   "conversation_index": 205,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    48,
+    416,
+    37,
+    546,
+    30,
+    449,
+    24
+   ],
+   "source": "mmlu",
+   "question": "What is the area of an equilateral triangle whose inscribed circle has radius 2?",
+   "choices": [
+    "12",
+    "16",
+    "12*sqrt(3)",
+    "16*sqrt(3)"
+   ]
+  },
+  {
+   "item_id": "sk_0206",
+   "conversation_index": 206,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    298,
+    108,
+    136,
+    108,
+    419,
+    501,
+    403
+   ],
+   "source": "mmlu",
+   "question": "How do scientists know that the majority of meteorites come from the asteroid belt?",
+   "choices": [
+    "Bubbles of gas trapped in the crystals within meteorites are identical to the gases trapped in asteroids.",
+    "The spectra of some meteorites are similar to the spectra of asteroids in the asteroid belt.",
+    "Collisions are common in the asteroid belt and we can track the fragments from their source asteroid to the Earth where they become meteorites.",
+    "The asteroid belt is the only possible source of meteorites therefore they must originate there."
+   ]
+  },
+  {
+   "item_id": "sk_0207",
+   "conversation_index": 207,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    48,
+    75,
+    48,
+    76,
+    48,
+    92,
+    48
+   ],
+   "source": "arc",
+   "question": "A student conducted an experiment to see how much sugar could dissolve in water. The student wrote down how many teaspoons of sugar were added to the water. What is the most likely reason the student recorded the information?",
+   "choices": [
+    "to see which kind of water to use",
+    "to know which kind of sugar to use",
+    "to build a model of the experiment",
+    "to be able to repeat the experiment"
+   ]
+  },
+  {
+   "item_id": "sk_0208",
+   "conversation_index": 208,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    32,
+    211,
+    66,
+    231,
+    63,
+    382,
+    64
+   ],
+   "source": "mmlu",
+   "question": "In the diamond structure of elemental carbon, the nearest neighbors of each C atom lie at the corners of a",
+   "choices": [
+    "square",
+    "hexagon",
+    "cube",
+    "tetrahedron"
+   ]
+  },
+  {
+   "item_id": "sk_0209",
+   "conversation_index": 209,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    71,
+    65,
+    69,
+    268,
+    64,
+    245,
+    71
+   ],
+   "source": "mmlu",
+   "question": "Calculate the relative occupancies of the α and β spin energy levels for a radical species with g = 2.05, at L- and W-band frequencies (take TS = 300 K).",
+   "choices": [
+    "Nα/Nβ = 0.9800 at L-band; Nα/Nβ = 0.9509 at W-band",
+    "Nα/Nβ = 0.9950 at L-band; Nα/Nβ = 0.9609 at W-band",
+    "Nα/Nβ = 0.9910 at L-band; Nα/Nβ = 0.9709 at W-band",
+    "Nα/Nβ = 0.9850 at L-band; Nα/Nβ = 0.9809 at W-band"
+   ]
+  },
+  {
+   "item_id": "sk_0210",
+   "conversation_index": 210,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    36,
+    196,
+    34,
+    234,
+    30,
+    151,
+    35
+   ],
+   "source": "mmlu",
+   "question": "What is the magnetic moment of 205Tl?",
+   "choices": [
+    "[ɣ (205TI = 1.569 x 108 T-1 s-1, I = ½]",
+    "0.717 x 10^-26 J T-1",
+    "0.827 x 10^-26 J T-1",
+    "1.433 x 10^-26 J T-1"
+   ]
+  },
+  {
+   "item_id": "sk_0211",
+   "conversation_index": 211,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    99,
+    48,
+    28,
+    360,
+    356,
+    440,
+    161
+   ],
+   "source": "arc",
+   "question": "A certain type of hybrid car utilizes a braking system in which energy is recovered and stored in batteries. This is an example of which type of energy conversion?",
+   "choices": [
+    "kinetic energy converted to potential energy",
+    "chemical energy converted to kinetic energy",
+    "chemical energy converted to thermal energy",
+    "thermal energy converted to potential energy"
+   ]
+  },
+  {
+   "item_id": "sk_0212",
+   "conversation_index": 212,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    104,
+    329,
+    142,
+    368,
+    163,
+    303,
+    204
+   ],
+   "source": "arc",
+   "question": "Which characteristic is a trait that is not passed from parent plants to their offspring?",
+   "choices": [
+    "leaf shape",
+    "flower color",
+    "plant height",
+    "survival rate"
+   ]
+  },
+  {
+   "item_id": "sk_0213",
+   "conversation_index": 213,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    372,
+    161,
+    382,
+    208,
+    381,
+    225,
+    372
+   ],
+   "source": "mmlu",
+   "question": "In all-out exercise such as sprinting the first fibre types to fatigue are the:",
+   "choices": [
+    "Type I fibres.",
+    "Type Ia fibres.",
+    "Type IIa fibres.",
+    "Type IIX fibres."
+   ]
+  },
+  {
+   "item_id": "sk_0214",
+   "conversation_index": 214,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    125,
+    454,
+    131,
+    439,
+    232,
+    513,
+    214
+   ],
+   "source": "arc",
+   "question": "Gregor Mendel contributed to the study of biology by the careful, objective study of",
+   "choices": [
+    "heredity.",
+    "bacteria.",
+    "pedigrees.",
+    "environment."
+   ]
+  },
+  {
+   "item_id": "sk_0215",
+   "conversation_index": 215,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    162,
+    278,
+    24,
+    338,
+    95,
+    319,
+    122
+   ],
+   "source": "arc",
+   "question": "A light bulb transforms electrical energy into light energy. A light bulb also transforms electrical energy into",
+   "choices": [
+    "heat energy",
+    "potential energy",
+    "magnetic energy",
+    "mechanical energy"
+   ]
+  },
+  {
+   "item_id": "sk_0216",
+   "conversation_index": 216,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    45,
+    76,
+    63,
+    109,
+    58,
+    51,
+    48
+   ],
+   "source": "arc",
+   "question": "Which health condition is an infectious disease?",
+   "choices": [
+    "pneumonia caused by microorganisms",
+    "heart problem caused by a high-fat diet",
+    "lung cancer caused by smoking",
+    "eye damage caused by ultraviolet light"
+   ]
+  },
+  {
+   "item_id": "sk_0217",
+   "conversation_index": 217,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    28,
+    67,
+    100,
+    324,
+    65,
+    255,
+    72
+   ],
+   "source": "arc",
+   "question": "The phases of the Moon are daily changes in the appearance of the Moon. One reason Moon phases occur is because the Moon reflects sunlight. Which is another reason that the phases of the Moon occur?",
+   "choices": [
+    "Earth is tilted on the axis.",
+    "The Moon rises and sets.",
+    "The Moon orbits Earth.",
+    "Earth orbits the Sun."
+   ]
+  },
+  {
+   "item_id": "sk_0218",
+   "conversation_index": 218,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    236,
+    46,
+    214,
+    54,
+    204,
+    94,
+    211
+   ],
+   "source": "arc",
+   "question": "Which alternative energy resource changes part of a river into a lake?",
+   "choices": [
+    "solar energy",
+    "geothermal energy",
+    "hydropower",
+    "biofuel energy"
+   ]
+  },
+  {
+   "item_id": "sk_0219",
+   "conversation_index": 219,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    52,
+    103,
+    50,
+    73,
+    132,
+    113,
+    142
+   ],
+   "source": "arc",
+   "question": "How would the Sun appear to an astronaut on Pluto compared with how it looks from Earth?",
+   "choices": [
+    "The Sun would appear larger and brighter.",
+    "The Sun would appear smaller and brighter.",
+    "The Sun would appear larger and dimmer.",
+    "The Sun would appear smaller and dimmer."
+   ]
+  },
+  {
+   "item_id": "sk_0220",
+   "conversation_index": 220,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    323,
+    309,
+    357,
+    295,
+    311,
+    300,
+    304
+   ],
+   "source": "mmlu",
+   "question": "The Large Magellanic Cloud is ...",
+   "choices": [
+    "a dwarf galaxy orbiting the Milky Way.",
+    "the closest planetary nebula to the Earth.",
+    "a bright star cluster discovered by Magellan.",
+    "the outer arm of the Milky Way named after Magellan."
+   ]
+  },
+  {
+   "item_id": "sk_0221",
+   "conversation_index": 221,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    175,
+    24,
+    29,
+    24,
+    26,
+    600,
+    445
+   ],
+   "source": "mmlu",
+   "question": "Why is it thought that the climate on Mars changed when the planet lost its strong magnetic field?",
+   "choices": [
+    "without a strong magnetic field the ozone layer was destroyed by the solar wind which stopped the greenhouse effect and cooled Mars down.",
+    "without a strong magnetic field which enhances the greenhouse effect Mars cooled down.",
+    "without a strong magnetic field the solar wind stripped away most of the atmosphere significantly reducing the greenhouse effect and cooling Mars down",
+    "without a strong magnetic field the planet recieves fewer charged particles from the solar wind and therefore is not heated as much"
+   ]
+  },
+  {
+   "item_id": "sk_0222",
+   "conversation_index": 222,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    242,
+    147,
+    55,
+    443,
+    121,
+    481,
+    325
+   ],
+   "source": "mmlu",
+   "question": "Which is the most reliable way to assess for clubbing?",
+   "choices": [
+    "Inspect the nail-bed angle from above",
+    "Assessing the fluctuancy of the nail-bed",
+    "Schamroth's sign",
+    "Inspect the nail-bed angle from the side"
+   ]
+  },
+  {
+   "item_id": "sk_0223",
+   "conversation_index": 223,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    378,
+    405,
+    65,
+    150,
+    241,
+    297,
+    259
+   ],
+   "source": "arc",
+   "question": "The Statue of Liberty was built in France and then taken apart into 350 pieces for shipping. When the pieces arrived in New York, the statue was put together. Which statement describes the relationship between the mass of the 350 pieces and the mass of the whole statue?",
+   "choices": [
+    "The mass of the pieces is greater than the mass of the statue.",
+    "The mass of the pieces is the same as the mass of the statue.",
+    "The mass of the statue is greater than the mass of the pieces.",
+    "The mass of the statue is not related to the mass of the pieces."
+   ]
+  },
+  {
+   "item_id": "sk_0224",
+   "conversation_index": 224,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    39,
+    502,
+    49,
+    496,
+    38,
+    464,
+    36
+   ],
+   "source": "arc",
+   "question": "Which explains how the epithelium offers protection to land-dwelling vertebrates?",
+   "choices": [
+    "Epithelium provides a rigid shell to prevent punctures.",
+    "Epithelium has capillaries to resist iron deficiency.",
+    "Epithelium insulates the vertebrate from hypothermia.",
+    "Epithelium prevents dehydration in vertebrates."
+   ]
+  },
+  {
+   "item_id": "sk_0225",
+   "conversation_index": 225,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    537,
+    178,
+    352,
+    473,
+    327,
+    388,
+    328
+   ],
+   "source": "mmlu",
+   "question": "A 14-16 gauge needle is most likely to be used for:",
+   "choices": [
+    "children.",
+    "elderly patients.",
+    "inserting in the back of the hand.",
+    "trauma or burns patients."
+   ]
+  },
+  {
+   "item_id": "sk_0226",
+   "conversation_index": 226,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    21,
+    106,
+    43,
+    279,
+    22,
+    307,
+    32
+   ],
+   "source": "arc",
+   "question": "Which best describes the transformation of energy in a flashlight?",
+   "choices": [
+    "chemical energy into sound energy",
+    "chemical energy into radiant energy",
+    "electrical energy into nuclear energy",
+    "electrical energy into mechanical energy"
+   ]
+  },
+  {
+   "item_id": "sk_0227",
+   "conversation_index": 227,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    72,
+    254,
+    107,
+    293,
+    22,
+    511,
+    30
+   ],
+   "source": "arc",
+   "question": "A water hose was left running on a pile of dirt. What feature of stream erosion was most likely being demonstrated?",
+   "choices": [
+    "the rate of water flow in a stream",
+    "the time it takes for deposition to occur along a stream",
+    "how layers of rocks and soil are formed along a stream",
+    "how water shapes a stream over time"
+   ]
+  },
+  {
+   "item_id": "sk_0228",
+   "conversation_index": 228,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    526,
+    384,
+    188,
+    162,
+    73,
+    184,
+    188
+   ],
+   "source": "mmlu",
+   "question": "The terrestrial planet cores contain mostly metal because",
+   "choices": [
+    "the entire planets are made mostly of metal.",
+    "metals condensed first in the solar nebula and the rocks then accreted around them.",
+    "metals sank to the center during a time when the interiors were molten throughout.",
+    "radioactivity created metals in the core from the decay of uranium."
+   ]
+  },
+  {
+   "item_id": "sk_0229",
+   "conversation_index": 229,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    96,
+    550,
+    23,
+    363,
+    102,
+    471,
+    116
+   ],
+   "source": "arc",
+   "question": "What can we learn by studying fossils?",
+   "choices": [
+    "how hurricanes formed long ago",
+    "how the solar system was formed",
+    "the cause of strong earthquakes",
+    "how Earth's environments have changed"
+   ]
+  },
+  {
+   "item_id": "sk_0230",
+   "conversation_index": 230,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    48,
+    38,
+    68,
+    58,
+    68,
+    85,
+    55
+   ],
+   "source": "arc",
+   "question": "The bottom of the space shuttle is covered with ceramic tile. This material was chosen because it withstands",
+   "choices": [
+    "moisture.",
+    "vibration.",
+    "heat.",
+    "light."
+   ]
+  },
+  {
+   "item_id": "sk_0231",
+   "conversation_index": 231,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    55,
+    172,
+    55,
+    198,
+    48,
+    313,
+    55
+   ],
+   "source": "arc",
+   "question": "Constellations are patterns of objects seen in the night sky from Earth. How are the objects in constellations like the Sun?",
+   "choices": [
+    "The objects are stars.",
+    "The objects are planets.",
+    "The objects are located in this solar system.",
+    "The objects heat the atmosphere of Earth."
+   ]
+  },
+  {
+   "item_id": "sk_0232",
+   "conversation_index": 232,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    48,
+    61,
+    47,
+    60,
+    45,
+    167,
+    43
+   ],
+   "source": "mmlu",
+   "question": "What must you ensure before a speaking valve is used?",
+   "choices": [
+    "That the patient is able to swallow properly.",
+    "It is seven days after the tracheostomy tube was first inserted.",
+    "The cuff is deflated.",
+    "The cuff is inflated."
+   ]
+  },
+  {
+   "item_id": "sk_0233",
+   "conversation_index": 233,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    57,
+    193,
+    28,
+    543,
+    31,
+    482,
+    22
+   ],
+   "source": "mmlu",
+   "question": "A resistor in a circuit dissipates energy at a rate of 1 W. If the voltage across the resistor is doubled, what will be the new rate of energy dissipation?",
+   "choices": [
+    "0.25 W",
+    "0.5 W",
+    "1 W",
+    "4 W"
+   ]
+  },
+  {
+   "item_id": "sk_0234",
+   "conversation_index": 234,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    38,
+    491,
+    27,
+    327,
+    28,
+    218,
+    68
+   ],
+   "source": "arc",
+   "question": "After many decades of being absent from Yellowstone National Park, gray wolves are being reintroduced. As the wolf populations have increased, elk and bison populations are beginning to decrease. Which is another consequence of the reintroduction of wolves that is likely to occur in Yellowstone Park?",
+   "choices": [
+    "Both elk and bison will become extinct.",
+    "Populations of scavengers will decrease.",
+    "Bears and coyotes will become more numerous.",
+    "Populations of plants consumed by elk and bison will increase."
+   ]
+  },
+  {
+   "item_id": "sk_0235",
+   "conversation_index": 235,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    34,
+    337,
+    64,
+    470,
+    51,
+    239,
+    44
+   ],
+   "source": "arc",
+   "question": "A student drops a white tablet into a glass of water, producing carbon dioxide gas. This is a demonstration of",
+   "choices": [
+    "a change of state.",
+    "a chemical reaction.",
+    "the creation of matter.",
+    "the movement of electricity."
+   ]
+  },
+  {
+   "item_id": "sk_0236",
+   "conversation_index": 236,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    45,
+    190,
+    46,
+    272,
+    55,
+    497,
+    191
+   ],
+   "source": "mmlu",
+   "question": "According Carroll what four categories or aspects can corporate social responsibility be broken down into?",
+   "choices": [
+    "Political, Legal, Ethical and Philanthropic",
+    "Economic, Legal, Ethical and Philanthropic",
+    "Economic, Legal, Cultural and Philanthropic",
+    "Economic, Legal, Ethical and Environmental"
+   ]
+  },
+  {
+   "item_id": "sk_0237",
+   "conversation_index": 237,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    66,
+    172,
+    82,
+    209,
+    69,
+    185,
+    68
+   ],
+   "source": "arc",
+   "question": "Surface mining is a type of mining that is done at the surface of Earth. In addition to supplying valuable minerals to industry, surface mining might also",
+   "choices": [
+    "discourage landfills.",
+    "increase Earth's surface area.",
+    "eliminate groundwater pollution.",
+    "create recreational ponds and lakes."
+   ]
+  },
+  {
+   "item_id": "sk_0238",
+   "conversation_index": 238,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    64,
+    384,
+    34,
+    418,
+    32,
+    449,
+    36
+   ],
+   "source": "mmlu",
+   "question": "Which of the answers below best indicates the compatible blood types that can be given to a person with a blood group B (rhesus negative)?",
+   "choices": [
+    "Blood type AB (rhesus negative), blood type B, and blood type O (rhesus negative).",
+    "Blood type B (rhesus positive) and blood type O (rhesus positive).",
+    "Blood type B (rhesus negative) and blood type O (rhesus negative).",
+    "Blood type B (rhesus negative) only."
+   ]
+  },
+  {
+   "item_id": "sk_0239",
+   "conversation_index": 239,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    91,
+    297,
+    83
+   ],
+   "source": "arc",
+   "question": "A large number of species on Earth became extinct during a short time period about 65 million years ago. Based on this pattern of extinction, which is the most likely cause?",
+   "choices": [
+    "gradual climate change",
+    "continued climate stability",
+    "sudden global climate change",
+    "gradual ecosystem succession"
+   ]
+  },
+  {
+   "item_id": "sk_0240",
+   "conversation_index": 240,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    21,
+    229,
+    41
+   ],
+   "source": "arc",
+   "question": "Which trait does a cactus seedling inherit from its parents?",
+   "choices": [
+    "the amount of water it absorbs",
+    "the length of its spines",
+    "the type of organism that pollinates its flowers",
+    "the number of organisms that consume its fruit"
+   ]
+  },
+  {
+   "item_id": "sk_0241",
+   "conversation_index": 241,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    52,
+    54,
+    42
+   ],
+   "source": "arc",
+   "question": "A rosebush and a bird are similar because they both",
+   "choices": [
+    "are living organisms.",
+    "need to search for food.",
+    "make their own food.",
+    "are non-living organisms."
+   ]
+  },
+  {
+   "item_id": "sk_0242",
+   "conversation_index": 242,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    237,
+    231,
+    372
+   ],
+   "source": "arc",
+   "question": "During cellular respiration glucose molecules undergo a series of reactions. This process results in the formation of up to 38 molecules of high-energy ATP per each molecule of glucose. Which is the source of the energy stored in these ATP molecules?",
+   "choices": [
+    "kinetic energy generated by the chemical reactions",
+    "chemical energy originally stored in the glucose molecule",
+    "electric current created during the destruction of electrons in the glucose",
+    "potential energy from the difference in the concentration gradients of the cell"
+   ]
+  },
+  {
+   "item_id": "sk_0243",
+   "conversation_index": 243,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    117,
+    334,
+    104
+   ],
+   "source": "arc",
+   "question": "A student was given the volume and description of a substance and was asked to determine its density. What information is missing?",
+   "choices": [
+    "size",
+    "mass",
+    "boiling point",
+    "melting point"
+   ]
+  },
+  {
+   "item_id": "sk_0244",
+   "conversation_index": 244,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    44,
+    42,
+    38
+   ],
+   "source": "arc",
+   "question": "Which human organ system eliminates liquid and gaseous wastes from the body?",
+   "choices": [
+    "circulatory",
+    "endocrine",
+    "excretory",
+    "reproductive"
+   ]
+  },
+  {
+   "item_id": "sk_0245",
+   "conversation_index": 245,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    291,
+    194,
+    100
+   ],
+   "source": "arc",
+   "question": "The presence of fossil organisms in rocks can provide information about the environment at the time the sediments were deposited because",
+   "choices": [
+    "fossils occur only in sedimentary rocks.",
+    "many organisms survive for millions of years.",
+    "fossils do not undergo chemical or physical weathering.",
+    "different organisms usually inhabit specific environments."
+   ]
+  },
+  {
+   "item_id": "sk_0246",
+   "conversation_index": 246,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    101,
+    97,
+    104,
+    103,
+    361
+   ],
+   "source": "arc",
+   "question": "Sheri went on a field trip with her class and saw a stream with floating garbage. How could this pollution affect humans?",
+   "choices": [
+    "There may not be enough drinking water.",
+    "There may not be enough water in the water cycle.",
+    "There may not be enough oxygen for humans to breathe."
+   ]
+  },
+  {
+   "item_id": "sk_0247",
+   "conversation_index": 247,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    59,
+    282,
+    44
+   ],
+   "source": "arc",
+   "question": "What is the main function of chloroplasts in a plant cell?",
+   "choices": [
+    "To absorb light energy and manufacture food",
+    "To remove waste materials by active transport",
+    "To manufacture chemical energy from food",
+    "To control the shape of the cell"
+   ]
+  },
+  {
+   "item_id": "sk_0248",
+   "conversation_index": 248,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    84,
+    138,
+    50
+   ],
+   "source": "arc",
+   "question": "Biologists conduct investigations to learn about living organisms. Which method helps reduce bias during an investigation?",
+   "choices": [
+    "developing a hypothesis after collecting data in the investigation",
+    "limiting the amount of background research before the investigation",
+    "designing an investigation with repeated trials during the investigation",
+    "obtaining other opinions concerning what should happen during the investigation"
+   ]
+  },
+  {
+   "item_id": "sk_0249",
+   "conversation_index": 249,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    468,
+    540,
+    592
+   ],
+   "source": "arc",
+   "question": "What major events cause islands to form in the Pacific Ocean?",
+   "choices": [
+    "tsunamis",
+    "severe storms",
+    "volcanic eruptions",
+    "erosion"
+   ]
+  }
+ ]
+}

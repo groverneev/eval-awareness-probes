@@ -1,0 +1,1105 @@
+{
+ "batch": 0,
+ "items": [
+  {
+   "item_id": "sk_0000",
+   "conversation_index": 0,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    36,
+    296,
+    36
+   ],
+   "source": "arc",
+   "question": "As the human population grows, the demand for natural resources increases. Which activity wastes a natural resource?",
+   "choices": [
+    "turning off lights",
+    "using public transportation",
+    "throwing away aluminum cans",
+    "opening windows to cool a house"
+   ]
+  },
+  {
+   "item_id": "sk_0001",
+   "conversation_index": 1,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    23,
+    29,
+    31
+   ],
+   "source": "arc",
+   "question": "A 20 N object is placed on a surface and starts to slide. What is the most likely reason the object begins to move?",
+   "choices": [
+    "Gravity exerts a balanced force on the object.",
+    "An unbalanced force causes acceleration.",
+    "Friction is applied to the object.",
+    "The forces acting on the object are in equilibrium."
+   ]
+  },
+  {
+   "item_id": "sk_0002",
+   "conversation_index": 2,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    147,
+    301,
+    147
+   ],
+   "source": "mmlu",
+   "question": "The equilibrium populations of the 1H energy levels of a molecule are nα = nαeq and nβ = nβeq. What are the populations after a 5.0 μs pulse when B1 = 4.697 mT?",
+   "choices": [
+    "nα = nβeq and nβ = nαeq",
+    "nα = nαeq and nβ = nβeq",
+    "nα = ½(nαeq + nβeq) and nβ = ½(nαeq + nβeq)",
+    "nα = nαeq + nβeq and nβ = nαeq + nβeq"
+   ]
+  },
+  {
+   "item_id": "sk_0003",
+   "conversation_index": 3,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    120,
+    40,
+    124
+   ],
+   "source": "arc",
+   "question": "Which factor determines if two individuals are members of the same species?",
+   "choices": [
+    "They live in the same habitat and niche.",
+    "They forage and eat the same type of food.",
+    "They mate and produce fertile offspring.",
+    "They are similar in appearance and color."
+   ]
+  },
+  {
+   "item_id": "sk_0004",
+   "conversation_index": 4,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    340,
+    570,
+    156
+   ],
+   "source": "arc",
+   "question": "A group of the same species of fish swim together to increase an individual's",
+   "choices": [
+    "swimming speed.",
+    "body temperature.",
+    "chance of survival.",
+    "visibility to predators."
+   ]
+  },
+  {
+   "item_id": "sk_0005",
+   "conversation_index": 5,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    93,
+    396,
+    31
+   ],
+   "source": "arc",
+   "question": "In the late 1600s, Anton van Leeuwenhoek began making observations with simple magnifying lenses that he constructed. To which scientific field is Leeuwenhoek credited with the most contributions?",
+   "choices": [
+    "plant genetics",
+    "disease control",
+    "DNA sequencing",
+    "microbiology"
+   ]
+  },
+  {
+   "item_id": "sk_0006",
+   "conversation_index": 6,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    266,
+    365,
+    54
+   ],
+   "source": "arc",
+   "question": "Which tool, when properly used, would best help a student classify a basket of apples into groups based on mass?",
+   "choices": [
+    "balance",
+    "thermometer",
+    "meter stick",
+    "graduated cylinder"
+   ]
+  },
+  {
+   "item_id": "sk_0007",
+   "conversation_index": 7,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    36,
+    30,
+    76
+   ],
+   "source": "arc",
+   "question": "How do plants get water and minerals?",
+   "choices": [
+    "absorbed from the soil though the roots",
+    "absorbed from the soil through the stem",
+    "absorbed from the air through the flowers",
+    "absorbed from the air through the leaves"
+   ]
+  },
+  {
+   "item_id": "sk_0008",
+   "conversation_index": 8,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    116,
+    496,
+    27
+   ],
+   "source": "arc",
+   "question": "When coal is burned to produce electricity, the electrical energy produced is less than the potential energy in the coal. Which best explains this observation?",
+   "choices": [
+    "As coal is heated, some of the molecules move so fast that they are destroyed.",
+    "Some of the energy in coal is destroyed by the intense heat required to release its potential energy.",
+    "Some of the potential energy in coal is converted into forms of energy other than electricity.",
+    "The amount of potential energy in fuels is overestimated."
+   ]
+  },
+  {
+   "item_id": "sk_0009",
+   "conversation_index": 9,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    76,
+    539,
+    61
+   ],
+   "source": "mmlu",
+   "question": "Of the following compounds, which has the lowest melting point?",
+   "choices": [
+    "HCl",
+    "AgCl",
+    "CaCl2",
+    "CCl4"
+   ]
+  },
+  {
+   "item_id": "sk_0010",
+   "conversation_index": 10,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    68,
+    181,
+    81
+   ],
+   "source": "mmlu",
+   "question": "Which of the three following organisational characteristics of small businesses tend to characterise their engagement with business related issues?",
+   "choices": [
+    "Size and complexity, owner and family member influence on the organisation, shareholder and stakeholder power",
+    "Lack of organisational resources, size and complexity, owner and family member influence",
+    "Informal relationships, owner and family member influence on the organisation, lack of organisational resources",
+    "Bureaucratic and formal organisational structure, lack of organisational resources, conflicts of interest"
+   ]
+  },
+  {
+   "item_id": "sk_0011",
+   "conversation_index": 11,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    73,
+    493,
+    31
+   ],
+   "source": "arc",
+   "question": "A paramecium is an example of",
+   "choices": [
+    "a single-celled organism.",
+    "multiple organisms.",
+    "an inorganic substance.",
+    "a group of cells."
+   ]
+  },
+  {
+   "item_id": "sk_0012",
+   "conversation_index": 12,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    116,
+    124,
+    81
+   ],
+   "source": "arc",
+   "question": "All matter has two characteristics. These characteristics are that matter takes up space and matter has",
+   "choices": [
+    "mass.",
+    "color.",
+    "a definite weight.",
+    "a definite shape."
+   ]
+  },
+  {
+   "item_id": "sk_0013",
+   "conversation_index": 13,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    539,
+    279,
+    46
+   ],
+   "source": "arc",
+   "question": "In a laboratory procedure, a student observes different sizes of soil particles. Which tool is best for the investigation?",
+   "choices": [
+    "a hand lens with 1X magnification",
+    "a microscope with 40X magnification",
+    "a light microscope with 100X magnification",
+    "a dissecting microscope with 4X magnification"
+   ]
+  },
+  {
+   "item_id": "sk_0014",
+   "conversation_index": 14,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    34,
+    225,
+    38
+   ],
+   "source": "arc",
+   "question": "Where is water most likely to be brackish?",
+   "choices": [
+    "sea",
+    "lake",
+    "river",
+    "estuary"
+   ]
+  },
+  {
+   "item_id": "sk_0015",
+   "conversation_index": 15,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    109,
+    136,
+    115
+   ],
+   "source": "mmlu",
+   "question": "What is the so-called bolometric luminosity in astronomy?",
+   "choices": [
+    "The luminosity integrated over vertically polarized wavelengths.",
+    "The luminosity integrated over horizontally wavelengths.",
+    "The luminosity integrated over visible wavelengths.",
+    "The luminosity integrated over all wavelengths."
+   ]
+  },
+  {
+   "item_id": "sk_0016",
+   "conversation_index": 16,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    167,
+    146,
+    458
+   ],
+   "source": "arc",
+   "question": "Evan is performing an investigation. Before conducting his investigation, what must Evan do?",
+   "choices": [
+    "record his observations",
+    "develop a hypothesis",
+    "reach a conclusion",
+    "organize the data"
+   ]
+  },
+  {
+   "item_id": "sk_0017",
+   "conversation_index": 17,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    63,
+    475,
+    36
+   ],
+   "source": "mmlu",
+   "question": "The astronomical unit parsec (pc) plays a crucial role in astronomy. One parsec is equal to about 3.26 light-years. How is one parsec defined in astronomy?",
+   "choices": [
+    "Distance at which one astronomical unit measures one arcsecond from Earth.",
+    "Orbital distance of the solar system around the center of the Milky Way in one year.",
+    "Effective distance of the solar wind (i.e. the radius of the heliosphere).",
+    "Historical distance to the brightest star Sirius."
+   ]
+  },
+  {
+   "item_id": "sk_0018",
+   "conversation_index": 18,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    46,
+    340,
+    20
+   ],
+   "source": "arc",
+   "question": "If you took all of the atoms out of a chair, what would be left?",
+   "choices": [
+    "The chair would still be there, but it would weigh less.",
+    "The chair would be exactly the same as it was before.",
+    "There would be nothing left of the chair.",
+    "Only a pool of liquid would be left on the floor."
+   ]
+  },
+  {
+   "item_id": "sk_0019",
+   "conversation_index": 19,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    554,
+    86,
+    22
+   ],
+   "source": "mmlu",
+   "question": "What does Milton Friedman believe to be the sole responsibility of business?",
+   "choices": [
+    "The only social responsibility of business is to its shareholders",
+    "Managers should act in ways that balance the interest of society and shareholders",
+    "The primary responsibility organizations have is to its employees",
+    "The primary responsibility organizations have is to its stakeholders"
+   ]
+  },
+  {
+   "item_id": "sk_0020",
+   "conversation_index": 20,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    153,
+    343,
+    156
+   ],
+   "source": "arc",
+   "question": "Coal, oil, and natural gas have high potential energies, which makes them valuable energy resources. In order to benefit from the energy available in these fossil fuels, the potential energy is converted most directly into which type of energy?",
+   "choices": [
+    "chemical",
+    "electrical",
+    "solar",
+    "thermal"
+   ]
+  },
+  {
+   "item_id": "sk_0021",
+   "conversation_index": 21,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    50,
+    67,
+    21
+   ],
+   "source": "mmlu",
+   "question": "______ is the corporate role in governing citizenship rights for the individual",
+   "choices": [
+    "Political Corporate Social Responsibility",
+    "Triple Bottom Line",
+    "Sustainability",
+    "Corporate Citizenship"
+   ]
+  },
+  {
+   "item_id": "sk_0022",
+   "conversation_index": 22,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    21,
+    337,
+    47
+   ],
+   "source": "mmlu",
+   "question": "Examination of a patient indicates that they have a medially directed strabismus (squint). This could be due to damage to the",
+   "choices": [
+    "oculomotor nerve.",
+    "trochlear nerve.",
+    "ophthalmic trigeminal nerve.",
+    "abducens nerve."
+   ]
+  },
+  {
+   "item_id": "sk_0023",
+   "conversation_index": 23,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    183,
+    367,
+    85
+   ],
+   "source": "arc",
+   "question": "Which measurement is the most accurate way to describe the distance between the Sun and its nearest neighboring star?",
+   "choices": [
+    "4 light-years",
+    "400 light-years",
+    "4 billion kilometers",
+    "400 billion kilometers"
+   ]
+  },
+  {
+   "item_id": "sk_0024",
+   "conversation_index": 24,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    39,
+    123,
+    513
+   ],
+   "source": "mmlu",
+   "question": "What is the most likely cause of acute urinary retention of urine?",
+   "choices": [
+    "Haematuria.",
+    "Bladder outflow obstruction.",
+    "Drinking alcohol.",
+    "Kidney stones."
+   ]
+  },
+  {
+   "item_id": "sk_0025",
+   "conversation_index": 25,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    33,
+    503,
+    32
+   ],
+   "source": "arc",
+   "question": "Use the information below to answer the question. The human body is composed of different systems made of specialized cells, tissues, and organs. Each of these structures has a specific function that aids in the survival of the human species. Which organs are used in reproduction?",
+   "choices": [
+    "brain, spinal cord, and eyes",
+    "lungs, esophagus, and heart",
+    "mouth, stomach, and gallbladder",
+    "ovaries, uterus, and fallopian tubes"
+   ]
+  },
+  {
+   "item_id": "sk_0026",
+   "conversation_index": 26,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    105,
+    22,
+    110
+   ],
+   "source": "mmlu",
+   "question": "If the activity of an enzyme is constant over a broad range of pH values, it is likely that",
+   "choices": [
+    "only ionizing groups on the enzyme participate in the reaction",
+    "only ionizing groups on the substrate participate in the reaction",
+    "ionizing groups on both the enzyme and substrate participate in the reaction",
+    "no ionizing groups on the enzyme or substrate participate in the reaction"
+   ]
+  },
+  {
+   "item_id": "sk_0027",
+   "conversation_index": 27,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    232,
+    140,
+    91
+   ],
+   "source": "arc",
+   "question": "What is the main function of the chloroplasts in plant cells?",
+   "choices": [
+    "to produce glucose",
+    "to keep the cell rigid",
+    "to make the cell divide",
+    "to allow the plant to reproduce"
+   ]
+  },
+  {
+   "item_id": "sk_0028",
+   "conversation_index": 28,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    68,
+    342,
+    98
+   ],
+   "source": "mmlu",
+   "question": "Stabilization of the unique coiled structure of an alpha helix in a protein is primarily attributed to (A) hydrogen bonding between the peptide backbone atoms",
+   "choices": [
+    "hydrogen bonding between the peptide backbone atoms",
+    "disulfide bridges between cysteine side chains",
+    "carbohydrate moieties attached to polar amino acids",
+    "peptide linkages that covalently bond amino acids"
+   ]
+  },
+  {
+   "item_id": "sk_0029",
+   "conversation_index": 29,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    163,
+    458,
+    172
+   ],
+   "source": "mmlu",
+   "question": "A molecule has a rotational correlation time of 1 ns. At what magnetic field would protons in this molecule have the fastest spin-lattice relaxation? [Use eqns 5.3 and 5.4.]",
+   "choices": [
+    "3.74 T",
+    "5.19 T",
+    "6.08 T",
+    "9.49 T"
+   ]
+  },
+  {
+   "item_id": "sk_0030",
+   "conversation_index": 30,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    146,
+    212,
+    133
+   ],
+   "source": "mmlu",
+   "question": "The probability that a point (x, y) in R^2 is chosen follows a uniform random distribution within the region described by the inequality 0 < |x| + |y| < 1 . What is the probability that 2(x + y) > 1?",
+   "choices": [
+    "0",
+    "1/4",
+    "sqrt(2)/4",
+    "1/sqrt(2)"
+   ]
+  },
+  {
+   "item_id": "sk_0031",
+   "conversation_index": 31,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    143,
+    320,
+    158
+   ],
+   "source": "arc",
+   "question": "Proteins are compounds formed in the cells of plants and animals. Which element is included in every protein molecule?",
+   "choices": [
+    "calcium",
+    "carbon",
+    "fluorine",
+    "sodium"
+   ]
+  },
+  {
+   "item_id": "sk_0032",
+   "conversation_index": 32,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    299,
+    511,
+    46
+   ],
+   "source": "mmlu",
+   "question": "A particle decays in 2.0 ms in its rest frame. If the same particle moves at v=0.60c in the lab frame, how far will it travel in the lab before decaying?",
+   "choices": [
+    "150 m",
+    "288 m",
+    "360 m",
+    "450 m"
+   ]
+  },
+  {
+   "item_id": "sk_0033",
+   "conversation_index": 33,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    66,
+    358,
+    106
+   ],
+   "source": "arc",
+   "question": "A scientist maps a long region in which earthquakes originate and determines this region is a transform plate boundary. Which evidence would cause the scientist to reevaluate this determination?",
+   "choices": [
+    "Volcanism also characterizes the region.",
+    "Earthquake centers in the region occur at shallow depths.",
+    "The region shows extensive faulting of sediments.",
+    "Equal crust densities are found on opposite sides of the region."
+   ]
+  },
+  {
+   "item_id": "sk_0034",
+   "conversation_index": 34,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    108,
+    548,
+    23
+   ],
+   "source": "mmlu",
+   "question": "By locating the north celestial pole (NCP) in the sky how can you determine your latitude?",
+   "choices": [
+    "The azimuth of the NCP is the angular distance from the North Pole.",
+    "The azimuth of the NCP is the same as your latitude.",
+    "The altitude of the NCP is the same as your latitude.",
+    "The altitude of the NCP is your angular distance from the North Pole."
+   ]
+  },
+  {
+   "item_id": "sk_0035",
+   "conversation_index": 35,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    525,
+    500,
+    551
+   ],
+   "source": "arc",
+   "question": "Your community is planning to build a new sanitary landfill. In locating the landfill, which is the most important environmental consideration?",
+   "choices": [
+    "the cost of the land",
+    "the location of the groundwater",
+    "the proximity to an industrial park",
+    "the accessibility to a major highway"
+   ]
+  },
+  {
+   "item_id": "sk_0036",
+   "conversation_index": 36,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    272,
+    211,
+    98
+   ],
+   "source": "arc",
+   "question": "How do people get energy and nutrients?",
+   "choices": [
+    "breathing clean air",
+    "exercising and playing",
+    "getting plenty of rest",
+    "eating healthy food"
+   ]
+  },
+  {
+   "item_id": "sk_0037",
+   "conversation_index": 37,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    53,
+    222,
+    32
+   ],
+   "source": "arc",
+   "question": "What process in the atmosphere protects people from the ultraviolet rays in sunlight?",
+   "choices": [
+    "Ozone absorbs ultraviolet light.",
+    "Nitrogen reflects ultraviolet light.",
+    "Water vapor scatters ultraviolet light.",
+    "Carbon dioxide blocks ultraviolet light."
+   ]
+  },
+  {
+   "item_id": "sk_0038",
+   "conversation_index": 38,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    459,
+    371,
+    20
+   ],
+   "source": "mmlu",
+   "question": "The focus on issues, the intended audience extending beyond shareholders and the voluntary nature of ___________ distinguish it from _________.",
+   "choices": [
+    "Financial accounting, Environmental management initiatives",
+    "Financial accounting, Social accounting.",
+    "Social accounting, Financial accounting.",
+    "Annual report publication, Social accounting"
+   ]
+  },
+  {
+   "item_id": "sk_0039",
+   "conversation_index": 39,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    118,
+    514,
+    84
+   ],
+   "source": "mmlu",
+   "question": "The primary source of the Sun’s energy is a series of thermonuclear reactions in which the energy produced is c^2 times the mass difference between",
+   "choices": [
+    "two hydrogen atoms and one helium atom",
+    "four hydrogen atoms and one helium atom",
+    "six hydrogen atoms and two helium atoms",
+    "three helium atoms and one carbon atom"
+   ]
+  },
+  {
+   "item_id": "sk_0040",
+   "conversation_index": 40,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    58,
+    86,
+    98
+   ],
+   "source": "arc",
+   "question": "Which statement best describes a bacterial cell?",
+   "choices": [
+    "It contains more than one cell.",
+    "It is a complete organism.",
+    "It is part of a larger organism.",
+    "It contains different kinds of cells."
+   ]
+  },
+  {
+   "item_id": "sk_0041",
+   "conversation_index": 41,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    48,
+    250,
+    118
+   ],
+   "source": "mmlu",
+   "question": "Why did Ptolemy have the planets orbiting Earth on ‘circles upon circles’ in his model of the universe?",
+   "choices": [
+    "To explain why more distant planets take longer to make a circuit through the constellations of the zodiac.",
+    "To explain the fact that planets sometimes appear to move westward rather than eastward relative to the stars in our sky.",
+    "To explain why the Greeks were unable to detect stellar paralax.",
+    "To properly account for the varying distances of the planets from Earth."
+   ]
+  },
+  {
+   "item_id": "sk_0042",
+   "conversation_index": 42,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    123,
+    335,
+    104
+   ],
+   "source": "arc",
+   "question": "A dietary supplement manufacturer developed a new calcium supplement that appears to increase the bone density in middle-aged women. When tested in a small clinical trial, the supplement was shown to cause a 15% increase in bone density in 8 out of 10 women. Before the supplement is offered to the general public, which step should the manufacturer take next?",
+   "choices": [
+    "add a variety of vitamins to the supplement",
+    "test the supplement on mice in the laboratory",
+    "develop packaging that is attractive to women",
+    "test the supplement on a larger sample of women"
+   ]
+  },
+  {
+   "item_id": "sk_0043",
+   "conversation_index": 43,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    25,
+    521,
+    27
+   ],
+   "source": "arc",
+   "question": "Which scientist developed the mathematical models used to describe the changes in the motion of objects as well as the forces that cause the change in motion?",
+   "choices": [
+    "Dalton",
+    "Newton",
+    "Aristotle",
+    "Ptolemy"
+   ]
+  },
+  {
+   "item_id": "sk_0044",
+   "conversation_index": 44,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    150,
+    446,
+    39
+   ],
+   "source": "arc",
+   "question": "Which is a characteristic of both plants and animals?",
+   "choices": [
+    "life cycles",
+    "learned behaviors",
+    "produce their own food",
+    "reproduce using seeds"
+   ]
+  },
+  {
+   "item_id": "sk_0045",
+   "conversation_index": 45,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    185,
+    317,
+    37
+   ],
+   "source": "arc",
+   "question": "A wetland was drained to build a mall. Two years later, there were no more toads in that area. Why did the toads disappear?",
+   "choices": [
+    "The toads were destroyed by the construction equipment.",
+    "The toads died because toads cannot breathe out of water.",
+    "The toads were frightened and went into the woods.",
+    "The toads go their food from the wetland ecosystem."
+   ]
+  },
+  {
+   "item_id": "sk_0046",
+   "conversation_index": 46,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    249,
+    215,
+    52
+   ],
+   "source": "arc",
+   "question": "Which activity is an example of conserving nonrenewable resources?",
+   "choices": [
+    "carpooling to work",
+    "composting grass clippings",
+    "using a solar-powered calculator",
+    "watering the lawn in the morning"
+   ]
+  },
+  {
+   "item_id": "sk_0047",
+   "conversation_index": 47,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    68,
+    332,
+    61
+   ],
+   "source": "arc",
+   "question": "Ribosomes present in a particular cell are smaller than those found in plants. In which taxonomic group or groups could the cell be classified?",
+   "choices": [
+    "fungi only",
+    "archaea only",
+    "bacteria or archaea",
+    "bacteria or fungi"
+   ]
+  },
+  {
+   "item_id": "sk_0048",
+   "conversation_index": 48,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    81,
+    46,
+    24
+   ],
+   "source": "arc",
+   "question": "There are a variety of events that can disrupt ecosystems. Some events result in local disturbances and others can affect a much larger area. Which event would most likely result in change on a global scale?",
+   "choices": [
+    "land scarred by forest fires",
+    "erosion of ocean shorelines",
+    "converging plate boundaries",
+    "destruction of tropical rain forests"
+   ]
+  },
+  {
+   "item_id": "sk_0049",
+   "conversation_index": 49,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    60,
+    439,
+    36
+   ],
+   "source": "mmlu",
+   "question": "Let T: R^2 -> R^2 be the linear transformation that maps the point (1, 2) to (2, 3) and the point (-1, 2) to (2, -3). Then T maps the point (2, 1) to",
+   "choices": [
+    "(1, 6)",
+    "(-1, 4)",
+    "(3, 2)",
+    "(-4, 3)"
+   ]
+  }
+ ]
+}

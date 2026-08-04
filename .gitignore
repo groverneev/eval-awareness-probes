@@ -11,3 +11,6 @@ results/
 
 # Reference PDFs (proposal, internal program docs) — kept local, not published.
 resources/
+
+# Slice-3 writer scratch (contains real WildChat conversation text).
+datasets/slice3/hydrated/

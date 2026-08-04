@@ -1,0 +1,1172 @@
+{
+ "batch": 1,
+ "items": [
+  {
+   "item_id": "sk_0050",
+   "conversation_index": 50,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    157,
+    425,
+    99
+   ],
+   "source": "mmlu",
+   "question": "When developing a plan of care relating to the management of a person's pain, attention should be given to the following needs:",
+   "choices": [
+    "physical and pharmacological needs only.",
+    "physical and psychological needs only.",
+    "physical, psychological, and pharmacological needs followed by regular reassessment.",
+    "none of the above, as the main priority is to limit drug side effects."
+   ]
+  },
+  {
+   "item_id": "sk_0051",
+   "conversation_index": 51,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    52,
+    114,
+    90
+   ],
+   "source": "arc",
+   "question": "At camp, Raj sees a lightning storm. He sees the lightning before he hears the thunder. What does this show?",
+   "choices": [
+    "Light moves faster than sound",
+    "Light moves slower than sound",
+    "Light and sound move at the same speed"
+   ]
+  },
+  {
+   "item_id": "sk_0052",
+   "conversation_index": 52,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    86,
+    275,
+    68
+   ],
+   "source": "arc",
+   "question": "A container is filled with 100 mL of water and placed in a freezer. The water in the container freezes at 0°C. A second container filled with 90 mL of water is placed in a second freezer. At what temperature does this second container of water freeze?",
+   "choices": [
+    "-10°C",
+    "-1°C",
+    "0°C",
+    "10°C"
+   ]
+  },
+  {
+   "item_id": "sk_0053",
+   "conversation_index": 53,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    44,
+    227,
+    45
+   ],
+   "source": "mmlu",
+   "question": "During the mammalian cardiac cycle, a volume of blood equivalent to ventricular stroke volume is transferred from the more compliant venous side to the less compliant arterial side of the circulation. In terms of pressures within the venous and arterial compartments, this transfer results in",
+   "choices": [
+    "no change in pressure in either compartment",
+    "no effect on venous pressure and a small increase in arterial pressure",
+    "an increase in venous pressure and an equal but opposite decrease in arterial pressure",
+    "little effect on venous pressure and a large increase in arterial pressure"
+   ]
+  },
+  {
+   "item_id": "sk_0054",
+   "conversation_index": 54,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    38,
+    297,
+    24
+   ],
+   "source": "mmlu",
+   "question": "In xyz-space, what are the coordinates of the point on the plane 2x + y + 3z = 3 that is closest to the origin?",
+   "choices": [
+    "(0, 0, 1)",
+    "(3/7, 3/14, 9/14)",
+    "(7/15, 8/15, 1/15)",
+    "(5/6, 1/3, 1/3)"
+   ]
+  },
+  {
+   "item_id": "sk_0055",
+   "conversation_index": 55,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    32,
+    109,
+    23
+   ],
+   "source": "arc",
+   "question": "The amount of gravitational attraction between the Moon and an astronaut standing on its surface depends on the astronaut's distance from the center of the Moon and the astronaut's",
+   "choices": [
+    "height.",
+    "mass.",
+    "shape.",
+    "weight."
+   ]
+  },
+  {
+   "item_id": "sk_0056",
+   "conversation_index": 56,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    64,
+    157,
+    72
+   ],
+   "source": "mmlu",
+   "question": "Earth has been gradually warming over the past few decades. Based on a great deal of evidence scientists conclude that this warming is caused by ________.",
+   "choices": [
+    "human activities that are increasing the concentration of greenhouse gases in Earth's atmosphere",
+    "the fact that our politicians spout a lot of hot air",
+    "the human release of chemicals called CFCs into the stratosphere",
+    "the increase in forest fires during recent years"
+   ]
+  },
+  {
+   "item_id": "sk_0057",
+   "conversation_index": 57,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    130,
+    88,
+    37
+   ],
+   "source": "mmlu",
+   "question": "The concept of punctuated equilibrium refers to",
+   "choices": [
+    "oscillating ecological successional stages",
+    "ecological succession arrested by sudden environmental changes, e.g., fire",
+    "persistent predator-prey relationships in relatively stable environments",
+    "bursts of speciation followed by relatively unchanging lineages"
+   ]
+  },
+  {
+   "item_id": "sk_0058",
+   "conversation_index": 58,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    69,
+    170,
+    73
+   ],
+   "source": "arc",
+   "question": "When a guitar string is strummed, it produces sound by making",
+   "choices": [
+    "heat.",
+    "electricity.",
+    "vibrations.",
+    "light."
+   ]
+  },
+  {
+   "item_id": "sk_0059",
+   "conversation_index": 59,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    91,
+    297,
+    91
+   ],
+   "source": "arc",
+   "question": "Which process is the best example of weathering?",
+   "choices": [
+    "A cloud releases freezing rain.",
+    "A tree root breaks apart a rock.",
+    "Dry weather results in a small harvest.",
+    "Sediments flow into a bay."
+   ]
+  },
+  {
+   "item_id": "sk_0060",
+   "conversation_index": 60,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    189,
+    320,
+    157
+   ],
+   "source": "arc",
+   "question": "A student conducts an investigation testing a material's effectiveness as a heat insulator. Which tool will help the student conduct this investigation safely?",
+   "choices": [
+    "a face mask",
+    "plastic gloves",
+    "a ventilator hood",
+    "insulated gloves"
+   ]
+  },
+  {
+   "item_id": "sk_0061",
+   "conversation_index": 61,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    117,
+    161,
+    230
+   ],
+   "source": "mmlu",
+   "question": "Suppose today is Wednesday. What day of the week will it be 10^(10^(10)) days from now?",
+   "choices": [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday"
+   ]
+  },
+  {
+   "item_id": "sk_0062",
+   "conversation_index": 62,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    357,
+    84,
+    416
+   ],
+   "source": "mmlu",
+   "question": "The activity of creatine kinase is:",
+   "choices": [
+    "increased when intracellular ADP rises.",
+    "increased when muscle pH falls below 6.9.",
+    "always lower in Type II fibres than Type I fibres.",
+    "increased after a period of endurance training."
+   ]
+  },
+  {
+   "item_id": "sk_0063",
+   "conversation_index": 63,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    64,
+    464,
+    32
+   ],
+   "source": "arc",
+   "question": "How does a balanced chemical equation satisfy the Law of Conservation of Mass?",
+   "choices": [
+    "During a chemical reaction, the total amount of matter stays the same.",
+    "During a chemical reaction, matter is destroyed.",
+    "During a chemical reaction, one or more new substances are formed.",
+    "During a chemical reaction, the total number of atoms increases."
+   ]
+  },
+  {
+   "item_id": "sk_0064",
+   "conversation_index": 64,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    46,
+    213,
+    34
+   ],
+   "source": "arc",
+   "question": "A teacher is conducting an investigation by using special equipment to hold a magnesium (Mg) ribbon over the flame of a Bunsen burner. Which observation indicates a chemical reaction took place?",
+   "choices": [
+    "The temperature of the magnesium ribbon increased.",
+    "The shape of the magnesium ribbon changed.",
+    "The burning magnesium produced light.",
+    "The magnesium appeared to evaporate."
+   ]
+  },
+  {
+   "item_id": "sk_0065",
+   "conversation_index": 65,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    99,
+    531,
+    139
+   ],
+   "source": "arc",
+   "question": "Which is the Sun most likely to become toward the end of its lifetime?",
+   "choices": [
+    "a protostar",
+    "a black hole",
+    "a neutron star",
+    "a white dwarf star"
+   ]
+  },
+  {
+   "item_id": "sk_0066",
+   "conversation_index": 66,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    268,
+    343,
+    48
+   ],
+   "source": "arc",
+   "question": "The saturation of surface rock with oxygen early in Earth's history reflected a change in Earth's atmosphere. This change directly made which life process possible?",
+   "choices": [
+    "photosynthesis",
+    "nitrogen fixation",
+    "sulfur reduction",
+    "aerobic respiration"
+   ]
+  },
+  {
+   "item_id": "sk_0067",
+   "conversation_index": 67,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    103,
+    90,
+    136
+   ],
+   "source": "mmlu",
+   "question": "Complete the following: A variation of serial peak flow readings over a two week period are considered diagnostic in . . .",
+   "choices": [
+    ". . . asthma.",
+    ". . . COPD.",
+    ". . . pneumonia.",
+    ". . . tuberculosis."
+   ]
+  },
+  {
+   "item_id": "sk_0068",
+   "conversation_index": 68,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    55,
+    294,
+    67
+   ],
+   "source": "mmlu",
+   "question": "Light of variable frequency shines on the metal surface of a photoelectric tube. Einstein’s theory of the photoelectric effect predicts that the",
+   "choices": [
+    "work function of the metal is proportional to the frequency",
+    "work function of the metal is proportional to the wavelength",
+    "current in the tube is a linear function of the wavelength",
+    "potential difference necessary to stop the emitted electrons is a linear function of the frequency above the threshold frequency"
+   ]
+  },
+  {
+   "item_id": "sk_0069",
+   "conversation_index": 69,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    98,
+    113,
+    76
+   ],
+   "source": "mmlu",
+   "question": "Affirmative action involves ________ attempts to target ______ who are _________ within an organisation's workforce, for instance by trying to ______ the proportion of women, disabled or racial minorities in senior management positions.",
+   "choices": [
+    "Proactive, Groups, Under-represented, Increase",
+    "Passive, Groups, Under-represented, Retain",
+    "Proactive, Individuals, Represented, Increase",
+    "Passive, Individuals, Represented, Retain"
+   ]
+  },
+  {
+   "item_id": "sk_0070",
+   "conversation_index": 70,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    126,
+    594,
+    71
+   ],
+   "source": "arc",
+   "question": "Which material is the best conductor of electricity?",
+   "choices": [
+    "metal",
+    "glass",
+    "wood",
+    "plastic"
+   ]
+  },
+  {
+   "item_id": "sk_0071",
+   "conversation_index": 71,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    66,
+    426,
+    106
+   ],
+   "source": "mmlu",
+   "question": "The mucosa of the upper larynx is innervated by the",
+   "choices": [
+    "internal laryngeal nerve which is the afferent limb of the cough reflex.",
+    "external laryngeal nerve which is the afferent limb of the gag reflex.",
+    "internal laryngeal nerve which is the afferent limb of the gag reflex.",
+    "external laryngeal nerve which is the afferent limb of the cough reflex."
+   ]
+  },
+  {
+   "item_id": "sk_0072",
+   "conversation_index": 72,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    26,
+    455,
+    47
+   ],
+   "source": "mmlu",
+   "question": "The main factors determining success in sport are:",
+   "choices": [
+    "a high energy diet and large appetite.",
+    "high intelligence and motivation to succeed.",
+    "a good coach and the motivation to succeed.",
+    "innate ability and the capacity to respond to the training stimulus."
+   ]
+  },
+  {
+   "item_id": "sk_0073",
+   "conversation_index": 73,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    68,
+    77,
+    107
+   ],
+   "source": "mmlu",
+   "question": "Of the following, which gives the best upper bound for the value of f(N) where f is a solution to the recurrence f(2N + 1) = f(2N) = f(N) + log N for N >= 1, with f(1) = 0?",
+   "choices": [
+    "O(log N)",
+    "O(N log N)",
+    "O(log N) + 0(1)",
+    "O((log N)^2)"
+   ]
+  },
+  {
+   "item_id": "sk_0074",
+   "conversation_index": 74,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    27,
+    109,
+    41
+   ],
+   "source": "arc",
+   "question": "Betsy wants to find out if the rainfall in her town contains pollutants. The best way for Betsy to gather this information would be to collect",
+   "choices": [
+    "one sample on one rainy day.",
+    "one sample a day on several rainy days.",
+    "several separate samples on one rainy day.",
+    "several separate samples on several rainy days."
+   ]
+  },
+  {
+   "item_id": "sk_0075",
+   "conversation_index": 75,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    95,
+    162,
+    66
+   ],
+   "source": "arc",
+   "question": "Energy is absorbed and released through endothermic and exothermic processes. Which is an example of an exothermic process?",
+   "choices": [
+    "ice melting",
+    "ice sublimating",
+    "water evaporating",
+    "water freezing"
+   ]
+  },
+  {
+   "item_id": "sk_0076",
+   "conversation_index": 76,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    33,
+    180,
+    32
+   ],
+   "source": "mmlu",
+   "question": "At the present time, the temperature of the universe (i.e., the microwave radiation background) is about 3 K. When the temperature was 12 K, typical objects in the universe, such as galaxies, were",
+   "choices": [
+    "one-quarter as distant as they are today",
+    "one-half as distant as they are today",
+    "separated by about the same distances as they are today",
+    "two times as distant as they are today"
+   ]
+  },
+  {
+   "item_id": "sk_0077",
+   "conversation_index": 77,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    43,
+    181,
+    60
+   ],
+   "source": "arc",
+   "question": "The process by which information is encoded, transmitted, stored, decoded, and retrieved is called",
+   "choices": [
+    "manufacturing technology.",
+    "transportation technology.",
+    "construction technology.",
+    "communication technology."
+   ]
+  },
+  {
+   "item_id": "sk_0078",
+   "conversation_index": 78,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    427,
+    434,
+    352
+   ],
+   "source": "mmlu",
+   "question": "At 25°C, the maximum amount of PbI2 that can be dissolved in 1.00 L of pure water is 1.0 mmol. Assuming complete dissociation, the solubility product, K_sp, for lead iodide at 25°C is",
+   "choices": [
+    "1.0 × 10^−3",
+    "1.0 × 10^−6",
+    "1.0 × 10^−9",
+    "4.0 × 10^−9"
+   ]
+  },
+  {
+   "item_id": "sk_0079",
+   "conversation_index": 79,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    46,
+    300,
+    50
+   ],
+   "source": "arc",
+   "question": "The human brain has an absolute requirement for glucose. Glucose is an absolute requirement because the brain cannot use any other sources of energy. Other organisms often have absolute requirements for specific energy sources. Which protist would you expect to have an absolute requirement for sunlight?",
+   "choices": [
+    "volvox",
+    "amoeba",
+    "euglena",
+    "paramecium"
+   ]
+  },
+  {
+   "item_id": "sk_0080",
+   "conversation_index": 80,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    207,
+    511,
+    430
+   ],
+   "source": "arc",
+   "question": "Matter is defined as anything that takes up space and has",
+   "choices": [
+    "mass",
+    "texture",
+    "odor",
+    "color"
+   ]
+  },
+  {
+   "item_id": "sk_0081",
+   "conversation_index": 81,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    54,
+    590,
+    44
+   ],
+   "source": "mmlu",
+   "question": "In order for the Hardy-Weinberg law to operate with respect to a population of organisms, each of the following conditions must be met EXCEPT:",
+   "choices": [
+    "Genes are exchanged with other populations.",
+    "Population size is large.",
+    "Natural selection does not take place.",
+    "Matings are random."
+   ]
+  },
+  {
+   "item_id": "sk_0082",
+   "conversation_index": 82,
+   "roles": [
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    148,
+    293,
+    32
+   ],
+   "source": "mmlu",
+   "question": "Find all cosets of the subgroup 4Z of 2Z.",
+   "choices": [
+    "4Z",
+    "4Z, 2 + 4Z",
+    "2Z",
+    "Z"
+   ]
+  },
+  {
+   "item_id": "sk_0083",
+   "conversation_index": 83,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    96,
+    40,
+    150,
+    77,
+    84
+   ],
+   "source": "mmlu",
+   "question": "A pulse may be felt on a patient's face where the",
+   "choices": [
+    "facial artery crosses the mandible.",
+    "facial artery crosses the maxilla.",
+    "superficial temporal artery crosses the maxilla.",
+    "superficial temporal artery crosses the orbital rim."
+   ]
+  },
+  {
+   "item_id": "sk_0084",
+   "conversation_index": 84,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    23,
+    356,
+    39,
+    150,
+    25
+   ],
+   "source": "mmlu",
+   "question": "Selective Androgen Receptor Modulators (SARMs) are:",
+   "choices": [
+    "steroid drugs that act on androgen receptors mimicking the effects of natural steroid hormones.",
+    "steroid drugs that act on androgen receptors antagonising the effects of natural steroid hormones.",
+    "non-steroid drugs that act on androgen receptors mimicking the effects of natural steroid hormones.",
+    "non-steroid drugs that act on androgen receptors inhibiting the effects of natural steroid hormones."
+   ]
+  },
+  {
+   "item_id": "sk_0085",
+   "conversation_index": 85,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    247,
+    449,
+    248,
+    473,
+    242
+   ],
+   "source": "mmlu",
+   "question": "An action potential arriving at the motor endplate causes release of:",
+   "choices": [
+    "acetylcholine which traverses the neuromuscular junction.",
+    "sodium ions which binds to sodium receptors on the muscle membrane.",
+    "calcium ions which initiate an action potential along the muscle fibre.",
+    "noradrenaline which increases muscle metabolic activity."
+   ]
+  },
+  {
+   "item_id": "sk_0086",
+   "conversation_index": 86,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    125,
+    109,
+    125,
+    119,
+    125
+   ],
+   "source": "arc",
+   "question": "Which procedure best determines whether water temperature affects the time it will take a sugar cube to dissolve?",
+   "choices": [
+    "Test three sugar cubes, one each in three different water temperatures.",
+    "Test three sugar cubes in one water temperature.",
+    "Test one crushed sugar cube and one whole sugar cube in water.",
+    "Test three sugar cubes, one each in an acid, a base, and water."
+   ]
+  },
+  {
+   "item_id": "sk_0087",
+   "conversation_index": 87,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    194,
+    82,
+    260,
+    189,
+    386
+   ],
+   "source": "arc",
+   "question": "An airplane travels at a constant speed of 800 kilometers per hour (km/h). Approximately how long will it take the airplane to travel 200 kilometers?",
+   "choices": [
+    "15 minutes",
+    "25 minutes",
+    "2 hours",
+    "4 hours"
+   ]
+  },
+  {
+   "item_id": "sk_0088",
+   "conversation_index": 88,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    44,
+    93,
+    26,
+    589,
+    37
+   ],
+   "source": "arc",
+   "question": "Which statement best describes the process of respiration?",
+   "choices": [
+    "Oxygen and sugar are used in the process that provides energy to cells; water and carbon dioxide are its waste products.",
+    "Water and sugar are used to in the process that provides energy to cells; oxygen and carbon dioxide are its waste products.",
+    "Oxygen and carbon dioxide are used in the process that provides energy to cells; sugar and water are its waste products.",
+    "Carbon dioxide and sugar are used in the process that provides energy to cells; water and oxygen are its waste products."
+   ]
+  },
+  {
+   "item_id": "sk_0089",
+   "conversation_index": 89,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    84,
+    267,
+    84,
+    224,
+    84
+   ],
+   "source": "arc",
+   "question": "Which tool is used to observe the cell wall of a leaf?",
+   "choices": [
+    "ruler",
+    "camera",
+    "hand lens",
+    "microscope"
+   ]
+  },
+  {
+   "item_id": "sk_0090",
+   "conversation_index": 90,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    93,
+    561,
+    38,
+    70,
+    45
+   ],
+   "source": "arc",
+   "question": "Which calculation is used to determine acceleration?",
+   "choices": [
+    "divide change in velocity by change in time",
+    "multiply average velocity by change in time",
+    "divide average velocity by mass",
+    "multiply change in velocity by distance traveled"
+   ]
+  },
+  {
+   "item_id": "sk_0091",
+   "conversation_index": 91,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    69,
+    564,
+    94,
+    457,
+    67
+   ],
+   "source": "arc",
+   "question": "The Sun releases light and heat energy that cause changes on Earth. How does the Sun's energy change water?",
+   "choices": [
+    "The energy makes liquid water freeze.",
+    "The energy makes water vapor from liquid water.",
+    "The energy makes clouds release rain.",
+    "The energy makes water collect into puddles."
+   ]
+  },
+  {
+   "item_id": "sk_0092",
+   "conversation_index": 92,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    558,
+    90,
+    35,
+    346,
+    85
+   ],
+   "source": "arc",
+   "question": "Students performing a scientific investigation are most likely trying to",
+   "choices": [
+    "produce a new theory.",
+    "disprove a hypothesis.",
+    "reject a conclusion.",
+    "answer a question."
+   ]
+  },
+  {
+   "item_id": "sk_0093",
+   "conversation_index": 93,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    32,
+    362,
+    20,
+    466,
+    24
+   ],
+   "source": "arc",
+   "question": "Some scientists predict that as greenhouse gases change the climate of Earth, the number and strength of hurricanes will increase. In order for this to occur, the climate change would have to affect Earth by changing the",
+   "choices": [
+    "depths of the oceans.",
+    "speed of currents in the oceans.",
+    "chemical compositions of the oceans.",
+    "amount of dissolved oxygen in the oceans."
+   ]
+  },
+  {
+   "item_id": "sk_0094",
+   "conversation_index": 94,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    38,
+    428,
+    25,
+    511,
+    30
+   ],
+   "source": "arc",
+   "question": "Students studied the revolution of Earth around the Sun. During which month will Florida have the most sunlight energy available?",
+   "choices": [
+    "March",
+    "June",
+    "September",
+    "December"
+   ]
+  },
+  {
+   "item_id": "sk_0095",
+   "conversation_index": 95,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    389,
+    193,
+    539,
+    199,
+    273
+   ],
+   "source": "arc",
+   "question": "All organisms depend on the transfer of energy to survive. Which best shows the energy transfer between animals in a shoreline ecosystem?",
+   "choices": [
+    "Fish -> Plants -> Birds",
+    "Plants -> Birds -> Fish",
+    "Plants -> Fish -> Birds",
+    "Fish -> Birds -> Plants"
+   ]
+  },
+  {
+   "item_id": "sk_0096",
+   "conversation_index": 96,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    65,
+    59,
+    192,
+    260,
+    70
+   ],
+   "source": "arc",
+   "question": "Which type of energy is needed to cut a piece of wood into smaller pieces with a saw?",
+   "choices": [
+    "light",
+    "heat",
+    "sound",
+    "mechanical"
+   ]
+  },
+  {
+   "item_id": "sk_0097",
+   "conversation_index": 97,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    48,
+    209,
+    34,
+    216,
+    37
+   ],
+   "source": "arc",
+   "question": "What happens to the molecules of a liquid when the liquid cools?",
+   "choices": [
+    "They slow down.",
+    "They speed up.",
+    "They decrease in number",
+    "They decrease in size"
+   ]
+  },
+  {
+   "item_id": "sk_0098",
+   "conversation_index": 98,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    33,
+    155,
+    48,
+    301,
+    41
+   ],
+   "source": "arc",
+   "question": "If a pond is polluted by soap that has phosphate, this pollutant will cause the algae to quickly reproduce. Which will most likely increase in the pond if this happens to the algae?",
+   "choices": [
+    "sulfur",
+    "oxygen",
+    "nitrogen",
+    "carbon dioxide"
+   ]
+  },
+  {
+   "item_id": "sk_0099",
+   "conversation_index": 99,
+   "roles": [
+    "user",
+    "assistant",
+    "user",
+    "assistant",
+    "user"
+   ],
+   "target_chars": [
+    74,
+    89,
+    125,
+    356,
+    26
+   ],
+   "source": "mmlu",
+   "question": "Approximately how many kJ of energy are expended if an athlete's steady-rate oxygen uptake averages 3.0 l/min for 5 minutes of exercise?",
+   "choices": [
+    "60 kJ",
+    "150 kJ",
+    "300 kJ",
+    "500 kJ"
+   ]
+  }
+ ]
+}
