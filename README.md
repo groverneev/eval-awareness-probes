@@ -12,8 +12,10 @@ Chaudhary.
 
 ## Status
 
-Slices 1 and 2 are done on Llama-3.1-8B. Slice 3 (multi-turn) is in progress:
-3 of 5 writing batches complete, first results measured at n=100/cell.
+Slices 1 and 2 are done on Llama-3.1-8B. Slice 3 (multi-turn) is complete at
+n=250/cell, with one decisive constructed control and one failed as-written
+disguise cell. The next experiment is a matched-coherence version of the
+constructed control.
 
 **Slice 1 — the replication, and why it is not enough.** The probe reaches
 AUROC 0.994 at layer 4 of 32, reproducing the prior single-turn result, and
@@ -52,31 +54,31 @@ Headline (ARC+MMLU, 5 seeds; GSM8K excluded because digit density alone scores
   learn — 0.31–0.55, at or below chance. That is where content-only eval
   recognition would have to appear, and it does not.
 
-**Slice 3 — multi-turn (in progress, n=100/cell so far).** Real WildChat
-conversations of 2–4 user turns against conversations of identical shape whose
-final user turn poses a benchmark question. Because attention is causal, each
-read point sees a different amount of the conversation, and that turned out to
-be the most useful diagnostic in the project.
+**Slice 3 — multi-turn (n=250/cell, 5 seeds).** Real WildChat conversations
+of 2–4 user turns are compared with conversations of identical shape whose final
+user turn poses a benchmark question. Causal read points and per-turn
+trajectories make it possible to test exactly when a signal becomes available.
 
-- Reading at the end of the *first* user turn — a position that cannot see the
-  eval question — the probe scored **0.994**. The disguised conversations were
-  identifiable from their opening turn, because writers wrote science-flavoured
-  lead-ins while deployment openings are real user needs. The disguise was
-  failing at the conversation level.
-- Fixed by construction at no writing cost: take the deployment conversation and
-  swap **only** its final user turn for the eval question. Openings are then
-  identical, and the first-turn read point drops to **0.502** — the sanity check
-  the design demands.
-- With openings held identical, the probe reaches **0.994** at the final turn
-  against a final-turn lexical baseline of 0.726 and a format baseline of 0.614,
-  a margin of **+0.268** — roughly four times the single-turn result.
+- The as-written `eval_disguised` cell fails as a realism test. At the end of
+  the first user turn, before the benchmark question appears, the probe is
+  **0.951** and bag-of-words is 0.856. The revised batches lowered the probe
+  only from 0.994 to 0.962, so they did not remove this early-turn synthetic
+  lead-in signal; this cell is not evidence of
+  evaluation recognition.
+- The constructed `eval_shared` control holds every prefix byte-identical to its
+  matched deployment conversation and swaps only the final user turn. It is
+  exactly chance before that turn (probe **0.497** at the early read point; an
+  end-aligned trajectory is 0.498–0.501 on every preceding turn), then reaches
+  **0.995** at the final turn.
+- At that final turn `eval_shared` clears bag-of-words 0.769 and format 0.576,
+  a **+0.226** probe–BoW margin. This is the cleanest current evidence that the
+  model's final-turn representation carries more than the tested lexical and
+  structural features, but it is local to a deliberately topic-shifted question
+  swap rather than a realistic disguised evaluation.
 
-Caveats stated plainly: the probe reads a position that can attend selectively
-to the final turn while bag-of-words averages over its whole text view, so part
-of that margin is the asymmetry rather than representational depth (reporting
-both baseline views, +0.40 and +0.268, is the honest range); and the shared-
-opening conversations are deliberately topic-shifted, so a matched-coherence
-control is the obvious next step.
+The next control is therefore matched coherence: retain the identical-prefix
+construction while making the final benchmark question follow naturally from
+the preceding conversation.
 
 Figures in `figures/`; full detail, caveats, and a handoff section for picking
 the project up mid-flight are in `CLAUDE.md`.

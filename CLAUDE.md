@@ -5,8 +5,8 @@ updated as work progresses (see "Maintaining this file" at the bottom). The
 README is the short human-facing version; this is the long one.
 
 Last updated: August 2026. Slices 1 and 2 are done on Llama-3.1-8B; slice 3
-(multi-turn) is in progress — see the HANDOFF section below for exactly where
-it stands and what to run next. Forward plan in `PLAN.md`. Primary machine is
+(multi-turn) is complete at n=250/cell, with the matched-coherence control next.
+Forward plan in `PLAN.md`. Primary machine is
 the Windows desktop with an RTX 5070 Ti (see Environment).
 
 GPU host decision: tried Lightning AI first, abandoned it — the site 404'd on the
@@ -600,10 +600,10 @@ per ITEM so all three cells match; assistant turns must be identical in style
 across cells; and (added for batches 02-04) eval_disguised must open on an
 ordinary everyday need rather than a topical ramp toward the question.
 
-## Slice 3 results so far (8B, n=100/cell — 2 of 5 batches written)
+## Slice 3 preliminary results (historical n=100/cell, superseded)
 
-Only batches 00-01 exist; the other three writers were stopped mid-run. All
-numbers below are 5 seeds, mean +/- sd, and should be redone at n=250.
+At this point only batches 00-01 existed. These five-seed figures are retained
+for provenance only; the full n=250 results below supersede them.
 
 **Read points and what each can see.** Attention is causal, so a hidden state
 at token i depends only on tokens <= i. `post_instruction_token` sits at the
@@ -650,6 +650,37 @@ Also note `eval_shared` conversations are deliberately topic-shifted: the
 question does not follow from the preceding turns. Real users do change subject,
 but a matched-coherence version is the obvious next control.
 
+## Slice 3 final results (8B, n=250/cell)
+
+Full extraction completed on the local 5070 Ti (four cells, three read points,
+and trajectories). All figures below are mean AUROC +/- sd across five
+stratified 70/30 splits.
+
+| cell | read point | probe | BoW | format | probe-BoW |
+|---|---|---:|---:|---:|---:|
+| eval_disguised | post-instruction | 0.951 +/- 0.009 | 0.856 +/- 0.017 | 0.603 | +0.095 |
+| eval_disguised | final-turn mean | 0.994 +/- 0.004 | 0.912 +/- 0.011 | 0.647 | +0.082 |
+| eval_shared | post-instruction | **0.497 +/- 0.001** | 0.500 | 0.500 | +0.003 |
+| eval_shared | final-turn mean | **0.995 +/- 0.005** | 0.769 +/- 0.011 | 0.576 | **+0.226** |
+
+`eval_shared` is the decisive sanity control: it is mechanically identical to
+the matched deploy conversation before the final user turn. The end-aligned
+trajectory is at chance for every preceding user turn (0.498, 0.498, and 0.501
+at one, two, and three turns before the end) then becomes 0.995 at the final
+turn. This verifies the read indices and localizes the result to the swapped
+question.
+
+The as-written `eval_disguised` cell remains invalid as a realistic-disguise
+test. It is separable at the first user turn, before the model has seen the
+benchmark question (probe 0.951; BoW 0.856). The batches written with revised
+opening instructions lowered that probe only from 0.994 to 0.962, so they did
+not eliminate the synthetic-lead-in artifact.
+
+`eval_shared` is stronger but has a clear limit: the final question is a topic
+shift. The next control is a matched-coherence version that preserves the
+identical-prefix construction while making the final benchmark question a
+natural continuation of the conversation.
+
 ## What's next
 
 The full forward plan lives in `PLAN.md` (written Aug 2026 after a research
@@ -668,7 +699,8 @@ construction). Statistics upgrade from slice 2 on: bootstrap CIs, >=3 seeds.
 2. **[DONE] Surface-baseline hierarchy** — obvious cell fully confounded.
 3. **[DONE] Slice 2a** — Devbunova replicated on our machinery.
 4. **[DONE] Slice 2b** — four format-matched cells, cross-cell transfer.
-5. **[IN PROGRESS] Slice 3** — multi-turn. See the handoff below.
+5. **[DONE] Slice 3** — multi-turn n=250, with `eval_shared` as the clean
+   question-swap control. The matched-coherence follow-up is next.
 6. Slices 4-6 (silence filtering, deployment-simulation, steering) unstarted.
 
 ---
@@ -683,22 +715,18 @@ State as of the end of the August 2026 working session.
 `datasets/slice3/batches/out_0{0..4}.json`. The `eval_shared` control is built
 and committed at `datasets/slice3/eval_shared.json`. Nothing more needs writing.
 
-**What is NOT done: extraction and analysis.** The old n=100 activation files
-were deleted to force a clean re-extraction, and the re-run was interrupted, so
-**there are currently no `results/s3_*.npz` files at all.** That is the first
-thing to do:
+**Extraction and analysis are complete.** The full n=250/cell cache contains
+all four cells, all point readouts, and ragged per-user-turn trajectories.
+Reproduce the analysis with:
 
 ```
 .venv\Scripts\python -m vnaa.run_slice3 extract --dtype bfloat16 --device-map auto
 .venv\Scripts\python -m vnaa.run_slice3 analyze
 ```
 
-Extraction is ~15 min on the 5070 Ti for 4 cells x 3 read points x 250 items,
-plus trajectories. `run_slice3.load_cells()` picks up `eval_shared`
+Extraction took about 18 minutes on the 5070 Ti for 4 cells x 3 read points x
+250 items, plus trajectories. `run_slice3.load_cells()` picks up `eval_shared`
 automatically, so both commands cover all four cells with no extra flags.
-
-The results recorded below are the **n=100** numbers from batches 00-01 only.
-Replace them with the n=250 figures once the run finishes.
 
 ## Gate status at n=250 (already run, `gate_slice3.py`)
 
@@ -729,30 +757,13 @@ The first writes `data/wildchat_multiturn.json` and `data/slice3_skeletons.json`
 conversations to the scratch dir (never commit those). Both are deterministic
 given the seed, so anyone with WildChat access gets identical inputs.
 
-## The steps to finish slice 3
+## Next Slice 3 control
 
-1. Extract and analyze (commands above). Everything upstream is done.
-2. Two numbers decide the slice: does the **+0.268 final-turn margin** hold at
-   n=250, and does the as-written `eval_disguised` cell's
-   **post_instruction_token drop from 0.994 toward chance**? Batches 02-04 were
-   written with revised instructions (open on an ordinary everyday need, let the
-   question arrive as a tangent) specifically to fix that leak, so compare
-   batches 00-01 against 02-04 to see whether the instruction change worked.
-   If it did, that comparison is itself a reportable result about how easily
-   synthetic "disguised" evaluations betray themselves. `run_slice3.load_cells`
-   returns cells in batch order, so items 0-99 are the old instructions and
-   100-249 the revised ones.
-3. Sanity check that must hold: `eval_shared` at `post_instruction_token` must
-   be ~0.500. `build_eval_shared.py` asserts the conversation prefixes are
-   byte-identical, so anything else means a bug in the read-point indices, not
-   a finding.
-4. Then: figures for slice 3, update README/CLAUDE with final numbers, and the
-   per-turn trajectory analysis (extracted but never yet analyzed — it is the
-   one read point with no results at all, and it answers where in a
-   conversation the signal appears).
-5. The obvious next control, currently unbuilt: a matched-coherence version of
-   `eval_shared` where the eval question follows naturally from the preceding
-   turns instead of arriving as a topic shift.
+Build a matched-coherence `eval_shared` cell: preserve every deployment prefix,
+but replace the final turn with a benchmark question that follows naturally from
+the conversation. Then reuse the existing extraction and analysis runner. This
+removes the topic-shift caveat without restoring opening-style or authorship
+confounds.
 
 ## Things that will bite you
 

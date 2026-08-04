@@ -148,6 +148,73 @@ def score_pair(acts_pos, acts_neg, txt_pos, txt_neg, seeds, test_frac):
     return out
 
 
+def trajectory_items(path: Path) -> list[np.ndarray]:
+    """Restore the ragged per-conversation trajectory cache."""
+    cached = np.load(path)
+    flat, n_turns = cached["acts"], cached["n_turns"]
+    ends = np.cumsum(n_turns)
+    starts = np.r_[0, ends[:-1]]
+    return [flat[s:e].astype(np.float64) for s, e in zip(starts, ends)]
+
+
+def through_user_turn(conv: list[dict], turn: int) -> str:
+    """Serialized causal text through the zero-indexed user turn."""
+    seen = 0
+    for i, message in enumerate(conv):
+        if message["role"] == "user":
+            if seen == turn:
+                return serialize(conv[: i + 1])
+            seen += 1
+    raise IndexError(f"conversation has only {seen} user turns")
+
+
+def analyze_trajectories(cells, seeds, test_frac):
+    """Probe each user-turn read point, with an equally causal text baseline."""
+    results: dict[str, dict] = {}
+    neg = trajectory_items(RESULTS / f"s3_{MODEL_TAG}_deploy_trajectory.npz")
+    for pos_cell in [c for c in ("eval_disguised", "eval_obvious", "eval_shared")
+                     if c in cells]:
+        pos = trajectory_items(RESULTS / f"s3_{MODEL_TAG}_{pos_cell}_trajectory.npz")
+        max_turns = max(len(x) for x in pos)
+        for turn in range(max_turns):
+            # Cells are shape-matched per item. Retain only pairs that have this
+            # user turn, rather than treating absent turns as a feature.
+            keep = [i for i, (p, n) in enumerate(zip(pos, neg))
+                    if len(p) > turn and len(n) > turn]
+            a_pos = np.stack([pos[i][turn] for i in keep])
+            a_neg = np.stack([neg[i][turn] for i in keep])
+            t_pos = [through_user_turn(cells[pos_cell][i], turn) for i in keep]
+            t_neg = [through_user_turn(cells["deploy"][i], turn) for i in keep]
+            r = score_pair(a_pos, a_neg, t_pos, t_neg, seeds, test_frac)
+            results[f"{pos_cell}|user_turn_{turn + 1}"] = {
+                **{k: (float(np.mean(v)), float(np.std(v))) for k, v in r.items()},
+                "n": len(keep),
+            }
+    # Align from the end as well. This is the causal diagnostic for eval_shared:
+    # its prefixes are byte-identical to deploy, but its final user turn differs.
+    # Absolute turn indices mix final turns from short conversations with earlier
+    # turns from longer ones, so they cannot answer that control cleanly.
+    for pos_cell in [c for c in ("eval_disguised", "eval_obvious", "eval_shared")
+                     if c in cells]:
+        pos = trajectory_items(RESULTS / f"s3_{MODEL_TAG}_{pos_cell}_trajectory.npz")
+        max_turns = max(len(x) for x in pos)
+        for offset in range(max_turns):
+            keep = [i for i, (p, n) in enumerate(zip(pos, neg))
+                    if len(p) > offset and len(n) > offset]
+            a_pos = np.stack([pos[i][-1 - offset] for i in keep])
+            a_neg = np.stack([neg[i][-1 - offset] for i in keep])
+            t_pos = [through_user_turn(cells[pos_cell][i], len(pos[i]) - 1 - offset)
+                     for i in keep]
+            t_neg = [through_user_turn(cells["deploy"][i], len(neg[i]) - 1 - offset)
+                     for i in keep]
+            r = score_pair(a_pos, a_neg, t_pos, t_neg, seeds, test_frac)
+            results[f"{pos_cell}|from_final_{offset}"] = {
+                **{k: (float(np.mean(v)), float(np.std(v))) for k, v in r.items()},
+                "n": len(keep),
+            }
+    return results
+
+
 def cmd_analyze(args: argparse.Namespace) -> None:
     cells = load_cells()
     n = len(cells["deploy"])
@@ -187,9 +254,37 @@ def cmd_analyze(args: argparse.Namespace) -> None:
               f"{r['format'][0]:>8.3f}+-{r['format'][1]:.2f} "
               f"{margin:>+11.3f} {r['best_layer'][0]:>6.0f}")
 
+    trajectories = analyze_trajectories(cells, args.seeds, args.test_frac)
+    print("\ntrajectory (causal text baseline through each user turn)")
+    print(f"{'cell':<16} {'turn':<14} {'n':>4} {'probe':>14} {'bow':>14} "
+          f"{'probe-bow':>11} {'layer':>6}")
+    for key, r in trajectories.items():
+        if "|user_turn_" not in key:
+            continue
+        cell, turn = key.split("|")
+        margin = strength(r["probe"][0]) - strength(r["bow"][0])
+        print(f"{cell:<16} {turn:<14} {r['n']:>4} "
+              f"{r['probe'][0]:>8.3f}+-{r['probe'][1]:.2f} "
+              f"{r['bow'][0]:>8.3f}+-{r['bow'][1]:.2f} "
+              f"{margin:>+11.3f} {r['best_layer'][0]:>6.0f}")
+
+    print("\ntrajectory aligned from final user turn (0 = final)")
+    print(f"{'cell':<16} {'offset':<14} {'n':>4} {'probe':>14} {'bow':>14} "
+          f"{'probe-bow':>11} {'layer':>6}")
+    for key, r in trajectories.items():
+        if "|from_final_" not in key:
+            continue
+        cell, offset = key.split("|")
+        margin = strength(r["probe"][0]) - strength(r["bow"][0])
+        print(f"{cell:<16} {offset:<14} {r['n']:>4} "
+              f"{r['probe'][0]:>8.3f}+-{r['probe'][1]:.2f} "
+              f"{r['bow'][0]:>8.3f}+-{r['bow'][1]:.2f} "
+              f"{margin:>+11.3f} {r['best_layer'][0]:>6.0f}")
+
     out = RESULTS / f"s3_{MODEL_TAG}_analysis.json"
     with open(out, "w") as f:
-        json.dump({"n_per_cell": n, "seeds": args.seeds, "results": results}, f, indent=2)
+        json.dump({"n_per_cell": n, "seeds": args.seeds, "results": results,
+                   "trajectory": trajectories}, f, indent=2)
     print(f"\nsaved {out}")
 
 
