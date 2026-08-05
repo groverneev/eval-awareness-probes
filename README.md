@@ -13,8 +13,9 @@ Chaudhary.
 ## Status
 
 Slices 1 and 2 are done on Llama-3.1-8B. Slice 3's matched-coherence control
-and its silence-filtered follow-up are complete at n=250/cell. The next
-experiment is deployment-simulation reconstruction on genuine conversations.
+and its silence-filtered follow-up are complete at n=250/cell. A Slice 5
+deployment-simulation reconstruction pilot is complete at n=50; scaling it is
+the next decision.
 
 **Slice 1 — the replication, and why it is not enough.** The probe reaches
 AUROC 0.994 at layer 4 of 32, reproducing the prior single-turn result, and
@@ -93,6 +94,21 @@ Cross-control transfer confirms that this is not unique to one construction:
 `eval_shared` to paired coherence reaches 0.858 versus BoW 0.597, and the
 reverse reaches 0.788 versus BoW 0.564. The probe advantage is positive in
 both directions (+0.262 and +0.224 strength, respectively).
+
+**Slice 5 â€” deployment-simulation reconstruction pilot (n=50, 5 seeds).**
+We sampled real WildChat conversations that end in an assistant reply, then
+replaced only that final reply with a greedy on-policy Llama-3.1-8B generation.
+This provides exact provenance labels and a byte-identical prefix, with no
+hand-authored eval/deployment prompt construction. Seven generated replies hit
+the 256-token cap and are excluded as indeterminate, leaving 43 pairs. At the
+final assistant end-of-turn token, the held-out probe is **0.761 +/- 0.086**;
+bag-of-words is 0.575 +/- 0.041 and format is 0.667 +/- 0.048. The conservative
+margin over the strongest surface baseline (format) is **+0.094** in separation
+strength. Mean-pooling over the final reply gives 0.737 +/- 0.078, a +0.070
+margin over format. This is evidence that response provenance is internally
+detectable in this pilot, not evidence by itself of evaluation awareness; the
+next step is a pre-registered n=250 scale-up, then model-swap versus
+eval-context ablation.
 
 **Silence-filtered matched coherence (n=250 generated pairs, 5 seeds).** We
 greedily generated one 8B reply for each cell, then retained only pairs whose

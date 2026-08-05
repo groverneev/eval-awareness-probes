@@ -1,0 +1,168 @@
+"""Slice 5: exact-label deployment reconstruction on genuine conversations.
+
+``reconstruct`` replaces each original final assistant reply with an 8B greedy
+on-policy reply.  ``extract`` probes the end or mean of that final assistant
+turn.  The original and regenerated conversations share their complete prefix,
+so any difference at these positions follows the response provenance rather
+than hand-authored evaluation/deployment text.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+
+import numpy as np
+import torch
+
+from vnaa.extract import ASSISTANT_READ_POINTS, extract_activations, load_model
+from vnaa.gate_slice3 import serialize
+from vnaa.run_silence_filter import atomic_json, greedy_reply
+from vnaa.run_slice3 import MODEL_TAG, RESULTS, score_pair
+
+DATASET = Path("data/slice5_genuine.json")
+RECONSTRUCTIONS = Path("data/slice5_reconstructed.json")
+TAG = "reconstruction_pilot50"
+
+
+def fingerprint(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def load_genuine(path: Path) -> list[list[dict]]:
+    conversations = json.loads(path.read_text(encoding="utf-8"))
+    if not conversations or any(c[-1]["role"] != "assistant" for c in conversations):
+        raise ValueError("genuine dataset must contain assistant-ending conversations")
+    return conversations
+
+
+def reconstruct(args) -> None:
+    genuine = load_genuine(args.dataset)
+    expected = {"dataset_sha256": fingerprint(args.dataset), "model": args.model,
+                "decoding": {"do_sample": False, "max_new_tokens": args.max_new_tokens}, "items": []}
+    if args.output.exists():
+        saved = json.loads(args.output.read_text(encoding="utf-8"))
+        if any(saved.get(k) != expected[k] for k in ("dataset_sha256", "model", "decoding")):
+            raise ValueError("existing reconstruction cache belongs to different inputs/settings")
+    else:
+        saved = expected
+    done = {item["id"] for item in saved["items"]}
+    dtype = {"float32": torch.float32, "bfloat16": torch.bfloat16}[args.dtype]
+    lm = load_model(args.model, device=args.device, dtype=dtype, device_map=args.device_map)
+    for index, conversation in enumerate(genuine):
+        item_id = f"pair_{index:03d}"
+        if item_id in done:
+            continue
+        reply, tokens, terminated = greedy_reply(lm, conversation[:-1], args.max_new_tokens)
+        saved["items"].append({"id": item_id, "reply": reply, "generated_tokens": tokens,
+                               "terminated": terminated})
+        atomic_json(args.output, saved)
+        print(f"saved {index + 1}/{len(genuine)}: {item_id}", flush=True)
+
+
+def load_pairs(args) -> tuple[list[list[dict]], list[list[dict]], np.ndarray]:
+    genuine = load_genuine(args.dataset)
+    saved = json.loads(args.reconstructions.read_text(encoding="utf-8"))
+    if saved.get("dataset_sha256") != fingerprint(args.dataset):
+        raise ValueError("reconstructions were made from a different genuine dataset")
+    if len(saved.get("items", [])) != len(genuine):
+        raise ValueError("reconstruction cache is incomplete")
+    rebuilt, keep = [], []
+    for i, (conversation, item) in enumerate(zip(genuine, saved["items"])):
+        if item.get("id") != f"pair_{i:03d}":
+            raise ValueError("reconstruction cache order does not match dataset")
+        keep.append(bool(item["terminated"]))
+        rebuilt.append(conversation[:-1] + [{"role": "assistant", "content": item["reply"]}])
+    return genuine, rebuilt, np.array(keep)
+
+
+def acts_path(kind: str, read_point: str) -> Path:
+    return RESULTS / f"s5_{MODEL_TAG}_{TAG}_{kind}_{read_point}.npz"
+
+
+def extract(args) -> None:
+    genuine, rebuilt, keep = load_pairs(args)
+    RESULTS.mkdir(exist_ok=True)
+    dtype = {"float32": torch.float32, "bfloat16": torch.bfloat16}[args.dtype]
+    lm = load_model(args.model, device=args.device, dtype=dtype, device_map=args.device_map)
+    for kind, conversations in (("genuine", genuine), ("resampled", rebuilt)):
+        for read_point in ASSISTANT_READ_POINTS:
+            output = acts_path(kind, read_point)
+            if output.exists():
+                continue
+            acts = extract_activations(lm, conversations, read_point=read_point, show_progress=True)
+            np.savez_compressed(output, acts=acts)
+            print(f"saved {output} {acts.shape}")
+
+
+def analyze(args) -> None:
+    genuine, rebuilt, keep = load_pairs(args)
+    if keep.sum() < args.min_pairs:
+        raise ValueError(f"only {keep.sum()} naturally terminated reconstructions; need {args.min_pairs}")
+    print(f"naturally terminated pairs: {keep.sum()}/{len(keep)}")
+    output = {
+        "tag": TAG,
+        "n_total_pairs": len(keep),
+        "n_naturally_terminated_pairs": int(keep.sum()),
+        "read_points": {},
+    }
+    for read_point in ASSISTANT_READ_POINTS:
+        original = np.load(acts_path("genuine", read_point))["acts"].astype(np.float64)[keep]
+        resampled = np.load(acts_path("resampled", read_point))["acts"].astype(np.float64)[keep]
+        result = score_pair(resampled, original,
+                            [serialize(c) for c, k in zip(rebuilt, keep) if k],
+                            [serialize(c) for c, k in zip(genuine, keep) if k],
+                            args.seeds, args.test_frac)
+        summary = {key: (float(np.mean(value)), float(np.std(value))) for key, value in result.items()}
+        surfaces = {key: summary[key][0] for key in ("bow", "format", "length")}
+        best_surface, surface_auroc = max(surfaces.items(), key=lambda item: abs(item[1] - .5))
+        margin = abs(summary["probe"][0] - .5) - abs(surface_auroc - .5)
+        print(f"{read_point}: probe {summary['probe'][0]:.3f}+/-{summary['probe'][1]:.3f} "
+              f"BoW {summary['bow'][0]:.3f}+/-{summary['bow'][1]:.3f} "
+              f"format {summary['format'][0]:.3f}+/-{summary['format'][1]:.3f} "
+              f"best surface {best_surface} ({surface_auroc:.3f}); "
+              f"probe-best strength {margin:+.3f}")
+        output["read_points"][read_point] = {
+            "summary": {key: {"mean": val[0], "sd": val[1]} for key, val in summary.items()},
+            "best_surface": best_surface,
+            "probe_minus_best_surface_strength": margin,
+            "per_seed": result,
+        }
+    destination = RESULTS / f"s5_{MODEL_TAG}_{TAG}_analysis.json"
+    atomic_json(destination, output)
+    print(f"saved {destination}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="command", required=True)
+    for name in ("reconstruct", "extract"):
+        command = sub.add_parser(name)
+        command.add_argument("--dataset", type=Path, default=DATASET)
+        command.add_argument("--reconstructions", "--output", dest="output", type=Path,
+                             default=RECONSTRUCTIONS)
+        command.add_argument("--model", default=f"meta-llama/{MODEL_TAG}")
+        command.add_argument("--device", default=None)
+        command.add_argument("--device-map", default=None)
+        command.add_argument("--dtype", choices=["float32", "bfloat16"], default="bfloat16")
+        command.add_argument("--max-new-tokens", type=int, default=256)
+    ana = sub.add_parser("analyze")
+    ana.add_argument("--dataset", type=Path, default=DATASET)
+    ana.add_argument("--reconstructions", type=Path, default=RECONSTRUCTIONS)
+    ana.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
+    ana.add_argument("--test-frac", type=float, default=.3)
+    ana.add_argument("--min-pairs", type=int, default=30)
+    args = parser.parse_args()
+    if args.command == "reconstruct":
+        reconstruct(args)
+    elif args.command == "extract":
+        args.reconstructions = args.output
+        extract(args)
+    else:
+        analyze(args)
+
+
+if __name__ == "__main__":
+    main()

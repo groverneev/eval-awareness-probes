@@ -51,6 +51,12 @@ Conversation = list[dict[str, str]]  # [{"role": "user"|"assistant"|"system", "c
 # rather than one per conversation; see extract_trajectories.
 READ_POINTS = ("last_user_token", "post_instruction_token", "final_turn_mean")
 
+# Reconstruction compares conversations that end in an assistant reply.  Keep
+# these separate from READ_POINTS: slice 3 deliberately ends on a user turn,
+# and adding them there would make its existing runner silently read the
+# preceding assistant reply instead.
+ASSISTANT_READ_POINTS = ("final_assistant_token", "final_assistant_mean")
+
 
 def pick_device(explicit: str | None = None) -> str:
     if explicit:
@@ -186,6 +192,14 @@ def read_slice(read_point: str, conv: Conversation, spans) -> tuple[int, int]:
             if conv[i]["role"] == "user":
                 return spans[i]
         raise ValueError("conversation has no user message")
+    if read_point == "final_assistant_token":
+        i = _last_index_of_role(conv, spans, ("assistant",))
+        return i, i + 1
+    if read_point == "final_assistant_mean":
+        for i in range(len(conv) - 1, -1, -1):
+            if conv[i]["role"] == "assistant":
+                return spans[i]
+        raise ValueError("conversation has no assistant message")
     raise ValueError(f"unknown read_point {read_point!r}; known: {READ_POINTS}")
 
 
@@ -202,8 +216,9 @@ def extract_activations(
     float32 on CPU. Axis 1 index 0 is the embedding layer; indices 1..n_layers
     are transformer block outputs.
     """
-    if read_point not in READ_POINTS:
-        raise ValueError(f"unknown read_point {read_point!r}; known: {READ_POINTS}")
+    known = READ_POINTS + ASSISTANT_READ_POINTS
+    if read_point not in known:
+        raise ValueError(f"unknown read_point {read_point!r}; known: {known}")
 
     single_turn = read_point == "last_user_token"
     out = np.empty(

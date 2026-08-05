@@ -734,6 +734,26 @@ verbalization labels mean a verbalization-detectability classifier cannot be
 fit for this run. The next slice is deployment-simulation reconstruction on
 genuine conversations.
 
+**Slice 5 deployment-simulation reconstruction pilot (n=50, August 2026).**
+We sampled 50 genuine assistant-ending WildChat conversations (2--4 user turns)
+and greedily regenerated only their final assistant reply with the same 8B.
+The prefix is therefore byte-identical within every original/resampled pair and
+the labels are exact response provenance, not a hand-constructed proxy. We had
+to add assistant-side read points: a final-user read happens before either
+candidate answer exists and cannot distinguish the conditions. Seven replies
+reached the 256-token cap and are indeterminate; analysis uses the other 43.
+
+At `final_assistant_token`, the held-out probe is **0.761 +/- 0.086**, versus
+BoW **0.575 +/- 0.041** and format **0.667 +/- 0.048**. The conservative margin
+over the strongest surface baseline (format) is +0.094 strength. At
+`final_assistant_mean`, the figures are 0.737 +/- 0.078, 0.575 +/- 0.041, and
+0.667 +/- 0.048, respectively (probe-format margin +0.070). This establishes a
+small exact-label response-provenance effect, not evaluation awareness: final
+answer text itself is necessarily different, and format remains a substantial
+baseline. The next valid expansion is n=250 under the same frozen protocol,
+followed by model-swap versus eval-context ablation to separate model authorship
+from context.
+
 The full forward plan lives in `PLAN.md` (written Aug 2026 after a research
 pass). Summary: slice 2 is the format-matched 2x2. Key research findings that
 shaped it: Devbunova's 2x2 dataset is public (HF

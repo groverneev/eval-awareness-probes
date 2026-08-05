@@ -15,7 +15,7 @@ from __future__ import annotations
 import pytest
 import torch
 
-from vnaa.extract import READ_POINTS, read_slice, template_ids, turn_spans
+from vnaa.extract import ASSISTANT_READ_POINTS, READ_POINTS, read_slice, template_ids, turn_spans
 
 
 class StubTokenizer:
@@ -93,6 +93,13 @@ def test_final_turn_mean_spans_the_whole_last_user_turn():
     assert read_slice("final_turn_mean", CONV, spans) == (13, 17)
 
 
+def test_final_assistant_reads_select_the_last_assistant_turn():
+    conv = CONV + [{"role": "assistant", "content": "bye now"}]
+    spans = turn_spans(StubTokenizer(), conv)
+    assert read_slice("final_assistant_token", conv, spans) == (20, 21)
+    assert read_slice("final_assistant_mean", conv, spans) == (17, 21)
+
+
 def test_non_prefix_template_is_rejected_not_silently_wrong():
     with pytest.raises(ValueError, match="prefix-consistent"):
         turn_spans(NonPrefixTokenizer(), CONV)
@@ -100,7 +107,7 @@ def test_non_prefix_template_is_rejected_not_silently_wrong():
 
 def test_every_declared_read_point_is_implemented():
     spans = turn_spans(StubTokenizer(), CONV)
-    for rp in READ_POINTS:
+    for rp in READ_POINTS + ASSISTANT_READ_POINTS:
         start, end = read_slice(rp, CONV, spans)
         assert 0 <= start < end <= spans[-1][1]
 
