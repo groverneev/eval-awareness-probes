@@ -683,6 +683,22 @@ natural continuation of the conversation.
 
 ## What's next
 
+## Matched-coherence pilot (50 pairs, August 2026)
+
+The first attempted `eval_coherent` control was rejected after manual audit:
+rewriting an arbitrary benchmark question against its original real deployment
+prefix softened topic shifts but did not make them coherent. Do not use those
+uncommitted outputs or their high probe score.
+
+The repaired design constructs one shared everyday-topic prefix per item, then
+attaches either a faithful casual benchmark question or a same-topic genuine
+deployment request. Prefixes are byte-identical within each pair and authorship
+is balanced. On the 50-pair pilot, whole-conversation surface baselines are
+length 0.488, format 0.376, and BoW 0.559. The pre-final read is 0.497 (chance);
+the final-token probe is 1.000 versus BoW 0.887 and format 0.573. This validates
+the construction but is only a pilot; scale the paired design to 250 before
+claiming a final result.
+
 The full forward plan lives in `PLAN.md` (written Aug 2026 after a research
 pass). Summary: slice 2 is the format-matched 2x2. Key research findings that
 shaped it: Devbunova's 2x2 dataset is public (HF
