@@ -693,11 +693,13 @@ uncommitted outputs or their high probe score.
 The repaired design constructs one shared everyday-topic prefix per item, then
 attaches either a faithful casual benchmark question or a same-topic genuine
 deployment request. Prefixes are byte-identical within each pair and authorship
-is balanced. On the 50-pair pilot, whole-conversation surface baselines are
-length 0.488, format 0.376, and BoW 0.559. The pre-final read is 0.497 (chance);
-the final-token probe is 1.000 versus BoW 0.887 and format 0.573. This validates
-the construction but is only a pilot; scale the paired design to 250 before
-claiming a final result.
+is balanced. The 50-pair pilot passed its construction checks, then the full
+**n=250** paired control replicated the result: whole-conversation surface
+baselines are length 0.500, format 0.520, and BoW 0.646. The pre-final read is
+exactly chance (probe 0.500, BoW/format 0.500); at the final token the probe is
+**0.951 +/- 0.011** versus BoW **0.852 +/- 0.012** and format 0.579, a +0.099
+probe-BoW margin. Final-turn mean is 0.941 +/- 0.011. This removes the prior
+topic-shift failure while retaining the causal identical-prefix sanity check.
 
 The full forward plan lives in `PLAN.md` (written Aug 2026 after a research
 pass). Summary: slice 2 is the format-matched 2x2. Key research findings that

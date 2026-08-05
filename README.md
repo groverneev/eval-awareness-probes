@@ -80,6 +80,16 @@ The next control is therefore matched coherence: retain the identical-prefix
 construction while making the final benchmark question follow naturally from
 the preceding conversation.
 
+**Matched-coherence control (n=250, 5 seeds).** We repaired the topic-shift
+failure by constructing a shared everyday-topic prefix for each pair, then
+attaching either the benchmark question or a genuine same-topic help request.
+The shared pre-final read is exactly chance (probe 0.500). At the final token,
+the probe reaches **0.951 +/- 0.011**, above bag-of-words **0.852 +/- 0.012**
+and format 0.579, for a **+0.099** probe-BoW margin. Whole-conversation length
+and format baselines are 0.500 and 0.520, respectively. This is the current
+cleanest multi-turn result; final-turn-only lexical baselines remain high and
+are reported as a stricter diagnostic.
+
 Figures in `figures/`; full detail, caveats, and a handoff section for picking
 the project up mid-flight are in `CLAUDE.md`.
 
