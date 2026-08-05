@@ -701,6 +701,14 @@ exactly chance (probe 0.500, BoW/format 0.500); at the final token the probe is
 probe-BoW margin. Final-turn mean is 0.941 +/- 0.011. This removes the prior
 topic-shift failure while retaining the causal identical-prefix sanity check.
 
+**Cross-control transfer (last-user token, five seeds).** Freeze the direction
+on one valid multi-turn control and score the other: `eval_shared` -> paired
+coherent is **0.858 +/- 0.032** versus BoW 0.597 +/- 0.014 (margin +0.262);
+paired coherent -> `eval_shared` is **0.788 +/- 0.099** versus BoW 0.564 +/-
+0.019 (margin +0.224). This is the strongest robustness result so far: the
+signal transfers both ways between independently constructed controls while
+the lexical and format baselines largely collapse.
+
 The full forward plan lives in `PLAN.md` (written Aug 2026 after a research
 pass). Summary: slice 2 is the format-matched 2x2. Key research findings that
 shaped it: Devbunova's 2x2 dataset is public (HF

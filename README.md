@@ -90,6 +90,11 @@ and format baselines are 0.500 and 0.520, respectively. This is the current
 cleanest multi-turn result; final-turn-only lexical baselines remain high and
 are reported as a stricter diagnostic.
 
+Cross-control transfer confirms that this is not unique to one construction:
+`eval_shared` to paired coherence reaches 0.858 versus BoW 0.597, and the
+reverse reaches 0.788 versus BoW 0.564. The probe advantage is positive in
+both directions (+0.262 and +0.224 strength, respectively).
+
 Figures in `figures/`; full detail, caveats, and a handoff section for picking
 the project up mid-flight are in `CLAUDE.md`.
 
