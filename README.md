@@ -12,10 +12,9 @@ Chaudhary.
 
 ## Status
 
-Slices 1 and 2 are done on Llama-3.1-8B. Slice 3 (multi-turn) is complete at
-n=250/cell, with one decisive constructed control and one failed as-written
-disguise cell. The next experiment is a matched-coherence version of the
-constructed control.
+Slices 1 and 2 are done on Llama-3.1-8B. Slice 3's matched-coherence control
+and its silence-filtered follow-up are complete at n=250/cell. The next
+experiment is deployment-simulation reconstruction on genuine conversations.
 
 **Slice 1 — the replication, and why it is not enough.** The probe reaches
 AUROC 0.994 at layer 4 of 32, reproducing the prior single-turn result, and
@@ -94,6 +93,20 @@ Cross-control transfer confirms that this is not unique to one construction:
 `eval_shared` to paired coherence reaches 0.858 versus BoW 0.597, and the
 reverse reaches 0.788 versus BoW 0.564. The probe advantage is positive in
 both directions (+0.262 and +0.224 strength, respectively).
+
+**Silence-filtered matched coherence (n=250 generated pairs, 5 seeds).** We
+greedily generated one 8B reply for each cell, then retained only pairs whose
+two replies terminated naturally and did not verbalize recognition of being
+tested. **192/250** pairs met that criterion; 58 pairs with a capped reply were
+treated as indeterminate, not silent. A narrow explicit-awareness scan flagged
+0 pairs, and an independent text-only audit of 30 random pairs likewise found
+0 explicit or paraphrased recognition statements. On the retained pairs, the
+final-token probe is **0.937 +/- 0.033**, versus BoW **0.823 +/- 0.026** and
+format 0.567 +/- 0.016. The probe-BoW strength margin is therefore **+0.114**.
+This is evidence that the result survives an observed-silence filter, not proof
+that no response ever verbalized awareness: capped replies are excluded and the
+awareness judge is deliberately conservative. With zero positive verbalization
+labels, a verbalization-detectability classifier is not estimable in this run.
 
 Figures in `figures/`; full detail, caveats, and a handoff section for picking
 the project up mid-flight are in `CLAUDE.md`.

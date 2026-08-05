@@ -129,14 +129,17 @@ def score_pair(acts_pos, acts_neg, txt_pos, txt_neg, seeds, test_frac):
         x_te = np.concatenate([acts_pos[te_p], acts_neg[te_n]])
         y_te = np.concatenate([np.ones(len(te_p)), np.zeros(len(te_n))])
 
-        aur = []
+        # Choose the layer using training data only.  The old implementation
+        # selected the maximum held-out AUROC, which turns the test split into
+        # a layer-search set and overstates every reported best-layer score.
+        train_aur = []
         probes = []
         for L in range(x_tr.shape[1]):
             pr = fit_layer(x_tr[:, L, :], y_tr)
             probes.append(pr)
-            aur.append(roc_auc_score(y_te, pr.project(x_te[:, L, :])))
-        best = int(np.argmax(np.abs(np.array(aur) - 0.5)))
-        out["probe"].append(aur[best])
+            train_aur.append(roc_auc_score(y_tr, pr.project(x_tr[:, L, :])))
+        best = int(np.argmax(np.abs(np.array(train_aur) - 0.5)))
+        out["probe"].append(roc_auc_score(y_te, probes[best].project(x_te[:, best, :])))
         out["best_layer"].append(best)
 
         t_tr = [txt_pos[i] for i in tr_p] + [txt_neg[i] for i in tr_n]

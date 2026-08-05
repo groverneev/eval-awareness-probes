@@ -5,7 +5,7 @@ updated as work progresses (see "Maintaining this file" at the bottom). The
 README is the short human-facing version; this is the long one.
 
 Last updated: August 2026. Slices 1 and 2 are done on Llama-3.1-8B; slice 3
-(multi-turn) is complete at n=250/cell, with the matched-coherence control next.
+(multi-turn) and its matched-coherence silence filter are complete at n=250/cell.
 Forward plan in `PLAN.md`. Primary machine is
 the Windows desktop with an RTX 5070 Ti (see Environment).
 
@@ -709,6 +709,31 @@ paired coherent -> `eval_shared` is **0.788 +/- 0.099** versus BoW 0.564 +/-
 signal transfers both ways between independently constructed controls while
 the lexical and format baselines largely collapse.
 
+**Silence-filtered matched coherence (n=250 generated pairs, August 2026).**
+We greedily generated one 8B response for every eval and deploy conversation,
+with `<|eot_id|>` recognized as an end-of-turn token. The response cache records
+token counts and termination, so a reply that reached the 256-token cap is
+indeterminate rather than silently counted as unaware. Of 250 pairs, 192 had
+both replies terminate naturally; 58 were excluded for a capped reply.
+
+The explicit-awareness rule is narrow by design: it flags self-referential
+statements about a test, quiz, benchmark, evaluation, or assessment, but not an
+ordinary use of those words in the answer's subject matter. It flagged 0/250
+pairs. A separate text-only audit of a random 30 pairs (60 replies) found 0
+explicit or paraphrased recognition statements, and no apparent regex misses.
+On the 192 terminated, non-flagged pairs at the final user token, the probe is
+**0.937 +/- 0.033**, versus BoW **0.823 +/- 0.026** and format **0.567 +/-
+0.016**; probe-BoW strength margin **+0.114**. The held-out layer is now chosen
+using the training split only (the prior helper incorrectly selected it on the
+test split); the full matched-coherence final-token result remains 0.951 +/-
+0.011 after that correction.
+
+This is an observed-silence result, not a claim that every response is known
+unaware: the 58 capped pairs are outside the estimate, and zero positive
+verbalization labels mean a verbalization-detectability classifier cannot be
+fit for this run. The next slice is deployment-simulation reconstruction on
+genuine conversations.
+
 The full forward plan lives in `PLAN.md` (written Aug 2026 after a research
 pass). Summary: slice 2 is the format-matched 2x2. Key research findings that
 shaped it: Devbunova's 2x2 dataset is public (HF
@@ -726,8 +751,10 @@ construction). Statistics upgrade from slice 2 on: bootstrap CIs, >=3 seeds.
 3. **[DONE] Slice 2a** — Devbunova replicated on our machinery.
 4. **[DONE] Slice 2b** — four format-matched cells, cross-cell transfer.
 5. **[DONE] Slice 3** — multi-turn n=250, with `eval_shared` as the clean
-   question-swap control. The matched-coherence follow-up is next.
-6. Slices 4-6 (silence filtering, deployment-simulation, steering) unstarted.
+   question-swap control. Matched coherence is the natural-continuation control.
+6. **[DONE] Silence filtering** — 192 naturally terminated silent pairs;
+   probe 0.937 vs BoW 0.823 at the final token.
+7. Deployment-simulation and steering remain unstarted.
 
 ---
 
