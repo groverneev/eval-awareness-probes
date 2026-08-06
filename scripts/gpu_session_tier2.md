@@ -5,20 +5,27 @@ running the commands in order and copying artifacts back.
 
 ## Which machine, and why
 
-**Use the Runpod RTX 5090 (32 GB), the same setup as the slice-5 session.**
+**Any Runpod card with 24 GB or more.** The 8B in bf16 is ~16 GB, so a 24 GB
+card holds it wholly on-GPU with room for activations; a 4090, A6000, L40S, A40,
+or 5090 all work. Do not hold out for the specific GPU a previous session used —
+slice 5 ran on a 5090 and that model was unavailable across the whole region on
+the next attempt, including for pod migration. Nothing here needs a particular
+architecture.
 
-All three remaining items are dominated by *generation*, not extraction. The 8B
-in bf16 is ~16 GB, so a 32 GB card holds it wholly on-GPU and generates at full
-speed.
+All three remaining items are dominated by *generation*, not extraction, which
+is why an on-GPU model matters more than which GPU it is.
 
 - The local 5070 Ti (16 GB) needs `device_map="auto"` and offloads the last few
-  layers to system RAM. That is fine for forward passes — the slice-1
-  re-extraction below was done locally in a couple of minutes — but it makes
-  greedy generation several times slower, and this session is ~1,750 generations.
+  layers to system RAM. That is fine for **forward passes**, so the slice-1
+  re-extraction and the steering manipulation check both run locally for free.
+  It makes greedy generation several times slower, which is why the ~1,750
+  generations want a rented card.
 - Kaggle's 2×T4 shards the model across two cards. It works (slice 1 ran there)
-  but it is slower still for generation and adds session-length limits.
+  and is the free fallback if rentals stay unavailable, but it is slower still
+  for generation and adds session-length limits.
 
-Estimated GPU time: **~2.5 hours**, so well under $3 on a 5090 pod.
+Estimated GPU time: **~2.5 hours**, well under $3 on any of the cards above, and
+less if the manipulation check has already been run locally.
 
 ## What you need to do before the pod starts
 
@@ -43,19 +50,21 @@ layer 0 at 0.500, best layer 4, AUROC 0.9944.
 
 ## Pod setup
 
-**Restart the existing slice-5 pod rather than creating a new one.** The 8B
-weights already sit in `/workspace/.cache/huggingface`, which is the persistent
-volume, so a restart skips a ~16 GB download. Two things change on restart: the
-exposed SSH port is new, and anything pip installed outside `/workspace` may be
-gone, so the install is re-run below. Record the port outside this repo.
+Restarting an existing pod is preferable when the same GPU model is still
+available, because `/workspace` persists and the ~16 GB of weights are already
+cached there. When it is not available — the common case — deploy a fresh pod on
+any 24 GB+ card and accept the re-download; it is a few minutes on a datacenter
+link and is not worth waiting on scarce hardware to avoid.
 
 ```bash
 cd /workspace && export HF_HOME=/workspace/.cache/huggingface
-cd vnaa && git pull            # or clone if the volume was wiped
+git clone <repo> vnaa && cd vnaa    # or `git pull` on a restarted pod
 pip install -e . && pip install accelerate
-hf auth login                  # only if the token did not persist in HF_HOME
+hf auth login                       # token needs gated-repo read access
 python -c "import torch; print(torch.cuda.get_device_name(0))"
 ```
+
+Record the SSH host and port outside this repo.
 
 ## What runs where
 
