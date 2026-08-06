@@ -13,9 +13,9 @@ Chaudhary.
 ## Status
 
 Slices 1 and 2 are done on Llama-3.1-8B. Slice 3's matched-coherence control
-and its silence-filtered follow-up are complete at n=250/cell. A Slice 5
-deployment-simulation reconstruction pilot is complete at n=50; scaling it is
-the next decision.
+and its silence-filtered follow-up are complete at n=250/cell. Slice 5's
+deployment-simulation reconstruction result is complete at n=250; model-swap
+versus context ablation is next.
 
 **Slice 1 — the replication, and why it is not enough.** The probe reaches
 AUROC 0.994 at layer 4 of 32, reproducing the prior single-turn result, and
@@ -109,6 +109,16 @@ margin over format. This is evidence that response provenance is internally
 detectable in this pilot, not evidence by itself of evaluation awareness; the
 next step is a pre-registered n=250 scale-up, then model-swap versus
 eval-context ablation.
+
+**Slice 5 scale-up (n=250, 5 seeds).** The frozen protocol replicated at
+scale. Of 250 greedy replacements, 196 terminated naturally; the other 54 are
+indeterminate because they reached the 256-token cap. At the final assistant
+end-of-turn token, the probe is **0.792 +/- 0.024**, versus BoW **0.633 +/-
+0.011** and format **0.680 +/- 0.021**, for a conservative +0.113 strength
+margin over format. At the final-assistant mean, the probe reaches **0.822 +/-
+0.018**, for a **+0.142** margin over format. This confirms internally
+detectable response provenance under an exact-label, shared-prefix construction;
+it remains a provenance result rather than a direct evaluation-awareness claim.
 
 **Silence-filtered matched coherence (n=250 generated pairs, 5 seeds).** We
 greedily generated one 8B reply for each cell, then retained only pairs whose

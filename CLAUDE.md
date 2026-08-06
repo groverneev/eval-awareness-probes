@@ -754,6 +754,18 @@ baseline. The next valid expansion is n=250 under the same frozen protocol,
 followed by model-swap versus eval-context ablation to separate model authorship
 from context.
 
+**Slice 5 scale-up (n=250, August 2026).** The pilot protocol was frozen and
+repeated on 250 newly sampled genuine assistant-ending WildChat conversations.
+Greedy 8B replacement produced 196 naturally terminated pairs; 54 cap-hit
+replies are indeterminate and excluded. At `final_assistant_token`, the held-out
+probe is **0.792 +/- 0.024**, versus BoW **0.633 +/- 0.011** and format **0.680
++/- 0.021**: +0.113 strength over the strongest surface baseline. At
+`final_assistant_mean`, the probe is **0.822 +/- 0.018**, with +0.142 strength
+over format. The n=50 pilot (token 0.761, mean 0.737) therefore replicated and
+sharpened at scale. This is still response-provenance detection, not a direct
+test of eval awareness. The next required decomposition is model-swap versus
+context ablation; steering remains last.
+
 The full forward plan lives in `PLAN.md` (written Aug 2026 after a research
 pass). Summary: slice 2 is the format-matched 2x2. Key research findings that
 shaped it: Devbunova's 2x2 dataset is public (HF
@@ -774,7 +786,8 @@ construction). Statistics upgrade from slice 2 on: bootstrap CIs, >=3 seeds.
    question-swap control. Matched coherence is the natural-continuation control.
 6. **[DONE] Silence filtering** — 192 naturally terminated silent pairs;
    probe 0.937 vs BoW 0.823 at the final token.
-7. Deployment-simulation and steering remain unstarted.
+7. **[DONE] Slice 5 reconstruction** â€” exact-label n=250 provenance result;
+   model-swap/context ablation and steering remain.
 
 ---
 

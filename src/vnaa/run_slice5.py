@@ -24,7 +24,7 @@ from vnaa.run_slice3 import MODEL_TAG, RESULTS, score_pair
 
 DATASET = Path("data/slice5_genuine.json")
 RECONSTRUCTIONS = Path("data/slice5_reconstructed.json")
-TAG = "reconstruction_pilot50"
+DEFAULT_TAG = "reconstruction_pilot50"
 
 
 def fingerprint(path: Path) -> str:
@@ -78,8 +78,8 @@ def load_pairs(args) -> tuple[list[list[dict]], list[list[dict]], np.ndarray]:
     return genuine, rebuilt, np.array(keep)
 
 
-def acts_path(kind: str, read_point: str) -> Path:
-    return RESULTS / f"s5_{MODEL_TAG}_{TAG}_{kind}_{read_point}.npz"
+def acts_path(tag: str, kind: str, read_point: str) -> Path:
+    return RESULTS / f"s5_{MODEL_TAG}_{tag}_{kind}_{read_point}.npz"
 
 
 def extract(args) -> None:
@@ -89,7 +89,7 @@ def extract(args) -> None:
     lm = load_model(args.model, device=args.device, dtype=dtype, device_map=args.device_map)
     for kind, conversations in (("genuine", genuine), ("resampled", rebuilt)):
         for read_point in ASSISTANT_READ_POINTS:
-            output = acts_path(kind, read_point)
+            output = acts_path(args.tag, kind, read_point)
             if output.exists():
                 continue
             acts = extract_activations(lm, conversations, read_point=read_point, show_progress=True)
@@ -103,14 +103,14 @@ def analyze(args) -> None:
         raise ValueError(f"only {keep.sum()} naturally terminated reconstructions; need {args.min_pairs}")
     print(f"naturally terminated pairs: {keep.sum()}/{len(keep)}")
     output = {
-        "tag": TAG,
+        "tag": args.tag,
         "n_total_pairs": len(keep),
         "n_naturally_terminated_pairs": int(keep.sum()),
         "read_points": {},
     }
     for read_point in ASSISTANT_READ_POINTS:
-        original = np.load(acts_path("genuine", read_point))["acts"].astype(np.float64)[keep]
-        resampled = np.load(acts_path("resampled", read_point))["acts"].astype(np.float64)[keep]
+        original = np.load(acts_path(args.tag, "genuine", read_point))["acts"].astype(np.float64)[keep]
+        resampled = np.load(acts_path(args.tag, "resampled", read_point))["acts"].astype(np.float64)[keep]
         result = score_pair(resampled, original,
                             [serialize(c) for c, k in zip(rebuilt, keep) if k],
                             [serialize(c) for c, k in zip(genuine, keep) if k],
@@ -130,7 +130,7 @@ def analyze(args) -> None:
             "probe_minus_best_surface_strength": margin,
             "per_seed": result,
         }
-    destination = RESULTS / f"s5_{MODEL_TAG}_{TAG}_analysis.json"
+    destination = RESULTS / f"s5_{MODEL_TAG}_{args.tag}_analysis.json"
     atomic_json(destination, output)
     print(f"saved {destination}")
 
@@ -144,6 +144,8 @@ def main() -> None:
         command.add_argument("--reconstructions", "--output", dest="output", type=Path,
                              default=RECONSTRUCTIONS)
         command.add_argument("--model", default=f"meta-llama/{MODEL_TAG}")
+        command.add_argument("--tag", default=DEFAULT_TAG,
+                             help="cache namespace; change it for a new frozen dataset")
         command.add_argument("--device", default=None)
         command.add_argument("--device-map", default=None)
         command.add_argument("--dtype", choices=["float32", "bfloat16"], default="bfloat16")
@@ -151,6 +153,8 @@ def main() -> None:
     ana = sub.add_parser("analyze")
     ana.add_argument("--dataset", type=Path, default=DATASET)
     ana.add_argument("--reconstructions", type=Path, default=RECONSTRUCTIONS)
+    ana.add_argument("--tag", default=DEFAULT_TAG,
+                     help="cache namespace matching the extraction run")
     ana.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     ana.add_argument("--test-frac", type=float, default=.3)
     ana.add_argument("--min-pairs", type=int, default=30)
