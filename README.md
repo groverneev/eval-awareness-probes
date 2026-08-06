@@ -161,7 +161,10 @@ nominal 0.5. Both gaps are now closed on the cached activations.
   **0.896** at the final assistant token. Under slice-2b transfer the
   probe-minus-bag-of-words margin is **+0.056** against difference-of-means'
   +0.071, with the same sign pattern and the same sole negative
-  (`devb_standard`). No conclusion depends on the estimator.
+  (`devb_standard`). No conclusion depends on the estimator. The lone exception
+  is slice 1, where logistic regression buys nothing (0.992 → 0.993): the
+  obvious cell is already fully confounded, so the separation is trivially
+  linear and a better-fitted direction has nothing left to recover.
 - *Significance.* A permutation test that shuffles the entire label vector and
   reruns the whole pipeline, layer selection included, puts every real contrast
   at **p = 0.002**, the floor at 500 permutations, with a null 95th percentile

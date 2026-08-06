@@ -726,6 +726,7 @@ equal or stronger:
 
 | contrast (read point) | diff-of-means | logistic |
 |---|---:|---:|
+| s1 SAD oversight, n=200 (last user) | 0.992 | 0.993 |
 | eval_shared (last user) | 0.992 | 0.998 |
 | eval_shared (post-instruction) | 0.498 | 0.500 |
 | coherent pairs (last user) | 0.951 | 0.989 |
@@ -735,6 +736,13 @@ equal or stronger:
 | s5 reconstruction n250 (assistant mean) | 0.822 | 0.958 |
 | s5 model swap, shared 146 (assistant token) | 0.811 | 0.887 |
 | s5 context ablation, shared 146 (assistant token) | 0.868 | 0.947 |
+
+Slice 1 is the one row where LR buys essentially nothing (0.992 -> 0.993, versus
+gains of 0.03-0.14 everywhere else). That is consistent with the rest of the
+slice-1 story rather than a surprise: the obvious cell is fully confounded, so
+the separation is already trivially linear and a better-fitted direction has
+nothing left to recover. Its uninformed-direction geometry null is also lower
+(0.160) than the multi-turn cells' 0.24-0.29.
 
 Under math-free slice-2b transfer, probe-minus-BoW is **+0.056** for LR against
 +0.071 for difference-of-means, with the same sign pattern per training cell and
@@ -771,9 +779,12 @@ near 0.5 is false for these activations at the reported layers, so raw
 unaffected. Report the permutation p-value as the test and the uninformed
 direction as a limitation.
 
-Slice 1's 8B activations were produced on Kaggle and never cached locally, so
-slice 1 is absent from this check. Adding it needs a short re-extraction, not
-new analysis; fold it into the next GPU session.
+Slice 1 was originally absent here because its 8B activations only ever existed
+on Kaggle. It has since been re-extracted locally on the 5070 Ti (about three
+minutes of forward passes, no generation) and is included above. Every other row
+is unchanged to the printed precision, which also confirms that the
+`run_silence_filter` and `prep_slice5` refactors did not disturb any cached
+result.
 
 ## Verbalized-awareness judge (August 2026)
 
