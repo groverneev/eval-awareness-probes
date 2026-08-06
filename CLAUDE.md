@@ -1089,6 +1089,40 @@ interior points, because at these layers the class-mean gap is 8-34% of the mean
 residual norm, so `alpha = 4` is a larger-than-unit perturbation and was likely
 to consume most of the original grid in the degenerate range.
 
+**Manipulation check: PASSED, run locally on the 5070 Ti (August 2026).** It is
+forward-passes-only, so CPU offload is fine and it cost nothing. Values below are
+the fraction of the eval-deploy gap reached on the independent `eval_shared`
+probe; unsteered sits at -0.20 because the self-report carriers are single-turn
+requests rather than multi-turn WildChat rewrites, so what matters is the shift,
+not the intercept.
+
+| layer | -4 | -2 | -1 | -0.5 | 0 | +0.5 | +1 | +2 | +4 | monotone |
+|---|---|---|---|---|---|---|---|---|---|---|
+| **14** | -1.14 | -0.69 | -0.46 | -0.34 | -0.20 | -0.06 | 0.08 | 0.35 | 0.87 | yes, rho +1.00 |
+| 10 | -0.63 | -0.57 | -0.41 | -0.31 | -0.20 | -0.08 | 0.03 | 0.24 | 0.49 | yes, rho +1.00 |
+| 7 | -0.36 | -0.35 | -0.29 | -0.24 | -0.20 | -0.17 | -0.13 | 0.12 | 0.34 | yes, rho +1.00 |
+| 3 | -0.21 | -0.20 | -0.20 | -0.20 | -0.20 | -0.20 | -0.20 | -0.20 | -0.17 | no, rho +0.15 |
+
+Selected injection layer: **14**, by the pre-specified rule (monotone, then
+Spearman, then span).
+
+This is the direct vindication of Amendment 1. **Layer 3 is completely flat
+across a 16x range of coefficients** — a dead injection site. Under the original
+argmax rule the direction would have been injected in that early-layer region,
+and the behavioural arm would have returned a clean-looking null that was
+actually just an intervention that did nothing. Steering efficacy is clearly
+increasing with depth across the tied plateau even though cross-validated
+*decodability* is flat across it, which is worth stating in the paper: the layer
+where a concept is most decodable is not the layer where injecting it does the
+most work.
+
+Two caveats to report honestly: even at alpha = +4 layer 14 reaches only +0.87 of
+the gap, so steering never fully traverses to the eval reference inside the grid,
+and that coefficient may trip the degeneracy veto anyway. And the plateau
+thinning happened to exclude layer 4, the CV argmax; it did not change the
+outcome, since layer 14 dominates by a wide margin, but a rebuilt candidate rule
+should pin the argmax into the set explicitly.
+
 **Item 3: slice 5 on LMSYS-Chat-1M.** `prep_slice5.py --source lmsys` reuses the
 frozen WildChat protocol byte-for-byte, so this is a corpus replication and
 nothing else. Two source differences are handled: LMSYS tags language on the
