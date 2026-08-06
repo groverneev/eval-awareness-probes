@@ -105,6 +105,15 @@ def acts_path(tag: str, kind: str, read_point: str) -> Path:
     return RESULTS / f"s5_{MODEL_TAG}_{tag}_{kind}_{read_point}.npz"
 
 
+def shared_terminated_mask(*masks: np.ndarray) -> np.ndarray:
+    """Intersection of the naturally terminated pairs across conditions."""
+    if not masks:
+        raise ValueError("need at least one termination mask")
+    if any(mask.shape != masks[0].shape for mask in masks[1:]):
+        raise ValueError("termination masks have different shapes")
+    return np.logical_and.reduce(masks)
+
+
 def extract(args) -> None:
     genuine, rebuilt, keep = load_pairs(args)
     RESULTS.mkdir(exist_ok=True)
@@ -158,6 +167,57 @@ def analyze(args) -> None:
     print(f"saved {destination}")
 
 
+def compare(args) -> None:
+    """Score two reconstruction conditions on their exact shared pair subset."""
+    left_args = argparse.Namespace(dataset=args.dataset, reconstructions=args.left_reconstructions)
+    right_args = argparse.Namespace(dataset=args.dataset, reconstructions=args.right_reconstructions)
+    genuine, left_rebuilt, left_keep = load_pairs(left_args)
+    right_genuine, right_rebuilt, right_keep = load_pairs(right_args)
+    if genuine != right_genuine:
+        raise ValueError("conditions were not built from the same genuine conversations")
+    keep = shared_terminated_mask(left_keep, right_keep)
+    if keep.sum() < args.min_pairs:
+        raise ValueError(f"only {keep.sum()} shared naturally terminated pairs; need {args.min_pairs}")
+    print(f"shared naturally terminated pairs: {keep.sum()}/{len(keep)}")
+    output = {
+        "left_tag": args.left_tag,
+        "right_tag": args.right_tag,
+        "n_total_pairs": len(keep),
+        "n_shared_naturally_terminated_pairs": int(keep.sum()),
+        "read_points": {},
+    }
+    for read_point in ASSISTANT_READ_POINTS:
+        original = np.load(acts_path(args.left_tag, "genuine", read_point))["acts"].astype(np.float64)[keep]
+        conditions = {}
+        for name, tag, rebuilt in (
+            ("left", args.left_tag, left_rebuilt),
+            ("right", args.right_tag, right_rebuilt),
+        ):
+            replacement = np.load(acts_path(tag, "resampled", read_point))["acts"].astype(np.float64)[keep]
+            result = score_pair(
+                replacement, original,
+                [serialize(c) for c, chosen in zip(rebuilt, keep) if chosen],
+                [serialize(c) for c, chosen in zip(genuine, keep) if chosen],
+                args.seeds, args.test_frac,
+            )
+            summary = {key: (float(np.mean(value)), float(np.std(value))) for key, value in result.items()}
+            surfaces = {key: summary[key][0] for key in ("bow", "format", "length")}
+            best_surface, surface_auroc = max(surfaces.items(), key=lambda item: abs(item[1] - .5))
+            margin = abs(summary["probe"][0] - .5) - abs(surface_auroc - .5)
+            print(f"{read_point} {name}: probe {summary['probe'][0]:.3f}+/-{summary['probe'][1]:.3f} "
+                  f"best surface {best_surface} ({surface_auroc:.3f}); margin {margin:+.3f}")
+            conditions[name] = {
+                "summary": {key: {"mean": val[0], "sd": val[1]} for key, val in summary.items()},
+                "best_surface": best_surface,
+                "probe_minus_best_surface_strength": margin,
+                "per_seed": result,
+            }
+        output["read_points"][read_point] = conditions
+    destination = RESULTS / f"s5_{MODEL_TAG}_{args.left_tag}_vs_{args.right_tag}_shared_analysis.json"
+    atomic_json(destination, output)
+    print(f"saved {destination}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -185,12 +245,23 @@ def main() -> None:
     ana.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     ana.add_argument("--test-frac", type=float, default=.3)
     ana.add_argument("--min-pairs", type=int, default=30)
+    cmp = sub.add_parser("compare", help="score two conditions on their shared terminated pairs")
+    cmp.add_argument("--dataset", type=Path, default=DATASET)
+    cmp.add_argument("--left-reconstructions", type=Path, required=True)
+    cmp.add_argument("--left-tag", required=True)
+    cmp.add_argument("--right-reconstructions", type=Path, required=True)
+    cmp.add_argument("--right-tag", required=True)
+    cmp.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
+    cmp.add_argument("--test-frac", type=float, default=.3)
+    cmp.add_argument("--min-pairs", type=int, default=30)
     args = parser.parse_args()
     if args.command == "reconstruct":
         reconstruct(args)
     elif args.command == "extract":
         args.reconstructions = args.output
         extract(args)
+    elif args.command == "compare":
+        compare(args)
     else:
         analyze(args)
 

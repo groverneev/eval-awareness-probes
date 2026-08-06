@@ -14,8 +14,8 @@ Chaudhary.
 
 Slices 1 and 2 are done on Llama-3.1-8B. Slice 3's matched-coherence control
 and its silence-filtered follow-up are complete at n=250/cell. Slice 5's
-deployment-simulation reconstruction result is complete at n=250; model-swap
-versus context ablation is next.
+deployment-simulation reconstruction and its model-swap/context-ablation
+decomposition are complete at n=250; steering remains.
 
 **Slice 1 — the replication, and why it is not enough.** The probe reaches
 AUROC 0.994 at layer 4 of 32, reproducing the prior single-turn result, and
@@ -119,6 +119,20 @@ margin over format. At the final-assistant mean, the probe reaches **0.822 +/-
 0.018**, for a **+0.142** margin over format. This confirms internally
 detectable response provenance under an exact-label, shared-prefix construction;
 it remains a provenance result rather than a direct evaluation-awareness claim.
+
+**Slice 5 decomposition (n=250 generated per condition; 146 shared terminated
+pairs, 5 seeds).** To distinguish model authorship from conversational context,
+we regenerated every final reply both with Llama-3.2-3B under the full original
+prefix and with the probed Llama-3.1-8B given only the final user message. The
+8B probe then read the full original conversation with each replacement inserted.
+On the exact common subset, model-swap reaches **0.811 +/- 0.046** at the final
+assistant token, versus format 0.651 (margin **+0.160**); the context-ablation
+condition reaches **0.868 +/- 0.012**, versus format 0.702 (margin **+0.166**).
+At the final-assistant mean, the corresponding probe margins are +0.138 and
++0.101. Thus context removal produces a comparably strong, and token-wise
+stronger, effect than changing the reply model. The reconstruction signal cannot
+be attributed to 8B-specific authorship and is still not direct evidence of
+evaluation awareness.
 
 **Silence-filtered matched coherence (n=250 generated pairs, 5 seeds).** We
 greedily generated one 8B reply for each cell, then retained only pairs whose
