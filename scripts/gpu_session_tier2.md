@@ -43,17 +43,41 @@ layer 0 at 0.500, best layer 4, AUROC 0.9944.
 
 ## Pod setup
 
+**Restart the existing slice-5 pod rather than creating a new one.** The 8B
+weights already sit in `/workspace/.cache/huggingface`, which is the persistent
+volume, so a restart skips a ~16 GB download. Two things change on restart: the
+exposed SSH port is new, and anything pip installed outside `/workspace` may be
+gone, so the install is re-run below. Record the port outside this repo.
+
 ```bash
 cd /workspace && export HF_HOME=/workspace/.cache/huggingface
-git clone <repo> vnaa && cd vnaa
+cd vnaa && git pull            # or clone if the volume was wiped
 pip install -e . && pip install accelerate
-hf auth login   # token needs gated-repo read access, not just a metadata scope
+hf auth login                  # only if the token did not persist in HF_HOME
+python -c "import torch; print(torch.cuda.get_device_name(0))"
 ```
 
-Copy up the private, gitignored inputs the session needs:
-`datasets/slice3/` is committed, but the WildChat-derived caches are not.
-For item 1 nothing extra is needed. For item 3, nothing is needed either — the
-LMSYS sample is drawn fresh on the pod.
+## What runs where
+
+Only the stages that need a GPU run on the pod. Every `analyze` is CPU-only and
+runs on the desktop, where the activation caches already live. That keeps the
+upload to a single file and lets each result be audited locally before it is
+written up.
+
+| stage | machine | why |
+|---|---|---|
+| `generate`, `reconstruct`, `readout`, `extract` | pod | needs the model |
+| `label`, `analyze` | desktop | CPU only, and the `.npz` caches are here |
+
+**Upload before starting item 2** — the one private input the pod needs:
+
+```bash
+scp -P <port> results/steer_Llama-3.1-8B-Instruct_direction.npz root@<host>:/workspace/vnaa/results/
+```
+
+It is 161 KB. Uploading the frozen direction rather than refitting it on the pod
+means the pod cannot silently produce a different one. Everything else the
+session reads is committed.
 
 ---
 
@@ -63,42 +87,64 @@ The proposal crosses every cell with verbalized-vs-silence-filtered, and only
 the matched-coherence cell has it. `eval_shared` is the other identical-prefix
 control, so it is the one worth adding.
 
+On the pod:
+
 ```bash
 python -m vnaa.run_silence_filter generate --cell eval_shared --dtype bfloat16
-python -m vnaa.run_silence_filter label --cell eval_shared
-python -m vnaa.run_silence_filter analyze --cell eval_shared
 ```
 
 Activations already exist and are not regenerated; this is generation only, 500
-replies. `generate` is restartable — it appends to the cache after every pair,
-so a dropped connection costs one item.
+replies. It is restartable — the cache is written after every pair, so a dropped
+connection costs one item.
 
-Copy back: `results/s3_*_eval_shared_greedy_responses.json`,
-`results/s3_*_eval_shared_explicit_awareness_labels.json`,
-`results/s3_*_eval_shared_silence_filtered_analysis.json`.
+Copy back `results/s3_*_eval_shared_greedy_responses.json`, then on the desktop:
+
+```bash
+.venv/Scripts/python -m vnaa.run_silence_filter label --cell eval_shared
+.venv/Scripts/python -m vnaa.run_silence_filter analyze --cell eval_shared
+```
+
+Compare against the matched-coherence cell: 192/250 silent pairs, probe
+0.937 +/- 0.033, BoW 0.823, format 0.567. A much lower cap-hit count is expected
+here, since `eval_shared` questions are benchmark items with short answers.
 
 ## Item 2 — steering (~1 hour)
 
 Protocol is fixed in `datasets/steering/prespec.md`, written before any steered
-output existed. The direction is already frozen locally; copy
-`results/steer_*_direction.npz` up rather than refitting, so the pod cannot
-silently fit a different one.
+output existed. Upload the frozen direction first (see above).
+
+On the pod, in this order:
 
 ```bash
 python -m vnaa.run_steering readout --dtype bfloat16
-python -m vnaa.run_steering generate --set self_report --dtype bfloat16
-python -m vnaa.run_steering generate --set safety --dtype bfloat16
-python -m vnaa.run_steering analyze
 ```
 
-`readout` is the manipulation check and it **gates the other two**. It sweeps
-the four tied candidate layers (3, 7, 10, 14) against nine coefficients using
-forward passes only, and picks the injection layer. If no layer moves the
-independent readout monotonically, stop and report that: the behavioural
-numbers would not be interpretable, and that is a documented outcome in the
-pre-spec rather than a failure to work around.
+`readout` is the manipulation check and it **gates the other two steps**. It
+sweeps the four tied candidate layers (3, 7, 10, 14) against nine coefficients
+using forward passes only, ~1,300 passes, and picks the injection layer. Copy
+`results/steer_*_readout.json` back and inspect it before generating anything.
 
-Copy back everything matching `results/steer_*`.
+If no layer moves the independent readout monotonically, **stop and report
+that**. The behavioural numbers would not be interpretable, and "failed
+manipulation check" is a documented outcome in the pre-spec, not something to
+work around by trying more layers.
+
+If it passes:
+
+```bash
+python -m vnaa.run_steering generate --set self_report --dtype bfloat16
+python -m vnaa.run_steering generate --set safety --dtype bfloat16
+```
+
+Copy back everything matching `results/steer_*`, then on the desktop:
+
+```bash
+.venv/Scripts/python -m vnaa.run_steering analyze
+```
+
+Read the degeneracy flags before reading the outcome rates. Coefficients at
+`alpha = +/-4` are expected to trip them, since the class-mean gap is 22-34% of
+the mean residual norm at layers 7-14.
 
 ## Item 3 — slice 5 on LMSYS-Chat-1M (~45 min)
 
@@ -115,7 +161,12 @@ python -m vnaa.run_slice5 extract \
   --dataset data/slice5_genuine_lmsys.json \
   --reconstructions data/slice5_reconstructed_lmsys_n250.json \
   --tag reconstruction_lmsys_n250 --dtype bfloat16
-python -m vnaa.run_slice5 analyze \
+```
+
+Then copy back and analyze on the desktop:
+
+```bash
+.venv/Scripts/python -m vnaa.run_slice5 analyze \
   --dataset data/slice5_genuine_lmsys.json \
   --reconstructions data/slice5_reconstructed_lmsys_n250.json \
   --tag reconstruction_lmsys_n250
