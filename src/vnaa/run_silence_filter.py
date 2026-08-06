@@ -53,12 +53,30 @@ CELLS = {
 }
 
 
-def cell_paths(cell: str) -> tuple[Path, Path]:
-    """Response and label caches, kept per cell so runs cannot overwrite."""
-    if cell == TAG:  # the original paths, so the published run still reproduces
-        return RESPONSES, LABELS
-    return (RESULTS / f"s3_{MODEL_TAG}_{cell}_greedy_responses.json",
-            RESULTS / f"s3_{MODEL_TAG}_{cell}_explicit_awareness_labels.json")
+# The frozen protocol cap.  A reply that reaches it is indeterminate rather
+# than silent, so the cap sets how much of the sample the filter can speak for.
+PROTOCOL_MAX_NEW_TOKENS = 256
+
+
+def run_slug(cell: str, max_new_tokens: int = PROTOCOL_MAX_NEW_TOKENS) -> str:
+    """Cell name, plus the cap when it departs from the frozen protocol.
+
+    A censoring sensitivity run must not be comparable-looking to the protocol
+    run by filename alone, and must never overwrite it.
+    """
+    if max_new_tokens == PROTOCOL_MAX_NEW_TOKENS:
+        return cell
+    return f"{cell}_cap{max_new_tokens}"
+
+
+def cell_paths(cell: str,
+               max_new_tokens: int = PROTOCOL_MAX_NEW_TOKENS) -> tuple[Path, Path]:
+    """Response and label caches, kept per run so runs cannot overwrite."""
+    if cell == TAG and max_new_tokens == PROTOCOL_MAX_NEW_TOKENS:
+        return RESPONSES, LABELS  # original paths, so the published run reproduces
+    slug = run_slug(cell, max_new_tokens)
+    return (RESULTS / f"s3_{MODEL_TAG}_{slug}_greedy_responses.json",
+            RESULTS / f"s3_{MODEL_TAG}_{slug}_explicit_awareness_labels.json")
 
 
 def load_cells(dataset: Path, cell: str = TAG) -> dict[str, list[list[dict]]]:
@@ -166,7 +184,9 @@ def generate(args) -> None:
     n = len(cells["eval"])
     if len(cells["deploy"]) != n:
         raise ValueError("eval and deploy cells have different lengths")
-    responses, _ = cell_paths(args.cell)
+    # Resolved in main() from cell AND cap; re-deriving it here would drop the
+    # cap and send a sensitivity run at the protocol run's file.
+    responses = args.responses
     saved = load_or_initialize_responses(args, responses)
     done = {row["id"] for row in saved["items"]}
     if len(done) != len(saved["items"]):
@@ -276,7 +296,9 @@ def analyze(args) -> None:
         "n_removed_pairs": int((~keep).sum()), "read_point": "last_user_token",
         "cell": args.cell, "results": summary, "per_seed": result,
     }
-    out = RESULTS / f"s3_{MODEL_TAG}_{args.cell}_silence_filtered_analysis.json"
+    out = (RESULTS
+           / f"s3_{MODEL_TAG}_{run_slug(args.cell, args.max_new_tokens)}"
+             "_silence_filtered_analysis.json")
     atomic_json(out, output)
     print(f"silent pairs {keep.sum()}/{len(keep)}")
     print(f"probe {summary['probe']['mean']:.3f}+/-{summary['probe']['sd']:.3f} "
@@ -294,7 +316,6 @@ def main() -> None:
     gen.add_argument("--device", default=None)
     gen.add_argument("--device-map", default=None)
     gen.add_argument("--dtype", choices=["float32", "bfloat16"], default="bfloat16")
-    gen.add_argument("--max-new-tokens", type=int, default=256)
     gen.set_defaults(func=generate)
     lab = sub.add_parser("label")
     lab.add_argument("--responses", type=Path, default=None)
@@ -309,11 +330,15 @@ def main() -> None:
     ana.set_defaults(func=analyze)
     for p in (gen, lab, ana):
         p.add_argument("--cell", choices=sorted(CELLS), default=TAG)
+        # Every stage needs the cap, not just generate: it is part of the run's
+        # identity, so label and analyze must resolve to the same files.
+        p.add_argument("--max-new-tokens", type=int,
+                       default=PROTOCOL_MAX_NEW_TOKENS)
     args = parser.parse_args()
 
     # Resolve per-cell defaults after parsing, so --cell alone is enough and a
     # run cannot silently mix one cell's responses with another's dataset.
-    responses, labels = cell_paths(args.cell)
+    responses, labels = cell_paths(args.cell, args.max_new_tokens)
     if getattr(args, "dataset", None) is None:
         args.dataset = CELLS[args.cell]["dataset"]
     if getattr(args, "responses", None) is None:
