@@ -6,9 +6,11 @@ README is the short human-facing version; this is the long one.
 
 Last updated: August 2026. Slices 1, 2, 3, and 5 are complete on
 Llama-3.1-8B; slice 5 includes the model-swap/context-ablation decomposition
-at n=250. Steering is the only remaining planned experimental arm. Forward
-planning is maintained in this file. Primary machine is the Windows desktop
-with an RTX 5070 Ti (see Environment).
+at n=250. The secondary logistic estimator, the permutation and random-probe
+nulls, and the calibrated model judge for the silence filter are done (all
+CPU-only, off cached activations). Steering is the only remaining planned
+experimental arm. Forward planning is maintained in this file. Primary machine
+is the Windows desktop with an RTX 5070 Ti (see Environment).
 
 GPU host decision: tried Lightning AI first, abandoned it — the site 404'd on the
 Studio dashboard and the account showed 0.00 free credits (a `.org` school email,
@@ -180,12 +182,19 @@ src/vnaa/
   prep_slice3_batches.py slice-3 batch inputs (+ --scratch hydration)
   gate_slice3.py         slice-3 probe-blind gate
   run_slice3.py          slice-3 extract/analyze across read points
+  estimators.py          logistic probe, permutation/geometry nulls
+  run_estimator_check.py re-scores headline contrasts, CPU only
+  judge_batches.py       blinded judge batches + calibrated merge
 scripts/
   make_figures.py        slice-1 figures
   make_2b_figures.py     slice-2b figures (math-free by default)
+datasets/judge/
+  awareness_judge_v1.md  the committed, hashed judge rubric
 tests/
   test_probe.py          probe math, known-answer synthetic data (6)
   test_read_points.py    multi-turn token spans and read indices (9)
+  test_estimators.py     second estimator + the three nulls (11)
+  test_judge_batches.py  judge harness build/merge round trip (7)
 ```
 
 ## Code and key technical decisions
@@ -682,6 +691,120 @@ shift. The next control is a matched-coherence version that preserves the
 identical-prefix construction while making the final benchmark question a
 natural continuation of the conversation.
 
+## Estimator and null-baseline checks (August 2026, CPU only)
+
+Two things the proposal promised and the code never delivered. Both run off
+cached `.npz` activations with no GPU:
+
+```
+.venv\Scripts\python -m vnaa.run_estimator_check points
+.venv\Scripts\python -m vnaa.run_estimator_check transfer
+```
+
+**Secondary estimator (proposal 3.1).** L2 logistic regression, `C=0.01`,
+standardized inputs. Layer selection had to differ from the difference-of-means
+path: LR on 4096 dims with a few hundred training rows separates the training
+split perfectly at essentially every layer, so train-AUROC argmax selects noise.
+`select_layer_cv` picks the layer by 5-fold CV *inside the training split*. The
+test split is never consulted by either estimator.
+
+Diff-of-means reproduces the published figures exactly, and LR is uniformly
+equal or stronger:
+
+| contrast (read point) | diff-of-means | logistic |
+|---|---:|---:|
+| eval_shared (last user) | 0.992 | 0.998 |
+| eval_shared (post-instruction) | 0.498 | 0.500 |
+| coherent pairs (last user) | 0.951 | 0.989 |
+| coherent pairs (post-instruction) | 0.499 | 0.499 |
+| coherent silent, n=192 (last user) | 0.937 | 0.982 |
+| s5 reconstruction n250 (assistant token) | 0.792 | 0.896 |
+| s5 reconstruction n250 (assistant mean) | 0.822 | 0.958 |
+| s5 model swap, shared 146 (assistant token) | 0.811 | 0.887 |
+| s5 context ablation, shared 146 (assistant token) | 0.868 | 0.947 |
+
+Under math-free slice-2b transfer, probe-minus-BoW is **+0.056** for LR against
++0.071 for difference-of-means, with the same sign pattern per training cell and
+the same sole negative (`devb_standard`, -0.052 LR / -0.087 DoM). The
+asymmetry survives: `ours_a_wc` -> `devb_standard` 0.958, reverse 0.642. **No
+conclusion in this project depends on the estimator.**
+
+**Nulls (proposal 4, "a random probe near 0.5").** Three, and the difference
+between them is the finding:
+
+1. `permutation_null` is the significance test. It permutes the *entire* label
+   vector and reruns the whole pipeline including layer selection. Every real
+   contrast lands at **p = 0.002** (the floor at 500 permutations); null p95 is
+   0.09-0.13 strength. The two identical-prefix controls land at p = 0.99
+   (`eval_shared` post-instruction) and p = 0.94 (coherent pairs
+   post-instruction), which is the sanity check the construction demands.
+2. `train_shuffled_direction_null` permutes only the training labels and scores
+   true test labels. **This is not a significance test and must never be
+   reported as one.** It reaches strength **0.24-0.29** on the strongest cells.
+3. `random_direction_null` fits nothing at all and reaches **~0.11**.
+
+Why 2 and 3 are large: the eval/deploy axis carries a big share of total
+activation variance (at `eval_shared` last-user token, ||mu1-mu0|| = 2.99
+against a total within-class spread of 8.39 across all 4096 dims), so any
+direction drawn from this data partially recovers it, with random sign. The
+first null I wrote was this one, and on a single seed it made the
+silence-filtered result look like p = 0.065. That reading was wrong: it is a
+null contaminated by the very signal under test. **The correct null permutes
+train and test labels together.**
+
+Consequences for the paper: the proposal's assumption that a random probe sits
+near 0.5 is false for these activations at the reported layers, so raw
+|AUROC - 0.5| overstates how much work the probe is doing. Significance is
+unaffected. Report the permutation p-value as the test and the uninformed
+direction as a limitation.
+
+Slice 1's 8B activations were produced on Kaggle and never cached locally, so
+slice 1 is absent from this check. Adding it needs a short re-extraction, not
+new analysis; fold it into the next GPU session.
+
+## Verbalized-awareness judge (August 2026)
+
+`judge_batches.py` plus the committed rubric `datasets/judge/awareness_judge_v1.md`.
+The regex in `run_silence_filter` stays because it is deterministic and anyone
+can rerun it; the judge exists to catch paraphrase the regex cannot.
+
+The design problem: the expected answer is "nothing here", and a judge that
+answers `none` to everything scores perfectly on a set with no positives. So:
+
+- **Planted controls.** 14 hand-written replies that verbalize recognition (8
+  overt, 6 paraphrase-only) and 10 hard negatives that use test/exam/benchmark
+  vocabulary as subject matter. Both numbers are needed: flagging every
+  occurrence of "test" would also give perfect recall.
+- **Blinding.** Rows shuffled, opaque ids, one reply per row. The judge never
+  sees the cell, the pair, or which rows are controls.
+- **Overlap.** 52 duplicated rows under fresh ids for an agreement estimate.
+
+Result over all 500 real replies: planted positives **14/14**, planted-negative
+false alarms **0/10**, between-judge agreement **47/47** exact (5 duplicates
+landed in one batch and are reported separately as within-judge consistency).
+Real pairs flagged: **0/250**, agreeing with the regex on every response. Rerunning
+`run_silence_filter analyze --labels results/judge/judge_labels.json` reproduces
+0.937 +/- 0.033 exactly, since the mask is unchanged.
+
+Manual audit on top of the judge, per the never-trust-a-subagent rule: all 16
+non-`none` labels were planted controls with verbatim quotes, and every one of
+the 32 evaluation-vocabulary contexts in the real replies is subject-matter use
+(water tests, blood tests, hypothesis testing, lab glassware, NMR simulation).
+
+**Limitation to state in the paper:** the judges ran as Claude Code subagents,
+which receive this repository's `CLAUDE.md` as project context, so blinding to
+the project's expectations cannot be fully guaranteed by construction. The
+planted controls are the defence — a judge biased toward `none` would have
+missed them, and it missed none. Batch inputs and the rubric are on disk and
+hashed, so a scripted API call reproduces the run exactly if a reviewer wants
+authorship-independent labels.
+
+Process note, learned again the hard way: 5 of 52 duplicate rows landed in the
+same batch as their original. Caught after the judges were already running, so
+the batches were left frozen and the merge reports cross-batch and within-batch
+agreement separately. If the harness is rebuilt, assign duplicates to a
+different batch at build time.
+
 ## What's next
 
 ## Matched-coherence pilot (50 pairs, August 2026)
@@ -802,6 +925,9 @@ construction). Statistics upgrade from slice 2 on: bootstrap CIs, >=3 seeds.
    probe 0.937 vs BoW 0.823 at the final token.
 7. **[DONE] Slice 5 reconstruction and decomposition** â€” exact-label n=250
    provenance/context result; only steering remains.
+8. **[DONE] Secondary estimator, permutation nulls, calibrated judge** — all
+   CPU-only; no conclusion changed, one new limitation (uninformed directions
+   are not at 0.5).
 
 ---
 
@@ -871,7 +997,19 @@ every restart/reset.
 
 Only the steering arm remains in the experiment plan. It needs a new,
 pre-specified intervention runner and another GPU session; do not begin it
-unless the user asks. After steering (or an explicit decision to omit it), the
+unless the user asks.
+
+Also outstanding, and cheap enough to fold into that same GPU session:
+re-extract slice-1 8B activations locally (they only ever existed on Kaggle) so
+the logistic estimator and permutation null cover slice 1 too; run the silence
+filter on `eval_shared`, since the proposal promises verbalized-vs-silence
+crossed with every cell and only the matched-coherence cell has it; and repeat
+slice 5 on LMSYS-Chat-1M, which the proposal names alongside WildChat and which
+has never been used. The gap between the proposal's Experimental Setup and what
+exists is larger than the slice list suggests: the model scaling sweep (70B,
+Qwen2.5-7B/32B, Gemma-2/3) and the agentic / tool-use per-class results have not
+been started at all, and one of those two claims should be cut from the paper if
+they are not going to run. After steering (or an explicit decision to omit it), the
 remaining work is paper assembly: figures, methods/results prose, limitations,
 and final reproducibility checks.
 

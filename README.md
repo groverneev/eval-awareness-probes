@@ -15,7 +15,9 @@ Chaudhary.
 Slices 1 and 2 are done on Llama-3.1-8B. Slice 3's matched-coherence control
 and its silence-filtered follow-up are complete at n=250/cell. Slice 5's
 deployment-simulation reconstruction and its model-swap/context-ablation
-decomposition are complete at n=250; steering remains.
+decomposition are complete at n=250. A secondary logistic-regression estimator,
+permutation nulls, and a calibrated model judge for the silence filter are done
+and change no conclusion; steering remains.
 
 **Slice 1 — the replication, and why it is not enough.** The probe reaches
 AUROC 0.994 at layer 4 of 32, reproducing the prior single-turn result, and
@@ -147,6 +149,45 @@ This is evidence that the result survives an observed-silence filter, not proof
 that no response ever verbalized awareness: capped replies are excluded and the
 awareness judge is deliberately conservative. With zero positive verbalization
 labels, a verbalization-detectability classifier is not estimable in this run.
+
+**Estimator and null-baseline checks (no GPU; `run_estimator_check.py`).** Every
+headline number above came from one fitting rule and was compared against a
+nominal 0.5. Both gaps are now closed on the cached activations.
+
+- *Second estimator.* L2 logistic regression, with the layer chosen by
+  cross-validation inside the training split, reproduces every result and is
+  uniformly equal or stronger: matched coherence 0.951 → **0.989**, its
+  silence-filtered subset 0.937 → **0.982**, slice-5 reconstruction 0.792 →
+  **0.896** at the final assistant token. Under slice-2b transfer the
+  probe-minus-bag-of-words margin is **+0.056** against difference-of-means'
+  +0.071, with the same sign pattern and the same sole negative
+  (`devb_standard`). No conclusion depends on the estimator.
+- *Significance.* A permutation test that shuffles the entire label vector and
+  reruns the whole pipeline, layer selection included, puts every real contrast
+  at **p = 0.002**, the floor at 500 permutations, with a null 95th percentile
+  of 0.09–0.13 strength. The two identical-prefix controls correctly land at
+  p = 0.99 and p = 0.94.
+- *A caveat the proposal did not anticipate.* The baseline hierarchy assumed a
+  random probe sits near 0.5. It does not. Because the eval/deploy axis carries
+  a large share of total activation variance, an **uninformed** direction fitted
+  from shuffled training labels reaches strength 0.24–0.29 on the strongest
+  cells (AUROC ≈ 0.75), and a random unit direction reaches ≈ 0.11. This does
+  not affect significance — the permutation null handles that — but it means
+  raw |AUROC − 0.5| overstates how much work the probe is doing, and belongs in
+  the limitations.
+
+**Verbalized-awareness judge (`judge_batches.py`).** The silence filter
+previously rested on a hand-written regex plus a 30-pair manual audit. It now
+also rests on a model judge run over all 500 replies, blinded to cell and pair,
+with a committed and hashed rubric. Because the expected answer is "nothing
+here", the batches carry planted controls: the judge caught **14/14** planted
+recognition statements, including all six that only paraphrase it, and raised
+**0/10** false alarms on replies that discuss tests, exams and benchmarks as
+subject matter. Between-judge agreement on duplicated rows was 47/47. It flagged
+**0/250** real pairs, agreeing with the regex on every response. A manual audit
+of all 32 evaluation-vocabulary contexts in the real replies found only
+subject-matter uses. The silence result is therefore a calibrated null rather
+than an unverified one.
 
 Figures in `figures/`; full detail, caveats, and a handoff section for picking
 the project up mid-flight are in `CLAUDE.md`.
