@@ -7,8 +7,8 @@ README is the short human-facing version; this is the long one.
 Last updated: August 2026. Slices 1, 2, 3, and 5 are complete on
 Llama-3.1-8B; slice 5 includes the model-swap/context-ablation decomposition
 at n=250. Steering is the only remaining planned experimental arm. Forward
-plan in `PLAN.md`. Primary machine is the Windows desktop with an RTX 5070 Ti
-(see Environment).
+planning is maintained in this file. Primary machine is the Windows desktop
+with an RTX 5070 Ti (see Environment).
 
 GPU host decision: tried Lightning AI first, abandoned it — the site 404'd on the
 Studio dashboard and the account showed 0.00 free credits (a `.org` school email,
@@ -781,9 +781,8 @@ produces a comparably strong, token-wise stronger effect than model substitution
 the reconstruction signal is not attributable to 8B-specific authorship and
 remains a provenance/context result, not evidence of evaluation awareness.
 
-The full forward plan lives in `PLAN.md` (written Aug 2026 after a research
-pass). Summary: slice 2 is the format-matched 2x2. Key research findings that
-shaped it: Devbunova's 2x2 dataset is public (HF
+Slice 2 is the format-matched 2x2. Key research findings that shaped it:
+Devbunova's 2x2 dataset is public (HF
 `viliana-dev/eval-awareness-2x2`, GitHub `viliana-dev/eval-awareness-format`)
 and was built on Llama-3.1-8B-Instruct, our exact model, n=1076/cell; their
 Casual-Eval cell is a MuTual proxy (admitted), which is the weakness our

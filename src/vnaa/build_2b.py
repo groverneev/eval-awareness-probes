@@ -18,7 +18,7 @@ Subcommands:
           selected rewrites by probe score — circular for dataset
           construction).
 
-Gate criteria (from PLAN.md):
+Gate criteria:
 - rewrites vs casual_deploy_matched: format and length AUROC ~0.5 (<= 0.60)
 - rewrites vs counterparts (topic-matched): format, length AND BoW <= 0.60 —
   topic matching makes the BoW bound meaningful here, unlike against
