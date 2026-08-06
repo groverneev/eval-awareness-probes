@@ -15,9 +15,14 @@ Chaudhary.
 Slices 1 and 2 are done on Llama-3.1-8B. Slice 3's matched-coherence control
 and its silence-filtered follow-up are complete at n=250/cell. Slice 5's
 deployment-simulation reconstruction and its model-swap/context-ablation
-decomposition are complete at n=250. A secondary logistic-regression estimator,
-permutation nulls, and a calibrated model judge for the silence filter are done
-and change no conclusion; steering remains.
+decomposition are complete at n=250, and now replicate on a second corpus
+(LMSYS-Chat-1M). A secondary logistic-regression estimator, permutation nulls,
+and a calibrated model judge for the silence filter are done and change no
+conclusion. **The steering arm is complete**: the manipulation check passed at
+layer 14, steering moves verbalized self-report strongly (0.139 to 0.889,
+Spearman +0.991), and safety behaviour shows no large effect — the
+pre-specified "manipulable and self-reportable, but behaviourally inert on
+safety" outcome.
 
 **Slice 1 — the replication, and why it is not enough.** The probe reaches
 AUROC 0.994 at layer 4 of 32, reproducing the prior single-turn result, and
@@ -192,20 +197,68 @@ of all 32 evaluation-vocabulary contexts in the real replies found only
 subject-matter uses. The silence result is therefore a calibrated null rather
 than an unverified one.
 
-**Steering, silence-filtering `eval_shared`, and an LMSYS replication are coded
-and frozen, awaiting one GPU session.** The runbook is
-`scripts/gpu_session_tier2.md`.
-
-The steering protocol is pre-specified in `datasets/steering/prespec.md`, written
-and committed before any steered output existed, including what each possible
-outcome would mean — the row where the direction turns out to be manipulable but
-behaviourally inert is written down in advance precisely because it is the one
-that would most damage the paper's framing. The intervention adds
+**Steering — the causal arm (pre-specified; `datasets/steering/prespec.md`).**
+The protocol, including what each possible outcome would mean, was written and
+committed before any steered output existed. The intervention adds
 `alpha · ‖μ_eval − μ_deploy‖ · d̂` at a single layer with the prompt held fixed,
-and a manipulation check scored by an *independent* probe gates the behavioural
-measures. Slice 1's 8B activations have also been re-extracted locally, which
-both extends the estimator and null checks to slice 1 and reproduces the original
-Kaggle run exactly (best layer 4, AUROC 0.9944).
+and a manipulation check scored by an *independent* probe (fit on `eval_shared`,
+while the steering direction is fit on matched coherence) gates the behavioural
+measures.
+
+- *Manipulation check: passed.* Layer 14 moves the independent readout
+  monotonically across the coefficient grid (Spearman +1.00), spanning −1.14 to
+  +0.87 of the eval−deploy gap. **Layer 3 is completely flat across a 16× range
+  of coefficients** — a dead injection site. The original argmax layer rule
+  would have chosen that early-layer region and produced a clean-looking
+  behavioural null that was really an intervention doing nothing; Amendment 1
+  to the pre-spec, made before any steering, is what avoided it.
+- *A finding the proposal did not anticipate:* steering efficacy increases
+  sharply with depth across a plateau over which cross-validated *decodability*
+  is flat. The layer where a concept is most decodable is not the layer where
+  injecting it does the most work.
+- *Self-report: shifts, strongly.* Excluding the two degenerate coefficients,
+  the rate at which the model calls the situation an evaluation moves from
+  **0.139** (α = −2) to **0.889** (α = +2), Spearman **+0.991**, with
+  non-overlapping 95% intervals at the ends.
+- *Safety behaviour: no large effect.* The refusal rate on 48 held-fixed
+  borderline requests stays within **0.062–0.125** across every non-degenerate
+  coefficient — a swing of three prompts — and every interval overlaps.
+- *Degeneracy veto fired exactly where predicted*, at α = ±4 (repeated-4-gram
+  fractions 0.42–0.78); those coefficients are reported but excluded from any
+  causal claim.
+
+This is **row 2 of the pre-specified outcome table**: the direction is genuinely
+eval-recognition and the model can report on it, but recognition alone does not
+move safety behaviour. The pre-spec recorded "low confidence" for the safety
+prediction in advance, and that was right. The critical caveat is power, not
+interpretation: at n = 48 with a 12.5% baseline, the arm has 80% power only
+against an increase to ~0.37. It rules out a *large* effect, not a modest one,
+and must be reported that way.
+
+**Silence-filtered `eval_shared` (n=250 generated pairs, 5 seeds).** The other
+identical-prefix control now has the silence filter too. Explicit verbalized
+awareness on the eval side: **0/250**. On the retained pairs the final-token
+probe is **0.998 +/- 0.002**, versus BoW **0.758 +/- 0.029** and format
+**0.624 +/- 0.022** — a **+0.240** probe-BoW margin, more than double matched
+coherence's +0.114. The serious limitation is censoring: only **125/250** pairs
+had both replies terminate naturally under the frozen 256-token cap, against
+192/250 for matched coherence, so this figure speaks for half its sample. A
+512-token sensitivity rerun is in progress. One regex hit occurred, on the
+*deploy* side, and manual reading showed it to be a TV quiz show — subject
+matter, not self-recognition, and conservative in direction.
+
+**Slice 5 replicated on LMSYS-Chat-1M (n=250, 5 seeds).** The frozen WildChat
+protocol was rerun byte-for-byte on a second corpus, with redacted conversations
+dropped so PII placeholders cannot act as a label. 179/250 pairs terminated
+naturally. At the final assistant token the probe reaches **0.837 +/- 0.026**
+versus format 0.671 (margin **+0.166**); at the final-assistant mean, **0.791
++/- 0.030** (margin +0.120). Against WildChat's 0.792 and 0.822, the effect
+replicates across corpora, with the token/mean ordering swapping between them.
+Slice 5 therefore no longer rests on a single corpus.
+
+Slice 1's 8B activations have also been re-extracted locally, which both extends
+the estimator and null checks to slice 1 and reproduces the original Kaggle run
+exactly (best layer 4, AUROC 0.9944).
 
 Figures in `figures/`; full detail, caveats, and a handoff section for picking
 the project up mid-flight are in `CLAUDE.md`.

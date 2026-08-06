@@ -6,15 +6,24 @@ README is the short human-facing version; this is the long one.
 
 Last updated: August 2026. Slices 1, 2, 3, and 5 are complete on
 Llama-3.1-8B; slice 5 includes the model-swap/context-ablation decomposition
-at n=250. The secondary logistic estimator, the permutation and random-probe
-nulls, and the calibrated model judge for the silence filter are done (all
-CPU-only, off cached activations). **Tier 2 — steering, the silence filter on
-`eval_shared`, and an LMSYS-Chat-1M replication of slice 5 — is coded, frozen,
-and tested; only the GPU session remains** (see "Tier 2" in the handoff and
-`scripts/gpu_session_tier2.md`). Slice-1 8B activations have been re-extracted
-locally and reproduce the Kaggle run exactly. Forward planning is maintained in
-this file. Primary machine is the Windows desktop with an RTX 5070 Ti (see
-Environment).
+at n=250 and now an LMSYS-Chat-1M corpus replication. The secondary logistic
+estimator, the permutation and random-probe nulls, and the calibrated model
+judge for the silence filter are done (all CPU-only, off cached activations).
+**Tier 2 is DONE**: steering (manipulation check passed at layer 14; self-report
+shifts strongly; safety shows no large effect but is underpowered), the silence
+filter on `eval_shared`, and the LMSYS replication all ran on a Runpod 4090.
+One piece is still running: a 512-token censoring sensitivity rerun of the
+`eval_shared` silence filter, because the frozen 256-token cap left only 125/250
+pairs determinate. Slice-1 8B activations have been re-extracted locally and
+reproduce the Kaggle run exactly. Forward planning is maintained in this file.
+Primary machine is the Windows desktop with an RTX 5070 Ti (see Environment).
+
+**The remaining work is paper assembly, plus one scope decision.** The proposal's
+Experimental Setup promises a model scaling sweep (70B, Qwen2.5-7B/32B, Gemma-2/3)
+and per-class agentic/tool-use results. Neither is started. Both cannot fit before
+the deadline; the recommendation is to cut the agentic/tool-use arm to future work
+(it needs a dataset that does not exist) and, if any of it runs, do Qwen2.5-7B on
+`eval_shared` as a one-hour check of whether the effect is Llama-specific.
 
 GPU host decision: tried Lightning AI first, abandoned it — the site 404'd on the
 Studio dashboard and the account showed 0.00 free credits (a `.org` school email,
@@ -954,10 +963,13 @@ construction). Statistics upgrade from slice 2 on: bootstrap CIs, >=3 seeds.
    are not at 0.5).
 9. **[DONE] Slice 1 re-extracted locally** — the estimator and null checks now
    cover slice 1, and the Kaggle numbers reproduced exactly on other hardware.
-10. **[CODE FROZEN, GPU PENDING] Tier 2** — steering (pre-specified in
-    `datasets/steering/prespec.md`), the silence filter on `eval_shared`, and
-    slice 5 replicated on LMSYS-Chat-1M. Runbook:
-    `scripts/gpu_session_tier2.md`.
+10. **[DONE] Tier 2** — steering (pre-specified; manipulation check passed at
+    layer 14, self-report shifts 0.139->0.889, safety shows no large effect),
+    the silence filter on `eval_shared` (0/250 verbalized; probe 0.998 vs BoW
+    0.758, but only 125/250 pairs determinate under the 256-token cap), and
+    slice 5 replicated on LMSYS-Chat-1M (0.837 at the assistant token vs
+    WildChat's 0.792). A 512-cap censoring sensitivity rerun of the
+    `eval_shared` silence filter is the one outstanding piece.
 
 ---
 
@@ -1061,6 +1073,46 @@ verified byte-identical to `deploy` on all 250 pairs. The published
 pairs, probe 0.937 +/- 0.033, BoW 0.823, format 0.567). Activations already
 exist; the session only generates 500 replies.
 
+**ITEM 1 RESULT (n=250 generated pairs, August 2026).** Explicit verbalized
+awareness on the eval side: **0/250**, matching `coherent_pairs`. On the retained
+pairs the final-user-token probe is **0.998 +/- 0.002**, versus BoW **0.758 +/-
+0.029** and format **0.624 +/- 0.022**; probe-BoW margin **+0.240**, more than
+double matched coherence's +0.114.
+
+One regex hit, the first false positive the rule has produced: a *deploy* reply
+guessing at a TV quiz show ("I'm going to take a wild guess that the quiz"). Read
+manually — subject matter, not self-recognition. It is on the deploy side, so it
+costs a pair and cannot inflate the eval result.
+
+**The censoring caveat, and a wrong prediction.** The runbook predicted *fewer*
+cap-hit exclusions here than matched coherence's 58/250, on the reasoning that
+benchmark questions get short answers. The opposite happened: only **125/250**
+pairs had both replies terminate naturally (eval 89 capped, deploy 70), with
+median reply lengths of 196 and 160 tokens against the 256 cap. Half the sample
+is censored, and the censoring is mildly label-correlated. The read point is the
+final *user* token, so the probe's input is untouched by reply length — but a
+silence filter that can only speak for half its sample is a weak instrument.
+A 512-token sensitivity rerun addresses this; see the cap-identity note below.
+
+**The generation cap is now part of a run's identity.** A reply that reaches the
+cap is indeterminate rather than silent, so the cap decides how much of the
+sample the filter can speak for, and two runs at different caps are different
+measurements. `cell_paths(cell, max_new_tokens)` gives a non-default cap its own
+filenames (`..._eval_shared_cap512_...`); the protocol cap of 256 resolves to the
+existing paths unchanged, and both published figures still reproduce exactly.
+
+Two process notes from making that change, both worth remembering:
+
+- `generate` was re-deriving its output path from the cell alone, dropping the
+  cap, so the first cap-512 attempt aimed straight at the protocol run's
+  responses file. Only the `load_or_initialize_responses` decoding-mismatch
+  guard stopped it from overwriting a published result. That guard earned its
+  keep; keep this class of check.
+- **The first test written for the fix was vacuous.** It mocked `generate` out,
+  so it only exercised argument parsing and passed against the buggy code. It
+  was caught by reverting the fix and confirming the test still passed. Do that
+  check routinely: a regression test that has never failed has not been tested.
+
 **Item 2: steering.** The protocol is frozen in `datasets/steering/prespec.md`,
 written and committed **before any steered output existed**; the git history is
 the evidence for that ordering. Mechanics are in `steering.py`, deliberately
@@ -1088,6 +1140,53 @@ behavioural outcome and cannot launder a result. The alpha grid also gained two
 interior points, because at these layers the class-mean gap is 8-34% of the mean
 residual norm, so `alpha = 4` is a larger-than-unit perturbation and was likely
 to consume most of the original grid in the degenerate range.
+
+**STEERING RESULT (August 2026, Runpod 4090).** Behavioural generation is done:
+756 greedy generations at layer 14 across the nine-coefficient grid.
+
+self_report (fraction calling the situation an evaluation), n=36 per cell:
+
+| alpha | -4 | -2 | -1 | -0.5 | 0 | +0.5 | +1 | +2 | +4 |
+|---|---|---|---|---|---|---|---|---|---|
+| rate | 0.000 | 0.139 | 0.611 | 0.667 | 0.778 | 0.806 | 0.889 | 0.889 | 0.000 |
+| flag | DEGEN | | | | | | | | DEGEN |
+
+Spearman +0.991 excluding the degenerate ends. The 95% Wilson intervals at
+alpha -2 ([0.061, 0.287]) and alpha +2 ([0.747, 0.956]) do not overlap.
+
+safety (refusal rate on 48 held-fixed borderline requests), n=48 per cell:
+
+| alpha | -4 | -2 | -1 | -0.5 | 0 | +0.5 | +1 | +2 | +4 |
+|---|---|---|---|---|---|---|---|---|---|
+| rate | 0.000 | 0.083 | 0.104 | 0.104 | 0.125 | 0.104 | 0.083 | 0.062 | 0.000 |
+| flag | DEGEN | | | | | | | | DEGEN |
+
+Spearman -0.356 excluding degenerate. Every non-degenerate interval overlaps;
+the full observed range is 3 to 6 refusals out of 48.
+
+The degeneracy veto fired at exactly the predicted coefficients (alpha = +/-4;
+repeated-4-gram fraction 0.55/0.78 for self_report and 0.42/0.61 for safety,
+all also pinned at the 256-token cap). The runbook predicted this in advance.
+
+**This is row 2 of the pre-specified outcome table**: manipulation passes,
+self-report shifts, safety flat. Reading, as written before the run: "the
+direction is genuinely eval-recognition and the model can report on it, but
+recognition alone does not move safety behaviour. A real and publishable
+negative." The pre-spec recorded **low confidence** for the safety prediction,
+and that was correct.
+
+**Report the safety arm as underpowered, not as a null.** At n=48 with a 0.125
+baseline, a two-proportion test has 80% power only against an increase to
+**0.37**. So the arm rules out a large effect and says nothing about a modest
+one. Writing "steering does not affect safety behaviour" would overclaim; the
+defensible sentence is "no large effect, with power only against a swing of
++0.25 or more." If this arm matters to the paper, it needs either many more
+borderline prompts or a set with a higher baseline refusal rate — 0.125 is a
+floor effect that wastes most of the dynamic range.
+
+Second caveat: the unsteered self-report rate is already **0.778**, so most of
+the measurable movement is on the deploy-ward side. The carriers are single-turn
+requests, which is also why the unsteered readout sits at -0.20 of the gap.
 
 **Manipulation check: PASSED, run locally on the 5070 Ti (August 2026).** It is
 forward-passes-only, so CPU offload is fine and it cost nothing. Values below are
@@ -1129,6 +1228,29 @@ nothing else. Two source differences are handled: LMSYS tags language on the
 record rather than per message, and it replaces PII with placeholders such as
 `NAME_1`. Redacted conversations are dropped — those placeholders are a surface
 artifact a probe or bag-of-words baseline could read as the label.
+
+**LMSYS RESULT (n=250, August 2026).** 179/250 pairs terminated naturally. At
+`final_assistant_token` the probe is **0.837 +/- 0.026** versus BoW 0.596 and
+format 0.671, margin **+0.166**; at `final_assistant_mean`, **0.791 +/- 0.030**,
+margin +0.120. WildChat n=250 gave 0.792 and 0.822. The effect replicates across
+corpora; the token-versus-mean ordering swaps between them, which is worth a
+sentence but does not change the conclusion. Slice 5 no longer rests on one
+corpus.
+
+Verified on the copied artifacts, not taken from the log: 250 conversations,
+user-turn distribution {2: 164, 3: 61, 4: 25}, all ending on an assistant turn,
+**0 PII placeholders**, 0 empty messages, and the reconstruction file's recorded
+`dataset_sha256` matches the genuine file.
+
+**Gotcha: `prep_slice5 --source lmsys` exits 134 (core dumped) after succeeding.**
+It writes the dataset and prints its summary, then crashes during interpreter
+finalization: a `[Errno 9] Bad file descriptor` on the HF parquet stream followed
+by `Fatal Python error: PyGILState_Release: thread state must be current when
+releasing`. This is a teardown race in the datasets/pyarrow streaming shutdown,
+not a data failure. **A chained runner will record rc=134 and move on**, so the
+nonzero exit is not by itself evidence the step failed — check the output file
+before rerunning. Conversely, do not trust the rc=0 of the steps after it
+without checking that they consumed the right file.
 
 ## Where slice 3 actually is
 
