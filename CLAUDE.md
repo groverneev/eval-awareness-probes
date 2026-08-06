@@ -741,6 +741,10 @@ equal or stronger:
 | coherent pairs (last user) | 0.951 | 0.989 |
 | coherent pairs (post-instruction) | 0.499 | 0.499 |
 | coherent silent, n=192 (last user) | 0.937 | 0.982 |
+| eval_shared silent, n=124 (last user) | 0.998 | 0.999 |
+| eval_shared silent cap512, n=227 (last user) | 0.991 | 0.998 |
+| s5 LMSYS n250 (assistant token) | 0.837 | 0.911 |
+| s5 LMSYS n250 (assistant mean) | 0.791 | 0.940 |
 | s5 reconstruction n250 (assistant token) | 0.792 | 0.896 |
 | s5 reconstruction n250 (assistant mean) | 0.822 | 0.958 |
 | s5 model swap, shared 146 (assistant token) | 0.811 | 0.887 |
@@ -787,6 +791,18 @@ near 0.5 is false for these activations at the reported layers, so raw
 |AUROC - 0.5| overstates how much work the probe is doing. Significance is
 unaffected. Report the permutation p-value as the test and the uninformed
 direction as a limitation.
+
+All four Tier 2 contrasts land at **p = 0.002** on the permutation null, and every
+pre-existing row is unchanged to the printed precision after the refactor.
+
+**Gotcha: `run_estimator_check` does not discover new contrasts.** `cmd_points`
+builds a hardcoded list, and `silent_mask()` originally read only the
+`coherent_pairs` labels; `slice3_contrast` had no mask parameter at all. The
+Tier 2 runbook wrongly claimed new cells were picked up automatically, and the
+first post-session run silently reproduced the old table. If that had gone
+unchecked, the LMSYS and `eval_shared` silence results would have entered the
+paper with no second estimator and no p-value, inside a table implying both.
+After adding any cell, add it to `cmd_points` and confirm the row appears.
 
 Slice 1 was originally absent here because its 8B activations only ever existed
 on Kaggle. It has since been re-extracted locally on the 5070 Ti (about three

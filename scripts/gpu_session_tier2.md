@@ -204,9 +204,13 @@ Copy back: `data/slice5_genuine_lmsys.json`,
 .venv/Scripts/python -m pytest -q
 ```
 
-The estimator check picks up any new cached contrast automatically, so the
-logistic estimator and the permutation null extend to the new cells with no
-extra work.
+**The estimator check does NOT pick up new contrasts automatically.** An earlier
+version of this runbook claimed it did, and that was wrong: `cmd_points` builds a
+hardcoded list, and `silent_mask()` originally read only the `coherent_pairs`
+labels. Trusting the claim would have put the LMSYS replication and both
+`eval_shared` silence runs into the paper with no second estimator and no
+permutation p-value, inside a table that implies every row has both. After
+adding a cell, add it to `cmd_points` explicitly and confirm its row appears.
 
 Do not commit `data/` or `results/` — both are gitignored and contain real
 WildChat- and LMSYS-derived conversation text. SHA-256 the artifacts after

@@ -67,11 +67,18 @@ def slice1_contrast() -> Contrast:
     return acts[labels == 1], acts[labels == 0], [], []
 
 
-def slice3_contrast(cells, cell: str, read_point: str) -> Contrast:
+def slice3_contrast(cells, cell: str, read_point: str,
+                    mask: np.ndarray | None = None) -> Contrast:
     pos = np.load(acts_path(cell, read_point))["acts"].astype(np.float64)
     neg = np.load(acts_path("deploy", read_point))["acts"].astype(np.float64)
     view = text_view(read_point)
-    return pos, neg, [view(c) for c in cells[cell]], [view(c) for c in cells["deploy"]]
+    txt_pos = [view(c) for c in cells[cell]]
+    txt_neg = [view(c) for c in cells["deploy"]]
+    if mask is not None:
+        pos, neg = pos[mask], neg[mask]
+        txt_pos = [t for t, keep in zip(txt_pos, mask) if keep]
+        txt_neg = [t for t, keep in zip(txt_neg, mask) if keep]
+    return pos, neg, txt_pos, txt_neg
 
 
 def coherent_contrast(read_point: str, mask: np.ndarray | None = None) -> Contrast:
@@ -91,11 +98,11 @@ def coherent_contrast(read_point: str, mask: np.ndarray | None = None) -> Contra
     return pos, neg, txt_pos, txt_neg
 
 
-def silent_mask() -> np.ndarray:
+def silent_mask(labels: Path | None = None) -> np.ndarray:
     """Pairs that terminated naturally in both cells and verbalized nothing."""
     from vnaa.run_silence_filter import LABELS
 
-    rows = json.loads(LABELS.read_text(encoding="utf-8"))["items"]
+    rows = json.loads((labels or LABELS).read_text(encoding="utf-8"))["items"]
     return np.array([
         (row["eval_terminated"] and row["deploy_terminated"])
         and not (row["eval_explicit_awareness"] or row["deploy_explicit_awareness"])
@@ -213,10 +220,29 @@ def cmd_points(args: argparse.Namespace) -> None:
     contrasts["s3_coherent_silent|last_user_token"] = coherent_contrast(
         "last_user_token", mask)
 
+    # The silence filter also ran on eval_shared, at the frozen 256-token cap and
+    # again at 512 as a censoring sensitivity check.  Both are separate runs with
+    # separate masks, so both belong here; nothing is picked up automatically.
+    from vnaa.run_silence_filter import cell_paths as silence_cell_paths
+
+    for cap in (256, 512):
+        _, eval_shared_labels = silence_cell_paths("eval_shared", cap)
+        if not eval_shared_labels.exists():
+            print(f"skipping eval_shared silent at cap {cap}: labels absent")
+            continue
+        name = ("s3_eval_shared_silent" if cap == 256
+                else f"s3_eval_shared_silent_cap{cap}")
+        contrasts[f"{name}|last_user_token"] = slice3_contrast(
+            cells, "eval_shared", "last_user_token",
+            mask=silent_mask(eval_shared_labels))
+
     data = Path("data")
     s5 = [
         ("reconstruction_n250", data / "slice5_genuine_n250.json",
          data / "slice5_reconstructed_n250.json", None, None),
+        # The LMSYS corpus replication of the same frozen protocol.
+        ("reconstruction_lmsys_n250", data / "slice5_genuine_lmsys.json",
+         data / "slice5_reconstructed_lmsys_n250.json", None, None),
     ]
     # The decomposition is only interpretable on the shared terminated subset,
     # so both conditions are masked to the same 146 pairs as the reported run.
