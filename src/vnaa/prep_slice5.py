@@ -23,6 +23,32 @@ from vnaa.prep_slice3 import (
 )
 
 
+# The proposal names both WildChat and LMSYS-Chat-1M as deployment sources.
+# Only WildChat had ever been used, so slice 5 rested on one corpus.
+SOURCES = {
+    "wildchat": {"repo": "allenai/WildChat-1M", "language_field": "message"},
+    "lmsys": {"repo": "lmsys/lmsys-chat-1m", "language_field": "record"},
+}
+
+
+def normalize(record: dict, source: str) -> list[dict] | None:
+    """Source-specific gates, before the shared shape checks.
+
+    The two corpora differ in where the language tag lives and in redaction.
+    LMSYS replaces detected PII with placeholders such as ``NAME_1``; those
+    tokens are a surface artifact that a probe or a bag-of-words baseline could
+    read as a label, so redacted conversations are dropped rather than
+    normalized.
+    """
+    spec = SOURCES[source]
+    if spec["language_field"] == "record":
+        if record.get("language") != "English":
+            return None
+        if record.get("redacted"):
+            return None
+    return record.get("conversation") or []
+
+
 def usable(conv: list[dict]) -> list[dict] | None:
     """Normalize a natural conversation that ends with an assistant turn."""
     messages = []
@@ -57,18 +83,24 @@ def main() -> None:
     parser.add_argument("--n", type=int, default=50)
     parser.add_argument("--scan-limit", type=int, default=120000)
     parser.add_argument("--seed", type=int, default=5)
-    parser.add_argument("--out", type=Path, default=Path("data/slice5_genuine.json"))
+    parser.add_argument("--source", choices=sorted(SOURCES), default="wildchat")
+    parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args()
+    if args.out is None:
+        stem = "slice5_genuine" if args.source == "wildchat" else f"slice5_genuine_{args.source}"
+        args.out = Path(f"data/{stem}.json")
 
     from datasets import load_dataset
 
     pool = []
+    scanned = 0
     for scanned, record in enumerate(
-        load_dataset("allenai/WildChat-1M", split="train", streaming=True), start=1
+        load_dataset(SOURCES[args.source]["repo"], split="train", streaming=True), start=1
     ):
         if scanned > args.scan_limit or len(pool) >= args.n * 4:
             break
-        conversation = usable(record.get("conversation") or [])
+        raw = normalize(record, args.source)
+        conversation = usable(raw) if raw else None
         if conversation is not None:
             pool.append(conversation)
     if len(pool) < args.n:
@@ -78,7 +110,8 @@ def main() -> None:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(chosen, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     turns = [sum(m["role"] == "user" for m in c) for c in chosen]
-    print(f"scanned {scanned}; wrote {len(chosen)} conversations to {args.out}")
+    print(f"source {args.source}; scanned {scanned}; "
+          f"wrote {len(chosen)} conversations to {args.out}")
     print("user turns:", {k: turns.count(k) for k in sorted(set(turns))})
 
 

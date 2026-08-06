@@ -8,9 +8,13 @@ Last updated: August 2026. Slices 1, 2, 3, and 5 are complete on
 Llama-3.1-8B; slice 5 includes the model-swap/context-ablation decomposition
 at n=250. The secondary logistic estimator, the permutation and random-probe
 nulls, and the calibrated model judge for the silence filter are done (all
-CPU-only, off cached activations). Steering is the only remaining planned
-experimental arm. Forward planning is maintained in this file. Primary machine
-is the Windows desktop with an RTX 5070 Ti (see Environment).
+CPU-only, off cached activations). **Tier 2 — steering, the silence filter on
+`eval_shared`, and an LMSYS-Chat-1M replication of slice 5 — is coded, frozen,
+and tested; only the GPU session remains** (see "Tier 2" in the handoff and
+`scripts/gpu_session_tier2.md`). Slice-1 8B activations have been re-extracted
+locally and reproduce the Kaggle run exactly. Forward planning is maintained in
+this file. Primary machine is the Windows desktop with an RTX 5070 Ti (see
+Environment).
 
 GPU host decision: tried Lightning AI first, abandoned it — the site 404'd on the
 Studio dashboard and the account showed 0.00 free credits (a `.org` school email,
@@ -185,16 +189,25 @@ src/vnaa/
   estimators.py          logistic probe, permutation/geometry nulls
   run_estimator_check.py re-scores headline contrasts, CPU only
   judge_batches.py       blinded judge batches + calibrated merge
+  run_silence_filter.py  per-cell generate/label/analyze (--cell)
+  steering.py            activation-addition hook; layer indexing
+  run_steering.py        steering direction, manipulation check, behaviour
 scripts/
   make_figures.py        slice-1 figures
   make_2b_figures.py     slice-2b figures (math-free by default)
+  gpu_session_tier2.md   the frozen Tier 2 runbook
 datasets/judge/
   awareness_judge_v1.md  the committed, hashed judge rubric
+datasets/steering/
+  prespec.md             steering protocol, frozen before any output
+  behavior_prompts.json  the held-fixed self-report and safety sets
 tests/
   test_probe.py          probe math, known-answer synthetic data (6)
   test_read_points.py    multi-turn token spans and read indices (9)
   test_estimators.py     second estimator + the three nulls (11)
   test_judge_batches.py  judge harness build/merge round trip (7)
+  test_steering.py       hook arithmetic + scoring rules (27)
+  test_prep_slice5.py    WildChat vs LMSYS source normalization (7)
 ```
 
 ## Code and key technical decisions
@@ -928,6 +941,12 @@ construction). Statistics upgrade from slice 2 on: bootstrap CIs, >=3 seeds.
 8. **[DONE] Secondary estimator, permutation nulls, calibrated judge** — all
    CPU-only; no conclusion changed, one new limitation (uninformed directions
    are not at 0.5).
+9. **[DONE] Slice 1 re-extracted locally** — the estimator and null checks now
+   cover slice 1, and the Kaggle numbers reproduced exactly on other hardware.
+10. **[CODE FROZEN, GPU PENDING] Tier 2** — steering (pre-specified in
+    `datasets/steering/prespec.md`), the silence filter on `eval_shared`, and
+    slice 5 replicated on LMSYS-Chat-1M. Runbook:
+    `scripts/gpu_session_tier2.md`.
 
 ---
 
@@ -995,23 +1014,76 @@ every restart/reset.
 
 ### What remains
 
-Only the steering arm remains in the experiment plan. It needs a new,
-pre-specified intervention runner and another GPU session; do not begin it
-unless the user asks.
+See "Tier 2" below: the code for all three remaining items is written, frozen,
+and tested; only the GPU session itself is outstanding.
 
-Also outstanding, and cheap enough to fold into that same GPU session:
-re-extract slice-1 8B activations locally (they only ever existed on Kaggle) so
-the logistic estimator and permutation null cover slice 1 too; run the silence
-filter on `eval_shared`, since the proposal promises verbalized-vs-silence
-crossed with every cell and only the matched-coherence cell has it; and repeat
-slice 5 on LMSYS-Chat-1M, which the proposal names alongside WildChat and which
-has never been used. The gap between the proposal's Experimental Setup and what
-exists is larger than the slice list suggests: the model scaling sweep (70B,
-Qwen2.5-7B/32B, Gemma-2/3) and the agentic / tool-use per-class results have not
-been started at all, and one of those two claims should be cut from the paper if
-they are not going to run. After steering (or an explicit decision to omit it), the
-remaining work is paper assembly: figures, methods/results prose, limitations,
-and final reproducibility checks.
+The gap between the proposal's Experimental Setup and what exists is larger than
+the slice list suggests: the model scaling sweep (70B, Qwen2.5-7B/32B,
+Gemma-2/3) and the agentic / tool-use per-class results have not been started at
+all, and one of those two claims should be cut from the paper if they are not
+going to run. After Tier 2, the remaining work is paper assembly: figures,
+methods/results prose, limitations, and final reproducibility checks.
+
+## Tier 2 (August 2026): code frozen, GPU session pending
+
+`scripts/gpu_session_tier2.md` is the runbook. The compute call is a **Runpod
+RTX 5090 (32 GB)**, the same as slice 5: all three items are generation-bound
+(~1,750 greedy replies), the 8B fits wholly on-GPU in bf16 there, and the local
+5070 Ti would have to offload to system RAM. Estimated ~2.5 GPU-hours. The one
+prerequisite that needs a human is accepting the **gated LMSYS-Chat-1M terms**
+on the HF account that already has Llama access.
+
+**Done already, locally, no GPU session needed.** Slice-1 8B activations now
+exist on the desktop (`results/slice1_Llama-3.1-8B-Instruct_acts.npz`), so the
+logistic estimator and the permutation null cover slice 1. The local run
+reproduced the original Kaggle numbers exactly — layer 0 at 0.500, layers 1-3 at
+0.712 / 0.970 / 0.991, best layer 4 at AUROC 0.9944 — which is an independent
+reproduction on different hardware, a 2x T4 shard versus a single 5070 Ti with
+CPU offload.
+
+**Item 1: silence filter on `eval_shared`.** `run_silence_filter` now takes
+`--cell {coherent_pairs,eval_shared}` with per-cell response, label, and analysis
+paths, so the two runs cannot overwrite each other. `eval_shared` conversations
+come from the slice-3 loader rather than a written dataset; its prefixes were
+verified byte-identical to `deploy` on all 250 pairs. The published
+`coherent_pairs` figure reproduces exactly after the refactor (192/250 silent
+pairs, probe 0.937 +/- 0.033, BoW 0.823, format 0.567). Activations already
+exist; the session only generates 500 replies.
+
+**Item 2: steering.** The protocol is frozen in `datasets/steering/prespec.md`,
+written and committed **before any steered output existed**; the git history is
+the evidence for that ordering. Mechanics are in `steering.py`, deliberately
+small and testable without a GPU. Two things it pins down that would otherwise
+fail silently: `hidden_states[L]` is the output of block `L-1`, so steering at
+"layer L" hooks `layers[L-1]`, and a coefficient of 0 installs no hook at all so
+the unsteered condition is bit-identical rather than merely close. transformers
+5.x decoder layers return a bare tensor where 4.x returned a tuple, and the hook
+handles both, because a version bump silently turning the intervention into a
+no-op would look exactly like a clean null result.
+
+The design in one line: inject `alpha * ||mu_eval - mu_deploy|| * d_hat` at one
+layer with the prompt held fixed, then measure (1) an independent probe's
+readout, (2) verbalized self-report, (3) refusal rate on borderline requests,
+with a repetition/length degeneracy veto. Measure 1 gates the rest.
+
+**Amendment 1 to the pre-spec, made after the CPU-only direction fit and before
+any steering.** The CV "best layer" is a plateau, not a peak: layer 4 scores
+0.4453 and layer 9 scores 0.4419, with twelve layers inside 0.02. Picking by
+argmax would have injected at a layer chosen by a 0.003 difference. The revised
+rule takes the tied layers, thins them to four spread across the plateau
+(3, 7, 10, 14), and lets the manipulation check choose — that check is
+forward-passes-only and scored by the `eval_shared` probe, so it never sees a
+behavioural outcome and cannot launder a result. The alpha grid also gained two
+interior points, because at these layers the class-mean gap is 8-34% of the mean
+residual norm, so `alpha = 4` is a larger-than-unit perturbation and was likely
+to consume most of the original grid in the degenerate range.
+
+**Item 3: slice 5 on LMSYS-Chat-1M.** `prep_slice5.py --source lmsys` reuses the
+frozen WildChat protocol byte-for-byte, so this is a corpus replication and
+nothing else. Two source differences are handled: LMSYS tags language on the
+record rather than per message, and it replaces PII with placeholders such as
+`NAME_1`. Redacted conversations are dropped — those placeholders are a surface
+artifact a probe or bag-of-words baseline could read as the label.
 
 ## Where slice 3 actually is
 

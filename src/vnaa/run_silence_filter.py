@@ -25,14 +25,57 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from vnaa.run_coherent_pair_pilot import load_cells, path
-from vnaa.run_slice3 import MODEL_TAG, RESULTS, score_pair
+from vnaa.run_coherent_pair_pilot import load_cells as load_coherent_cells, path
+from vnaa.run_slice3 import (
+    MODEL_TAG, RESULTS, acts_path, score_pair, load_cells as load_slice3_cells,
+)
 from vnaa.gate_slice3 import serialize
 
 TAG = "coherent_pairs"
 DEFAULT_DATASET = Path("datasets/slice3/coherent_pairs/validated.json")
 RESPONSES = RESULTS / f"s3_{MODEL_TAG}_{TAG}_greedy_responses.json"
 LABELS = RESULTS / f"s3_{MODEL_TAG}_{TAG}_explicit_awareness_labels.json"
+
+# The proposal crosses every cell with verbalized-vs-silence-filtered, but only
+# the matched-coherence control had it.  eval_shared is the other cell with a
+# valid identical-prefix construction, so it is the one worth adding.
+CELLS = {
+    "coherent_pairs": {
+        "dataset": DEFAULT_DATASET,
+        "acts": lambda: (path(TAG, "eval", "last_user_token"),
+                         path(TAG, "deploy", "last_user_token")),
+    },
+    "eval_shared": {
+        "dataset": Path("datasets/slice3/eval_shared.json"),
+        "acts": lambda: (acts_path("eval_shared", "last_user_token"),
+                         acts_path("deploy", "last_user_token")),
+    },
+}
+
+
+def cell_paths(cell: str) -> tuple[Path, Path]:
+    """Response and label caches, kept per cell so runs cannot overwrite."""
+    if cell == TAG:  # the original paths, so the published run still reproduces
+        return RESPONSES, LABELS
+    return (RESULTS / f"s3_{MODEL_TAG}_{cell}_greedy_responses.json",
+            RESULTS / f"s3_{MODEL_TAG}_{cell}_explicit_awareness_labels.json")
+
+
+def load_cells(dataset: Path, cell: str = TAG) -> dict[str, list[list[dict]]]:
+    """The eval/deploy conversation pair for one cell.
+
+    eval_shared is a recombination of the slice-3 cells rather than a written
+    dataset, so its conversations come from the slice-3 loader while its
+    fingerprint still comes from the committed ``eval_shared.json``.
+    """
+    if cell == TAG:
+        return load_coherent_cells(dataset)
+    if cell == "eval_shared":
+        cells = load_slice3_cells()
+        if "eval_shared" not in cells:
+            raise SystemExit("eval_shared has not been built; see build_eval_shared")
+        return {"eval": cells["eval_shared"], "deploy": cells["deploy"]}
+    raise ValueError(f"unknown cell {cell!r}; known: {sorted(CELLS)}")
 
 # A high-precision rule: require self-referential recognition plus evaluation
 # language.  Terms such as "test" in an ordinary answer are not enough.
@@ -72,15 +115,15 @@ def response_payload(dataset: Path, model: str, max_new_tokens: int) -> dict:
     }
 
 
-def load_or_initialize_responses(args) -> dict:
+def load_or_initialize_responses(args, responses: Path) -> dict:
     expected = response_payload(args.dataset, args.model, args.max_new_tokens)
-    if not RESPONSES.exists():
+    if not responses.exists():
         return expected
-    saved = json.loads(RESPONSES.read_text(encoding="utf-8"))
+    saved = json.loads(responses.read_text(encoding="utf-8"))
     for key in ("dataset_sha256", "model", "decoding"):
         if saved.get(key) != expected[key]:
             raise ValueError(
-                f"{RESPONSES} was made for a different {key}; choose a new output "
+                f"{responses} was made for a different {key}; choose a new output "
                 "path or remove it deliberately before regenerating"
             )
     return saved
@@ -119,11 +162,12 @@ def greedy_reply(lm, conversation, max_new_tokens: int) -> tuple[str, int, bool]
 def generate(args) -> None:
     from vnaa.extract import load_model
 
-    cells = load_cells(args.dataset)
+    cells = load_cells(args.dataset, args.cell)
     n = len(cells["eval"])
     if len(cells["deploy"]) != n:
         raise ValueError("eval and deploy cells have different lengths")
-    saved = load_or_initialize_responses(args)
+    responses, _ = cell_paths(args.cell)
+    saved = load_or_initialize_responses(args, responses)
     done = {row["id"] for row in saved["items"]}
     if len(done) != len(saved["items"]):
         raise ValueError("response cache contains duplicate item ids")
@@ -150,7 +194,7 @@ def generate(args) -> None:
             "deploy_terminated": deploy_terminated,
         }
         saved["items"].append(row)
-        atomic_json(RESPONSES, saved)
+        atomic_json(responses, saved)
         print(f"saved {index + 1}/{n}: {item_id}", flush=True)
 
 
@@ -191,7 +235,7 @@ def label(args) -> None:
 
 
 def analyze(args) -> None:
-    cells = load_cells(args.dataset)
+    cells = load_cells(args.dataset, args.cell)
     labelled = json.loads(args.labels.read_text(encoding="utf-8"))
     if labelled.get("dataset_sha256") != dataset_fingerprint(args.dataset):
         raise ValueError("labels were made for a different dataset")
@@ -212,8 +256,9 @@ def analyze(args) -> None:
     keep = ~explicit & terminated
     if keep.sum() < args.min_pairs:
         raise ValueError(f"only {keep.sum()} silent pairs; need at least {args.min_pairs}")
-    pos = np.load(path(TAG, "eval", "last_user_token"))["acts"].astype(np.float64)[keep]
-    neg = np.load(path(TAG, "deploy", "last_user_token"))["acts"].astype(np.float64)[keep]
+    pos_path, neg_path = CELLS[args.cell]["acts"]()
+    pos = np.load(pos_path)["acts"].astype(np.float64)[keep]
+    neg = np.load(neg_path)["acts"].astype(np.float64)[keep]
     result = score_pair(
         pos, neg,
         [serialize(c) for c, chosen in zip(cells["eval"], keep) if chosen],
@@ -229,9 +274,9 @@ def analyze(args) -> None:
         "n_deploy_explicit_awareness": int(sum(x["deploy_explicit_awareness"] for x in labels)),
         "n_indeterminate_capped_pairs": int((~terminated).sum()),
         "n_removed_pairs": int((~keep).sum()), "read_point": "last_user_token",
-        "results": summary, "per_seed": result,
+        "cell": args.cell, "results": summary, "per_seed": result,
     }
-    out = RESULTS / f"s3_{MODEL_TAG}_{TAG}_silence_filtered_analysis.json"
+    out = RESULTS / f"s3_{MODEL_TAG}_{args.cell}_silence_filtered_analysis.json"
     atomic_json(out, output)
     print(f"silent pairs {keep.sum()}/{len(keep)}")
     print(f"probe {summary['probe']['mean']:.3f}+/-{summary['probe']['sd']:.3f} "
@@ -244,7 +289,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
     gen = sub.add_parser("generate")
-    gen.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
+    gen.add_argument("--dataset", type=Path, default=None)
     gen.add_argument("--model", default=f"meta-llama/{MODEL_TAG}")
     gen.add_argument("--device", default=None)
     gen.add_argument("--device-map", default=None)
@@ -252,17 +297,29 @@ def main() -> None:
     gen.add_argument("--max-new-tokens", type=int, default=256)
     gen.set_defaults(func=generate)
     lab = sub.add_parser("label")
-    lab.add_argument("--responses", type=Path, default=RESPONSES)
-    lab.add_argument("--labels", type=Path, default=LABELS)
+    lab.add_argument("--responses", type=Path, default=None)
+    lab.add_argument("--labels", type=Path, default=None)
     lab.set_defaults(func=label)
     ana = sub.add_parser("analyze")
-    ana.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
-    ana.add_argument("--labels", type=Path, default=LABELS)
+    ana.add_argument("--dataset", type=Path, default=None)
+    ana.add_argument("--labels", type=Path, default=None)
     ana.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     ana.add_argument("--test-frac", type=float, default=0.3)
     ana.add_argument("--min-pairs", type=int, default=30)
     ana.set_defaults(func=analyze)
+    for p in (gen, lab, ana):
+        p.add_argument("--cell", choices=sorted(CELLS), default=TAG)
     args = parser.parse_args()
+
+    # Resolve per-cell defaults after parsing, so --cell alone is enough and a
+    # run cannot silently mix one cell's responses with another's dataset.
+    responses, labels = cell_paths(args.cell)
+    if getattr(args, "dataset", None) is None:
+        args.dataset = CELLS[args.cell]["dataset"]
+    if getattr(args, "responses", None) is None:
+        args.responses = responses
+    if getattr(args, "labels", None) is None:
+        args.labels = labels
     args.func(args)
 
 

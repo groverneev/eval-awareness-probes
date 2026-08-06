@@ -189,6 +189,21 @@ of all 32 evaluation-vocabulary contexts in the real replies found only
 subject-matter uses. The silence result is therefore a calibrated null rather
 than an unverified one.
 
+**Steering, silence-filtering `eval_shared`, and an LMSYS replication are coded
+and frozen, awaiting one GPU session.** The runbook is
+`scripts/gpu_session_tier2.md`.
+
+The steering protocol is pre-specified in `datasets/steering/prespec.md`, written
+and committed before any steered output existed, including what each possible
+outcome would mean — the row where the direction turns out to be manipulable but
+behaviourally inert is written down in advance precisely because it is the one
+that would most damage the paper's framing. The intervention adds
+`alpha · ‖μ_eval − μ_deploy‖ · d̂` at a single layer with the prompt held fixed,
+and a manipulation check scored by an *independent* probe gates the behavioural
+measures. Slice 1's 8B activations have also been re-extracted locally, which
+both extends the estimator and null checks to slice 1 and reproduces the original
+Kaggle run exactly (best layer 4, AUROC 0.9944).
+
 Figures in `figures/`; full detail, caveats, and a handoff section for picking
 the project up mid-flight are in `CLAUDE.md`.
 

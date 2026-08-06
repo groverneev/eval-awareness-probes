@@ -17,8 +17,8 @@ No GPU.  Everything runs off cached ``.npz`` activations.
     python -m vnaa.run_estimator_check points
     python -m vnaa.run_estimator_check transfer
 
-Slice 1's 8B activations were produced on Kaggle and were never cached locally,
-so it is absent here.  Adding it needs a short re-extraction, not new analysis.
+Slice 1 is included once its 8B activations exist locally; the original Kaggle
+run never cached them, so ``run_slice1`` has to be rerun on a GPU box first.
 """
 
 from __future__ import annotations
@@ -51,6 +51,20 @@ Contrast = tuple[np.ndarray, np.ndarray, list[str], list[str]]
 def text_view(read_point: str):
     """The text a baseline may see, matched to what the read position can see."""
     return first_user if read_point == "post_instruction_token" else serialize
+
+
+def slice1_contrast() -> Contrast:
+    """The SAD stages_oversight cell, from its own cache.
+
+    The text views are empty by design, not by omission: SAD's licence forbids
+    writing question text to disk, so ``run_slice1`` caches activations and
+    labels only.  ``score_contrast`` reads no text, and the surface baselines
+    for this cell are already reported separately in ``baselines.py``.
+    """
+    cached = np.load(RESULTS / f"slice1_{MODEL_TAG}_acts.npz")
+    acts = cached["acts"].astype(np.float64)
+    labels = cached["labels"]
+    return acts[labels == 1], acts[labels == 0], [], []
 
 
 def slice3_contrast(cells, cell: str, read_point: str) -> Contrast:
@@ -183,6 +197,11 @@ def summarize(raw: dict) -> dict:
 def cmd_points(args: argparse.Namespace) -> None:
     cells = load_cells()
     contrasts: dict[str, Contrast] = {}
+
+    if (RESULTS / f"slice1_{MODEL_TAG}_acts.npz").exists():
+        contrasts["s1_sad_oversight|last_user_token"] = slice1_contrast()
+    else:
+        print("skipping slice 1: run `vnaa.run_slice1` to cache its activations")
 
     for cell in ("eval_shared", "eval_disguised", "eval_obvious"):
         for read_point in READ_POINTS:
