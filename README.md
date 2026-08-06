@@ -240,12 +240,15 @@ identical-prefix control now has the silence filter too. Explicit verbalized
 awareness on the eval side: **0/250**. On the retained pairs the final-token
 probe is **0.998 +/- 0.002**, versus BoW **0.758 +/- 0.029** and format
 **0.624 +/- 0.022** — a **+0.240** probe-BoW margin, more than double matched
-coherence's +0.114. The serious limitation is censoring: only **125/250** pairs
-had both replies terminate naturally under the frozen 256-token cap, against
-192/250 for matched coherence, so this figure speaks for half its sample. A
-512-token sensitivity rerun is in progress. One regex hit occurred, on the
-*deploy* side, and manual reading showed it to be a TV quiz show — subject
-matter, not self-recognition, and conservative in direction.
+coherence's +0.114. Only **125/250** pairs had both replies terminate naturally
+under the frozen 256-token cap, so a censoring sensitivity rerun at a 512-token
+cap was added: it raises retention to **227/250** (91%) and moves the probe by
+0.007 (to 0.991 +/- 0.003) and the margin by 0.025 (to +0.215). The result is
+therefore not an artifact of censoring. Eval-side verbalized awareness is 0/250
+at both caps, and the wider cap is the stronger silence claim because replies
+had twice the room to verbalize. One regex hit occurred, on the *deploy* side at
+both caps, and manual reading showed it to be a TV quiz show — subject matter,
+not self-recognition, and conservative in direction.
 
 **Slice 5 replicated on LMSYS-Chat-1M (n=250, 5 seeds).** The frozen WildChat
 protocol was rerun byte-for-byte on a second corpus, with redacted conversations

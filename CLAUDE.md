@@ -12,9 +12,9 @@ judge for the silence filter are done (all CPU-only, off cached activations).
 **Tier 2 is DONE**: steering (manipulation check passed at layer 14; self-report
 shifts strongly; safety shows no large effect but is underpowered), the silence
 filter on `eval_shared`, and the LMSYS replication all ran on a Runpod 4090.
-One piece is still running: a 512-token censoring sensitivity rerun of the
-`eval_shared` silence filter, because the frozen 256-token cap left only 125/250
-pairs determinate. Slice-1 8B activations have been re-extracted locally and
+The `eval_shared` silence filter also has a 512-token censoring sensitivity
+rerun, which raises retention from 124/250 to 227/250 and leaves the conclusion
+intact. Slice-1 8B activations have been re-extracted locally and
 reproduce the Kaggle run exactly. Forward planning is maintained in this file.
 Primary machine is the Windows desktop with an RTX 5070 Ti (see Environment).
 
@@ -968,8 +968,9 @@ construction). Statistics upgrade from slice 2 on: bootstrap CIs, >=3 seeds.
     the silence filter on `eval_shared` (0/250 verbalized; probe 0.998 vs BoW
     0.758, but only 125/250 pairs determinate under the 256-token cap), and
     slice 5 replicated on LMSYS-Chat-1M (0.837 at the assistant token vs
-    WildChat's 0.792). A 512-cap censoring sensitivity rerun of the
-    `eval_shared` silence filter is the one outstanding piece.
+    WildChat's 0.792). The 512-cap sensitivity rerun confirms the `eval_shared`
+    silence result is not a censoring artifact (227/250 retained, probe 0.991).
+    All Tier 2 GPU work is finished and the artifacts are local.
 
 ---
 
@@ -1092,7 +1093,23 @@ median reply lengths of 196 and 160 tokens against the 256 cap. Half the sample
 is censored, and the censoring is mildly label-correlated. The read point is the
 final *user* token, so the probe's input is untouched by reply length — but a
 silence filter that can only speak for half its sample is a weak instrument.
-A 512-token sensitivity rerun addresses this; see the cap-identity note below.
+
+**CENSORING SENSITIVITY: the result is not a censoring artifact.** Rerunning the
+identical protocol at a 512-token cap raises retention from 124/250 to
+**227/250** (91%) and barely moves anything:
+
+| cap | silent pairs | probe | BoW | format | probe-BoW |
+|---|---|---|---:|---:|---:|
+| 256 (protocol) | 124/250 | 0.998 +/- 0.002 | 0.758 +/- 0.029 | 0.624 +/- 0.022 | +0.240 |
+| 512 (sensitivity) | 227/250 | 0.991 +/- 0.003 | 0.776 +/- 0.024 | 0.583 +/- 0.017 | +0.215 |
+
+Nearly doubling the determinate sample changes the probe by 0.007 and the margin
+by 0.025. Report the 256 figure as the protocol result and the 512 figure as the
+sensitivity check; the honest headline is that the conclusion holds at 91%
+retention. Eval-side explicit awareness is **0/250 at both caps**, and the 512
+run is the stronger silence claim because replies had twice the room to
+verbalize. The same single deploy-side false positive (pair_152, the TV quiz
+show) appears at both caps and nothing else does.
 
 **The generation cap is now part of a run's identity.** A reply that reaches the
 cap is indeterminate rather than silent, so the cap decides how much of the
