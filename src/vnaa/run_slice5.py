@@ -1,10 +1,11 @@
 """Slice 5: exact-label deployment reconstruction on genuine conversations.
 
-``reconstruct`` replaces each original final assistant reply with an 8B greedy
-on-policy reply.  ``extract`` probes the end or mean of that final assistant
-turn.  The original and regenerated conversations share their complete prefix,
-so any difference at these positions follows the response provenance rather
-than hand-authored evaluation/deployment text.
+``reconstruct`` replaces each original final assistant reply with a greedy
+reply.  Its generation context is either the complete prefix (the on-policy
+and model-swap conditions) or just the final user message (the context-ablation
+control).  ``extract`` always probes the complete original conversation with
+the replacement inserted, so a context-ablation difference is not caused by
+showing the probe a shorter conversation.
 """
 
 from __future__ import annotations
@@ -38,13 +39,33 @@ def load_genuine(path: Path) -> list[list[dict]]:
     return conversations
 
 
+def generation_prefix(conversation: list[dict], context: str) -> list[dict]:
+    """Return the messages available to the response generator.
+
+    ``final_user_only`` removes every earlier turn *only while generating* the
+    replacement.  The full prefix is restored before activation extraction.
+    This isolates a reply's dependence on conversational context from the
+    evaluator's access to that same context.
+    """
+    prefix = conversation[:-1]
+    if context == "full":
+        return prefix
+    if context == "final_user_only":
+        if not prefix or prefix[-1]["role"] != "user":
+            raise ValueError("assistant-ending conversations must have a final user message")
+        return [prefix[-1]]
+    raise ValueError(f"unknown generation context {context!r}")
+
+
 def reconstruct(args) -> None:
     genuine = load_genuine(args.dataset)
     expected = {"dataset_sha256": fingerprint(args.dataset), "model": args.model,
-                "decoding": {"do_sample": False, "max_new_tokens": args.max_new_tokens}, "items": []}
+                "decoding": {"do_sample": False, "max_new_tokens": args.max_new_tokens},
+                "generation_context": args.generation_context, "items": []}
     if args.output.exists():
         saved = json.loads(args.output.read_text(encoding="utf-8"))
-        if any(saved.get(k) != expected[k] for k in ("dataset_sha256", "model", "decoding")):
+        if any(saved.get(k) != expected[k]
+               for k in ("dataset_sha256", "model", "decoding", "generation_context")):
             raise ValueError("existing reconstruction cache belongs to different inputs/settings")
     else:
         saved = expected
@@ -55,7 +76,9 @@ def reconstruct(args) -> None:
         item_id = f"pair_{index:03d}"
         if item_id in done:
             continue
-        reply, tokens, terminated = greedy_reply(lm, conversation[:-1], args.max_new_tokens)
+        reply, tokens, terminated = greedy_reply(
+            lm, generation_prefix(conversation, args.generation_context), args.max_new_tokens
+        )
         saved["items"].append({"id": item_id, "reply": reply, "generated_tokens": tokens,
                                "terminated": terminated})
         atomic_json(args.output, saved)
@@ -150,6 +173,10 @@ def main() -> None:
         command.add_argument("--device-map", default=None)
         command.add_argument("--dtype", choices=["float32", "bfloat16"], default="bfloat16")
         command.add_argument("--max-new-tokens", type=int, default=256)
+        command.add_argument(
+            "--generation-context", choices=["full", "final_user_only"], default="full",
+            help="messages available while generating a replacement; extraction always uses full context",
+        )
     ana = sub.add_parser("analyze")
     ana.add_argument("--dataset", type=Path, default=DATASET)
     ana.add_argument("--reconstructions", type=Path, default=RECONSTRUCTIONS)
