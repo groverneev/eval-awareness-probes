@@ -4,10 +4,11 @@ This file is the detailed context for any agent picking up this project. Keep it
 updated as work progresses (see "Maintaining this file" at the bottom). The
 README is the short human-facing version; this is the long one.
 
-Last updated: August 2026. Slices 1 and 2 are done on Llama-3.1-8B; slice 3
-(multi-turn) and its matched-coherence silence filter are complete at n=250/cell.
-Forward plan in `PLAN.md`. Primary machine is
-the Windows desktop with an RTX 5070 Ti (see Environment).
+Last updated: August 2026. Slices 1, 2, 3, and 5 are complete on
+Llama-3.1-8B; slice 5 includes the model-swap/context-ablation decomposition
+at n=250. Steering is the only remaining planned experimental arm. Forward
+plan in `PLAN.md`. Primary machine is the Windows desktop with an RTX 5070 Ti
+(see Environment).
 
 GPU host decision: tried Lightning AI first, abandoned it — the site 404'd on the
 Studio dashboard and the account showed 0.00 free credits (a `.org` school email,
@@ -808,6 +809,72 @@ construction). Statistics upgrade from slice 2 on: bootstrap CIs, >=3 seeds.
 # HANDOFF — read this first if you are picking the project up
 
 State as of the end of the August 2026 working session.
+
+## Current handoff: Slice 5 is complete through decomposition
+
+The current committed code is `dc826e0` (`Analyze slice 5 decomposition on
+shared pairs`), and the local test suite passes **20/20**. `run_slice5.py` now
+has three relevant operations:
+
+- `reconstruct --generation-context full` is the original / model-swap path.
+- `reconstruct --generation-context final_user_only` is the context-ablation
+  control: it hides earlier turns only while generating, then restores the full
+  original prefix before 8B activation extraction.
+- `compare` intersects the natural-termination masks of two conditions before
+  fitting either probe. This prevents a misleading comparison of differently
+  censored samples. The completed invocation was:
+
+```
+.venv\Scripts\python -m vnaa.run_slice5 compare ^
+  --dataset data/slice5_genuine_n250.json ^
+  --left-reconstructions data/slice5_reconstructed_llama32_3b_n250.json ^
+  --left-tag model_swap_llama32_3b_n250 ^
+  --right-reconstructions data/slice5_reconstructed_final_user_only_n250.json ^
+  --right-tag context_ablation_final_user_only_n250
+```
+
+The exact shared subset is **146/250**. At `final_assistant_token`, model-swap
+is 0.811 +/- 0.046 (format 0.651; margin +0.160) and context ablation is 0.868
++/- 0.012 (format 0.702; margin +0.166). At `final_assistant_mean`, their
+margins are +0.138 and +0.101. The conclusion is narrow: the reconstruction
+effect is not attributable to 8B-specific authorship; it remains a
+provenance/context result, not evidence of evaluation awareness.
+
+### Local private artifacts (do not commit)
+
+The source conversations, generated replies, and activation arrays are all
+gitignored because they contain real WildChat-derived content or are large. They
+are present locally and were SHA-256 verified after download from the cloud:
+
+- `data/slice5_genuine_n250.json`
+- `data/slice5_reconstructed_n250.json`
+- `data/slice5_reconstructed_llama32_3b_n250.json`
+- `data/slice5_reconstructed_final_user_only_n250.json`
+- `results/s5_Llama-3.1-8B-Instruct_model_swap_llama32_3b_n250_*`
+- `results/s5_Llama-3.1-8B-Instruct_context_ablation_final_user_only_n250_*`
+
+The model-swap and context-ablation analysis JSON files and the six
+non-duplicated activation arrays needed to reproduce the shared-subset result
+are local. Do not upload these private artifacts to Git or public storage.
+
+### Cloud status
+
+A single 32 GB RTX 5090 Runpod Pod was used successfully for slice 5. The
+model ran wholly on-GPU in bf16; extraction was seconds and generation was the
+costly stage. All necessary artifacts have been copied back locally, so the Pod
+may remain stopped or be terminated after the user is comfortable with the
+backup. Do not record SSH keys, tokens, host addresses, or ports in this repo.
+If a future Pod is used, store work under `/workspace`, use
+`HF_HOME=/workspace/.cache/huggingface`, and expect a new exposed SSH port after
+every restart/reset.
+
+### What remains
+
+Only the steering arm remains in the experiment plan. It needs a new,
+pre-specified intervention runner and another GPU session; do not begin it
+unless the user asks. After steering (or an explicit decision to omit it), the
+remaining work is paper assembly: figures, methods/results prose, limitations,
+and final reproducibility checks.
 
 ## Where slice 3 actually is
 
