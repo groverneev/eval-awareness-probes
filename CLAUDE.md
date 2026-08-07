@@ -936,8 +936,8 @@ probe is **0.792 +/- 0.024**, versus BoW **0.633 +/- 0.011** and format **0.680
 `final_assistant_mean`, the probe is **0.822 +/- 0.018**, with +0.142 strength
 over format. The n=50 pilot (token 0.761, mean 0.737) therefore replicated and
 sharpened at scale. This is still response-provenance detection, not a direct
-test of eval awareness. The next required decomposition is model-swap versus
-context ablation; steering remains last.
+test of eval awareness. The decomposition that followed was model-swap versus
+context ablation, with steering last; both are now done.
 
 **Slice 5 model-swap/context-ablation decomposition (n=250 generated per
 condition, August 2026).** Llama-3.2-3B regenerated every final reply with the
@@ -972,8 +972,8 @@ construction). Statistics upgrade from slice 2 on: bootstrap CIs, >=3 seeds.
    question-swap control. Matched coherence is the natural-continuation control.
 6. **[DONE] Silence filtering** — 192 naturally terminated silent pairs;
    probe 0.937 vs BoW 0.823 at the final token.
-7. **[DONE] Slice 5 reconstruction and decomposition** â€” exact-label n=250
-   provenance/context result; only steering remains.
+7. **[DONE] Slice 5 reconstruction and decomposition** — exact-label n=250
+   provenance/context result, now also replicated on LMSYS-Chat-1M.
 8. **[DONE] Secondary estimator, permutation nulls, calibrated judge** — all
    CPU-only; no conclusion changed, one new limitation (uninformed directions
    are not at 0.5).
@@ -992,12 +992,26 @@ construction). Statistics upgrade from slice 2 on: bootstrap CIs, >=3 seeds.
 
 # HANDOFF — read this first if you are picking the project up
 
-State as of the end of the August 2026 working session.
+State as of the end of the August 2026 working sessions.
 
-## Current handoff: Slice 5 is complete through decomposition
+## Current handoff: all experimental work is done; the paper is what remains
 
-The current committed code is `dc826e0` (`Analyze slice 5 decomposition on
-shared pairs`), and the local test suite passes **20/20**. `run_slice5.py` now
+The current committed code is `586417a` (`Extend the estimator and permutation
+nulls to the Tier 2 cells`) and the local test suite passes **87/87**. Tier 1
+and Tier 2 are both complete, no pod is running, and every artifact is local.
+
+Read in this order: "Tier 2" for the newest results (steering, the `eval_shared`
+silence filter and its cap-512 sensitivity run, and the LMSYS replication),
+then "What remains" for the one open scope decision, then "Things that will bite
+you" before running anything.
+
+The single riskiest thing about the current state is not scientific: the
+gitignored `data/` and `results/` artifacts exist only on the desktop now that
+the pod is gone, and they cannot be committed. Back them up off-machine.
+
+### Slice 5 through decomposition (earlier handoff, retained)
+
+`run_slice5.py` now
 has three relevant operations:
 
 - `reconstruct --generation-context full` is the original / model-swap path.
@@ -1027,8 +1041,8 @@ provenance/context result, not evidence of evaluation awareness.
 ### Local private artifacts (do not commit)
 
 The source conversations, generated replies, and activation arrays are all
-gitignored because they contain real WildChat-derived content or are large. They
-are present locally and were SHA-256 verified after download from the cloud:
+gitignored because they contain real WildChat- or LMSYS-derived content or are
+large. They are present locally and were SHA-256 verified after download:
 
 - `data/slice5_genuine_n250.json`
 - `data/slice5_reconstructed_n250.json`
@@ -1037,41 +1051,63 @@ are present locally and were SHA-256 verified after download from the cloud:
 - `results/s5_Llama-3.1-8B-Instruct_model_swap_llama32_3b_n250_*`
 - `results/s5_Llama-3.1-8B-Instruct_context_ablation_final_user_only_n250_*`
 
-The model-swap and context-ablation analysis JSON files and the six
-non-duplicated activation arrays needed to reproduce the shared-subset result
-are local. Do not upload these private artifacts to Git or public storage.
+Added by Tier 2:
+
+- `data/slice5_genuine_lmsys.json`
+- `data/slice5_reconstructed_lmsys_n250.json`
+- `results/s5_Llama-3.1-8B-Instruct_reconstruction_lmsys_n250_*` (4 arrays)
+- `results/s3_Llama-3.1-8B-Instruct_eval_shared_greedy_responses.json`
+- `results/s3_Llama-3.1-8B-Instruct_eval_shared_cap512_greedy_responses.json`
+- `results/steer_Llama-3.1-8B-Instruct_generations_{self_report,safety}.json`
+- `results/tier2_pod_logs/` (run logs; no prompt text, kept for provenance)
+
+Do not upload these private artifacts to Git or public storage.
+
+**These are single-copy.** After the Tier 2 pod was torn down, the desktop holds
+the only copy of everything above. They are gitignored by design, so git is not
+a backup. An off-machine private backup is the outstanding risk in this project.
 
 ### Cloud status
 
-A single 32 GB RTX 5090 Runpod Pod was used successfully for slice 5. The
-model ran wholly on-GPU in bf16; extraction was seconds and generation was the
-costly stage. All necessary artifacts have been copied back locally, so the Pod
-may remain stopped or be terminated after the user is comfortable with the
-backup. Do not record SSH keys, tokens, host addresses, or ports in this repo.
-If a future Pod is used, store work under `/workspace`, use
-`HF_HOME=/workspace/.cache/huggingface`, and expect a new exposed SSH port after
-every restart/reset.
+**No pod is running.** Slice 5 used a 32 GB RTX 5090; Tier 2 used a 24 GB RTX
+4090 at $0.75/hr, because the 5090 was unavailable region-wide — including for
+pod migration, so do not plan around a specific GPU model. Before teardown, all
+12 pod artifacts were verified byte-identical to the local copies by SHA-256,
+not merely copied.
+
+Delete the **network volume** as well as the pod. It bills independently and
+survives pod deletion; that is the trap the previous teardown left behind.
+
+Do not record SSH keys, tokens, host addresses, or ports in this repo. If a
+future Pod is used, store work under `/workspace`, set
+`HF_HOME=/workspace/.cache/huggingface` for the token and
+`HF_HUB_CACHE=/root/.cache/huggingface/hub` for weights on the fast container
+disk, and expect a new exposed SSH port after every restart/reset. Pip on that
+image needs `--break-system-packages` (PEP 668). The repo is private, so ship it
+with `git archive` + `scp` rather than cloning with credentials.
 
 ### What remains
 
-See "Tier 2" below: the code for all three remaining items is written, frozen,
-and tested; only the GPU session itself is outstanding.
+**All experimental work in the plan is done.** Tier 1 and Tier 2 are complete;
+see the Tier 2 section below for results. What is left is paper assembly:
+figures, methods/results prose, limitations, and final reproducibility checks.
 
-The gap between the proposal's Experimental Setup and what exists is larger than
-the slice list suggests: the model scaling sweep (70B, Qwen2.5-7B/32B,
-Gemma-2/3) and the agentic / tool-use per-class results have not been started at
-all, and one of those two claims should be cut from the paper if they are not
-going to run. After Tier 2, the remaining work is paper assembly: figures,
-methods/results prose, limitations, and final reproducibility checks.
+One scope decision is outstanding and is now on the critical path. The
+proposal's Experimental Setup promises a model scaling sweep (70B,
+Qwen2.5-7B/32B, Gemma-2/3) **and** per-class agentic / tool-use results. Neither
+has been started and both cannot fit. Recommendation: cut the agentic/tool-use
+arm to future work, since it needs a dataset that does not exist; if any of the
+sweep runs, Qwen2.5-7B on `eval_shared` is about one pod-hour and answers the
+only question that matters there — whether the effect is Llama-specific.
 
-## Tier 2 (August 2026): code frozen, GPU session pending
+## Tier 2 (August 2026): COMPLETE
 
-`scripts/gpu_session_tier2.md` is the runbook. The compute call is a **Runpod
-RTX 5090 (32 GB)**, the same as slice 5: all three items are generation-bound
-(~1,750 greedy replies), the 8B fits wholly on-GPU in bf16 there, and the local
-5070 Ti would have to offload to system RAM. Estimated ~2.5 GPU-hours. The one
-prerequisite that needs a human is accepting the **gated LMSYS-Chat-1M terms**
-on the HF account that already has Llama access.
+`scripts/gpu_session_tier2.md` is the runbook. All three items ran on a Runpod
+RTX 4090 (24 GB) in roughly 2.5 GPU-hours, generation-bound as predicted
+(~1,750 greedy replies plus a 512-cap rerun). Any 24 GB+ card works; the 8B fits
+wholly on-GPU in bf16 there, while the local 5070 Ti would offload to system RAM.
+The one prerequisite that needed a human was accepting the **gated
+LMSYS-Chat-1M terms** on the HF account that already has Llama access.
 
 **Done already, locally, no GPU session needed.** Slice-1 8B activations now
 exist on the desktop (`results/slice1_Llama-3.1-8B-Instruct_acts.npz`), so the
@@ -1346,6 +1382,25 @@ confounds.
 - **Never trust a subagent's self-report.** Every writer so far reported
   accurate statistics and still missed cross-cell problems only visible by
   comparing cells. Audit the output.
+- **An exit code is not a result.** In the Tier 2 session `lmsys_prep` exited
+  **134 (core dumped) having fully succeeded** — it crashed in interpreter
+  teardown after writing its output — while the two steps that consumed its
+  output exited 0. Both readings are misleading in opposite directions. Check
+  the artifact: item counts, schema, and the recorded input hash.
+- **A regression test that has never failed has not been tested.** The first
+  test written for the cap-path fix mocked out the very function containing the
+  bug, so it passed against the broken code. Revert the fix, watch the test go
+  red, then restore. This takes a minute and is the only proof the test works.
+- **`pgrep -f <pattern>` matches the shell that contains the pattern**, including
+  the ssh command writing the script. A chain guarded that way waited on itself
+  and burned 20 minutes of idle rented GPU. Wait on a marker line in a log file.
+- **When you replace a background job, replace its watcher too.** A poller left
+  pointed at the killed chain's log could never fire and kept SSHing into a
+  torn-down pod for hours. Fixing the job and orphaning the observer is easy to
+  do twice in one session.
+- **Verify before deleting rented infrastructure.** SHA-256 every artifact on
+  the box against its local copy, and remember the **network volume bills
+  separately and survives pod deletion**.
 - **Match surface features per item within each source and cell**, never on the
   pooled aggregate. Slice 2b's headline was nearly lost to exactly this.
 - **Freeze batch inputs before spawning writers.** Regenerating them mid-run

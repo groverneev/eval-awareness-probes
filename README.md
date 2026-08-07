@@ -102,7 +102,7 @@ Cross-control transfer confirms that this is not unique to one construction:
 reverse reaches 0.788 versus BoW 0.564. The probe advantage is positive in
 both directions (+0.262 and +0.224 strength, respectively).
 
-**Slice 5 â€” deployment-simulation reconstruction pilot (n=50, 5 seeds).**
+**Slice 5 — deployment-simulation reconstruction pilot (n=50, 5 seeds).**
 We sampled real WildChat conversations that end in an assistant reply, then
 replaced only that final reply with a greedy on-policy Llama-3.1-8B generation.
 This provides exact provenance labels and a byte-identical prefix, with no
