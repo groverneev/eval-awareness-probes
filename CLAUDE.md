@@ -45,7 +45,7 @@ Full proposal, authors, and citations: `VNAA-Proposal.pdf`.
 
 - One slice at a time; finish and verify before moving on.
 - Ground claims in a concrete run before generalizing.
-- Correct him directly when he's wrong; he prefers that to hedging.
+- Correct him directly when he's wrong
 - Prose: brief, one job per sentence, minimal em dashes.
 - **No `Co-Authored-By: Claude` trailer or self-attribution in commits.**
 - Push commits to GitHub as part of finishing a unit of work.
