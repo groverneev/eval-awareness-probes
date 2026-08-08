@@ -52,7 +52,7 @@ Full proposal, authors, and citations: `VNAA-Proposal.pdf`.
 
 ## Environment
 
-Two machines; Windows desktop is primary as of August 2026.
+Windows desktop is primary
 
 **Windows desktop:** RTX 5070 Ti (16 GB VRAM, Blackwell sm_120), 64 GB RAM.
 System Python is 3.14 (too new for PyTorch) — always use `.venv\Scripts\python`
@@ -63,7 +63,7 @@ extraction at batch 1 is fine this way. Never 4-bit quantize (perturbs the
 measured activations). The 1B fits entirely in VRAM.
 
 **Mac (secondary):** M3, 16 GB unified memory, MPS not CUDA, same 3.14/3.12
-split. 8B doesn't fit; debug on the 1B.
+split. 8B doesn't fit
 
 Both: transformers 5.x — `output_hidden_states` still works, use `dtype=` not
 `torch_dtype=`, decoder layers return a bare tensor not a tuple (matters for
@@ -80,10 +80,9 @@ fine-grained token without "read access to public gated repos" gives 403 even
 after approval — the metadata endpoint returning 200 is not proof of file
 access.
 
-## Compute policy (Algoverse program)
+## Compute
 
-- **APIs cannot serve this project** — white-box probing needs hidden states,
-  no hosted endpoint returns them. Self-hosted open weights on a GPU only.
+- Neev doesn't have access to API
 - Free-tier GPUs (Kaggle, Lightning) cover everything that's just forward
   passes. Paid GPU is for the generation-heavy Tier 2 work (silence filter,
   steering) and would be for a scaling sweep, not routine inference.
@@ -295,6 +294,5 @@ containing real conversation text go to a scratch dir, never committed.
 
 Update as part of finishing each unit of work: new results, new decisions,
 changed status, new gotchas. Keep it to what a fresh agent actually needs —
-push long narrative/process detail to `VNAA-Proposal.pdf` or git history
-instead of accumulating it here. Never put SAD prompt text in this file (or
+remove any outdated/useless info. Never put SAD prompt text in this file (or
 anywhere else committed) — canary rule above.
