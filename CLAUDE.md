@@ -49,6 +49,9 @@ Full proposal, authors, and citations: `VNAA-Proposal.pdf`.
 - Ground claims in a concrete run before generalizing.
 - Correct assumptions directly when they are wrong.
 - Prose: brief, one job per sentence, minimal em dashes.
+- **Double-blind review:** Do not add contributor names, usernames, personal
+  repository handles, or other identifying information anywhere in repository
+  files.
 - **No `Co-Authored-By: Claude` trailer or self-attribution in commits.**
 - Push commits to GitHub as part of finishing a unit of work.
 
