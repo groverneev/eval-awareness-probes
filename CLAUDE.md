@@ -298,6 +298,9 @@ containing real conversation text go to a scratch dir, never committed.
 
 ## Maintaining this file
 
+Update `EXPERIMENT_REPORT.md` as part of any completed work that changes the
+experiment record, reported results, or conclusions.
+
 Update as part of finishing each unit of work: new results, new decisions,
 changed status, new gotchas. Keep it to what a fresh agent actually needs —
 remove any outdated/useless info. Never put SAD prompt text in this file (or
