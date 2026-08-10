@@ -71,6 +71,33 @@ def differing_final_messages(
         if pos[-1]["role"] != neg[-1]["role"]:
             raise ValueError(f"matched pair {index} has different final roles")
     return [final_message(c) for c in positive], [final_message(c) for c in negative]
+
+
+def differing_text_at_user_turn(
+    positive: list[list[dict]], negative: list[list[dict]], turn: int
+) -> tuple[list[str], list[str]]:
+    """Differing text available at one user-turn boundary in matched pairs.
+
+    Before the final turn there is no differing text, represented by an empty
+    string on both sides.  At the final turn, return only the two endings.  The
+    pair invariant is validated by ``differing_final_messages`` first.
+    """
+    final_pos, final_neg = differing_final_messages(positive, negative)
+    text_pos, text_neg = [], []
+    for index, (pos, neg) in enumerate(zip(positive, negative)):
+        pos_users = sum(m["role"] == "user" for m in pos)
+        neg_users = sum(m["role"] == "user" for m in neg)
+        if pos_users != neg_users:
+            raise ValueError(f"matched pair {index} has different user-turn counts")
+        if turn < 0 or turn >= pos_users:
+            raise IndexError(f"matched pair {index} has only {pos_users} user turns")
+        if turn == pos_users - 1:
+            text_pos.append(final_pos[index])
+            text_neg.append(final_neg[index])
+        else:
+            text_pos.append("")
+            text_neg.append("")
+    return text_pos, text_neg
 from vnaa.prep_slice3_batches import BATCH_DIR
 from vnaa.probe import fit_layer
 
@@ -177,9 +204,15 @@ def score_pair(acts_pos, acts_neg, txt_pos, txt_neg, seeds, test_frac):
         fmt.fit(np.array([format_features(t) for t in t_tr]), y_tr)
         out["format"].append(roc_auc_score(
             y_te, fmt.predict_proba(np.array([format_features(t) for t in t_te]))[:, 1]))
-        vec = CountVectorizer(lowercase=True, min_df=2)
-        bow = LogisticRegression(max_iter=2000).fit(vec.fit_transform(t_tr), y_tr)
-        out["bow"].append(roc_auc_score(y_te, bow.predict_proba(vec.transform(t_te))[:, 1]))
+        if any(t.strip() for t in t_tr):
+            vec = CountVectorizer(lowercase=True, min_df=2)
+            bow = LogisticRegression(max_iter=2000).fit(vec.fit_transform(t_tr), y_tr)
+            bow_scores = bow.predict_proba(vec.transform(t_te))[:, 1]
+        else:
+            # Identical-prefix controls have no differing causal text before
+            # the final turn.  An additive text baseline is exactly at chance.
+            bow_scores = np.zeros(len(t_te), dtype=float)
+        out["bow"].append(roc_auc_score(y_te, bow_scores))
         out["length"].append(roc_auc_score(
             y_te, np.array([len(t) for t in t_te], dtype=float)))
     return out
@@ -220,8 +253,15 @@ def analyze_trajectories(cells, seeds, test_frac):
                     if len(p) > turn and len(n) > turn]
             a_pos = np.stack([pos[i][turn] for i in keep])
             a_neg = np.stack([neg[i][turn] for i in keep])
-            t_pos = [through_user_turn(cells[pos_cell][i], turn) for i in keep]
-            t_neg = [through_user_turn(cells["deploy"][i], turn) for i in keep]
+            if pos_cell == "eval_shared":
+                selected_pos = [cells[pos_cell][i] for i in keep]
+                selected_neg = [cells["deploy"][i] for i in keep]
+                t_pos, t_neg = differing_text_at_user_turn(
+                    selected_pos, selected_neg, turn
+                )
+            else:
+                t_pos = [through_user_turn(cells[pos_cell][i], turn) for i in keep]
+                t_neg = [through_user_turn(cells["deploy"][i], turn) for i in keep]
             r = score_pair(a_pos, a_neg, t_pos, t_neg, seeds, test_frac)
             results[f"{pos_cell}|user_turn_{turn + 1}"] = {
                 **{k: (float(np.mean(v)), float(np.std(v))) for k, v in r.items()},
@@ -240,10 +280,14 @@ def analyze_trajectories(cells, seeds, test_frac):
                     if len(p) > offset and len(n) > offset]
             a_pos = np.stack([pos[i][-1 - offset] for i in keep])
             a_neg = np.stack([neg[i][-1 - offset] for i in keep])
-            if pos_cell == "eval_shared" and offset == 0:
+            if pos_cell == "eval_shared":
                 selected_pos = [cells[pos_cell][i] for i in keep]
                 selected_neg = [cells["deploy"][i] for i in keep]
-                t_pos, t_neg = differing_final_messages(selected_pos, selected_neg)
+                if offset == 0:
+                    t_pos, t_neg = differing_final_messages(selected_pos, selected_neg)
+                else:
+                    t_pos = [""] * len(keep)
+                    t_neg = [""] * len(keep)
             else:
                 t_pos = [through_user_turn(cells[pos_cell][i], len(pos[i]) - 1 - offset)
                          for i in keep]
@@ -286,6 +330,9 @@ def cmd_analyze(args: argparse.Namespace) -> None:
                 t_pos, t_neg = differing_final_messages(
                     cells[pos_cell], cells["deploy"]
                 )
+            elif pos_cell == "eval_shared":
+                t_pos = [""] * len(cells[pos_cell])
+                t_neg = [""] * len(cells["deploy"])
             else:
                 fn = first_user if rp == "post_instruction_token" else serialize
                 t_pos = [fn(c) for c in cells[pos_cell]]

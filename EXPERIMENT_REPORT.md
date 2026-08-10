@@ -129,7 +129,7 @@ For multi-turn analyses, surface text is causal: a baseline never sees text afte
 
 - the differing final user text for `last_user_token` and `final_turn_mean` in Slice 3 matched pairs;
 - the first user text for `post_instruction_token`;
-- the causal text through the user turn at other trajectory offsets;
+- only the differing causal segment at trajectory positions (empty before the final turn, the differing message at the final turn);
 - the differing final assistant reply for Slice 5 matched pairs.
 
 This differing-segment rule was applied in an August 9, 2026 audit after the initial whole-conversation baselines were found to include matched-prefix noise. It changes only the text baselines, not the activation-probe scores.
@@ -929,7 +929,7 @@ This map lists the paper-relevant implementation rather than every operational f
 
 ### Verification
 
-The current test suite contains 89 passing tests covering probes, estimator splitting, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
+The current test suite contains 90 passing tests covering probes, estimator splitting, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
 
 ## 8. Recommended paper-level summary
 

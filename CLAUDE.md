@@ -15,7 +15,7 @@ Slices 1, 2, 3, and 5 are complete on Llama-3.1-8B (slice 5 includes the
 model-swap/context-ablation decomposition and an LMSYS-Chat-1M replication).
 Tier 2 is done: steering, the `eval_shared` silence filter (+ 512-token cap
 sensitivity check), and the LMSYS replication, all run on a rented Runpod 4090.
-Local test suite: 89/89 passing after the matched-prefix baseline correction.
+Local test suite: 90/90 passing after the matched-prefix baseline correction.
 
 **What's left is paper assembly** (figures, methods/results prose,
 limitations) plus one open scope decision below. No GPU pod is currently

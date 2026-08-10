@@ -43,7 +43,15 @@ from vnaa.estimators import (
 from vnaa.extract import ASSISTANT_READ_POINTS, READ_POINTS
 from vnaa.gate_slice3 import serialize
 from vnaa.probe import fit_layer
-from vnaa.run_slice3 import MODEL_TAG, RESULTS, acts_path, first_user, load_cells, split
+from vnaa.run_slice3 import (
+    MODEL_TAG,
+    RESULTS,
+    acts_path,
+    differing_final_messages,
+    first_user,
+    load_cells,
+    split,
+)
 
 Contrast = tuple[np.ndarray, np.ndarray, list[str], list[str]]
 
@@ -71,9 +79,15 @@ def slice3_contrast(cells, cell: str, read_point: str,
                     mask: np.ndarray | None = None) -> Contrast:
     pos = np.load(acts_path(cell, read_point))["acts"].astype(np.float64)
     neg = np.load(acts_path("deploy", read_point))["acts"].astype(np.float64)
-    view = text_view(read_point)
-    txt_pos = [view(c) for c in cells[cell]]
-    txt_neg = [view(c) for c in cells["deploy"]]
+    if cell == "eval_shared" and read_point != "post_instruction_token":
+        txt_pos, txt_neg = differing_final_messages(cells[cell], cells["deploy"])
+    elif cell == "eval_shared":
+        txt_pos = [""] * len(cells[cell])
+        txt_neg = [""] * len(cells["deploy"])
+    else:
+        view = text_view(read_point)
+        txt_pos = [view(c) for c in cells[cell]]
+        txt_neg = [view(c) for c in cells["deploy"]]
     if mask is not None:
         pos, neg = pos[mask], neg[mask]
         txt_pos = [t for t, keep in zip(txt_pos, mask) if keep]
@@ -88,9 +102,11 @@ def coherent_contrast(read_point: str, mask: np.ndarray | None = None) -> Contra
     cells = load_pairs(DEFAULT_DATASET)
     pos = np.load(path(TAG, "eval", read_point))["acts"].astype(np.float64)
     neg = np.load(path(TAG, "deploy", read_point))["acts"].astype(np.float64)
-    view = text_view(read_point)
-    txt_pos = [view(c) for c in cells["eval"]]
-    txt_neg = [view(c) for c in cells["deploy"]]
+    if read_point == "post_instruction_token":
+        txt_pos = [""] * len(cells["eval"])
+        txt_neg = [""] * len(cells["deploy"])
+    else:
+        txt_pos, txt_neg = differing_final_messages(cells["eval"], cells["deploy"])
     if mask is not None:
         pos, neg = pos[mask], neg[mask]
         txt_pos = [t for t, keep in zip(txt_pos, mask) if keep]
@@ -125,9 +141,10 @@ def slice5_contrast(tag: str, dataset: Path, reconstructions: Path,
     pos = np.load(s5_acts_path(tag, "resampled", read_point))["acts"].astype(np.float64)[keep]
     neg = np.load(s5_acts_path(genuine_tag or tag, "genuine", read_point))[
         "acts"].astype(np.float64)[keep]
+    rebuilt_text, genuine_text = differing_final_messages(rebuilt, genuine)
     return (pos, neg,
-            [serialize(c) for c, k in zip(rebuilt, keep) if k],
-            [serialize(c) for c, k in zip(genuine, keep) if k])
+            [t for t, k in zip(rebuilt_text, keep) if k],
+            [t for t, k in zip(genuine_text, keep) if k])
 
 
 def score_contrast(contrast: Contrast, seeds, test_frac, n_shuffles, n_draws,

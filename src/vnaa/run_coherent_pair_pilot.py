@@ -18,7 +18,6 @@ from vnaa.run_slice3 import (
     MODEL_TAG,
     RESULTS,
     differing_final_messages,
-    first_user,
     score_pair,
 )
 
@@ -59,8 +58,8 @@ def analyze(args) -> None:
         pos = np.load(path(args.tag, "eval", rp))["acts"].astype(np.float64)
         neg = np.load(path(args.tag, "deploy", rp))["acts"].astype(np.float64)
         if rp == "post_instruction_token":
-            text_pos = [first_user(c) for c in cells["eval"]]
-            text_neg = [first_user(c) for c in cells["deploy"]]
+            text_pos = [""] * len(cells["eval"])
+            text_neg = [""] * len(cells["deploy"])
         else:
             text_pos, text_neg = differing_final_messages(
                 cells["eval"], cells["deploy"]
