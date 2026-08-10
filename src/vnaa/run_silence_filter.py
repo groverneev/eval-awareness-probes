@@ -29,8 +29,6 @@ from vnaa.run_coherent_pair_pilot import load_cells as load_coherent_cells, path
 from vnaa.run_slice3 import (
     MODEL_TAG, RESULTS, acts_path, score_pair, load_cells as load_slice3_cells,
 )
-from vnaa.gate_slice3 import serialize
-
 TAG = "coherent_pairs"
 DEFAULT_DATASET = Path("datasets/slice3/coherent_pairs/validated.json")
 RESPONSES = RESULTS / f"s3_{MODEL_TAG}_{TAG}_greedy_responses.json"
@@ -279,10 +277,13 @@ def analyze(args) -> None:
     pos_path, neg_path = CELLS[args.cell]["acts"]()
     pos = np.load(pos_path)["acts"].astype(np.float64)[keep]
     neg = np.load(neg_path)["acts"].astype(np.float64)[keep]
+    from vnaa.run_slice3 import differing_final_messages
+
+    text_pos, text_neg = differing_final_messages(cells["eval"], cells["deploy"])
     result = score_pair(
         pos, neg,
-        [serialize(c) for c, chosen in zip(cells["eval"], keep) if chosen],
-        [serialize(c) for c, chosen in zip(cells["deploy"], keep) if chosen],
+        [t for t, chosen in zip(text_pos, keep) if chosen],
+        [t for t, chosen in zip(text_neg, keep) if chosen],
         args.seeds, args.test_frac,
     )
     summary = {key: {"mean": float(np.mean(values)), "sd": float(np.std(values))}
@@ -294,7 +295,9 @@ def analyze(args) -> None:
         "n_deploy_explicit_awareness": int(sum(x["deploy_explicit_awareness"] for x in labels)),
         "n_indeterminate_capped_pairs": int((~terminated).sum()),
         "n_removed_pairs": int((~keep).sum()), "read_point": "last_user_token",
-        "cell": args.cell, "results": summary, "per_seed": result,
+        "cell": args.cell,
+        "paired_surface_text_view": "differing_final_message_only",
+        "results": summary, "per_seed": result,
     }
     out = (RESULTS
            / f"s3_{MODEL_TAG}_{run_slug(args.cell, args.max_new_tokens)}"

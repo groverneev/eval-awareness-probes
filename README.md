@@ -40,18 +40,18 @@ field actually uses, activations transfer *worse* than word counts.
 
 **Slice 3 — multi-turn.** `eval_shared` (deploy conversation, final user turn
 swapped for a benchmark question, byte-identical prefix) is exactly chance
-before the swap and **0.995** at the final turn, a **+0.226** margin over
-bag-of-words. The matched-coherence control repairs its topic-shift caveat
-and reaches **0.951 ± 0.011** (+0.099 over BoW) with a naturally-continuing
-final question. Both controls' silence-filtered subsets (responses that never
-verbalize awareness, confirmed by a blinded judge with planted controls) hold:
-0.937 and 0.998 respectively.
+before the swap and **0.992** at the final turn. With the identical prefix
+removed from additive baselines, final-turn BoW reaches 0.935, leaving a
+**+0.057** margin. The matched-coherence control reaches **0.951 ± 0.011**
+versus final-turn BoW 0.933 (+0.018). On silence-filtered subsets, matched
+coherence is tied by BoW (0.937 vs 0.935), while `eval_shared` retains a modest
+advantage (0.991 vs 0.946 at the 512-token cap).
 
 **Slice 5 — deployment-simulation reconstruction.** Real WildChat/LMSYS
 conversations with only the final assistant reply regenerated give exact
-provenance labels. Probe reaches 0.792–0.822 vs a format baseline of ~0.67–0.68.
-A model-swap vs context-ablation decomposition shows the effect isn't
-attributable to the probed model's own authorship.
+provenance labels. Probe reaches 0.792–0.822 vs a reply-only format baseline
+of 0.774. Model-swap and context-ablation controls show the effect is not
+specific self-authorship and that reply surface form explains much of it.
 
 **Steering (pre-specified before any steered output existed).** Manipulation
 check passes; self-report shifts strongly (0.139 → 0.889 across the

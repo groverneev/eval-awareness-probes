@@ -14,7 +14,13 @@ from pathlib import Path
 import numpy as np
 
 from vnaa.extract import READ_POINTS
-from vnaa.run_slice3 import MODEL_TAG, RESULTS, first_user, score_pair
+from vnaa.run_slice3 import (
+    MODEL_TAG,
+    RESULTS,
+    differing_final_messages,
+    first_user,
+    score_pair,
+)
 
 PILOT = Path("datasets/slice3/coherent_pair_pilot/validated.json")
 
@@ -47,23 +53,32 @@ def extract(args) -> None:
 
 
 def analyze(args) -> None:
-    from vnaa.gate_slice3 import serialize
-
     cells = load_cells(args.dataset)
     results = {}
     for rp in READ_POINTS:
         pos = np.load(path(args.tag, "eval", rp))["acts"].astype(np.float64)
         neg = np.load(path(args.tag, "deploy", rp))["acts"].astype(np.float64)
-        fn = first_user if rp == "post_instruction_token" else serialize
-        result = score_pair(pos, neg, [fn(c) for c in cells["eval"]],
-                            [fn(c) for c in cells["deploy"]], args.seeds, args.test_frac)
+        if rp == "post_instruction_token":
+            text_pos = [first_user(c) for c in cells["eval"]]
+            text_neg = [first_user(c) for c in cells["deploy"]]
+        else:
+            text_pos, text_neg = differing_final_messages(
+                cells["eval"], cells["deploy"]
+            )
+        result = score_pair(
+            pos, neg, text_pos, text_neg, args.seeds, args.test_frac
+        )
         results[rp] = {k: (float(np.mean(v)), float(np.std(v))) for k, v in result.items()}
     for rp, r in results.items():
         print(f"{rp:<24} probe {r['probe'][0]:.3f}+/-{r['probe'][1]:.3f} "
               f"bow {r['bow'][0]:.3f}+/-{r['bow'][1]:.3f} "
               f"format {r['format'][0]:.3f}+/-{r['format'][1]:.3f}")
     out = RESULTS / f"s3_{MODEL_TAG}_{args.tag}_analysis.json"
-    json.dump({"n": len(cells["eval"]), "results": results}, open(out, "w"), indent=2)
+    json.dump({
+        "n": len(cells["eval"]),
+        "paired_surface_text_view": "differing_final_message_only",
+        "results": results,
+    }, open(out, "w"), indent=2)
     print(f"saved {out}")
 
 

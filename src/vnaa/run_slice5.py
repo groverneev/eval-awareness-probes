@@ -19,9 +19,8 @@ import numpy as np
 import torch
 
 from vnaa.extract import ASSISTANT_READ_POINTS, extract_activations, load_model
-from vnaa.gate_slice3 import serialize
 from vnaa.run_silence_filter import atomic_json, greedy_reply
-from vnaa.run_slice3 import MODEL_TAG, RESULTS, score_pair
+from vnaa.run_slice3 import MODEL_TAG, RESULTS, differing_final_messages, score_pair
 
 DATASET = Path("data/slice5_genuine.json")
 RECONSTRUCTIONS = Path("data/slice5_reconstructed.json")
@@ -136,17 +135,26 @@ def analyze(args) -> None:
     print(f"naturally terminated pairs: {keep.sum()}/{len(keep)}")
     output = {
         "tag": args.tag,
+        "genuine_activations_tag": args.genuine_tag or args.tag,
         "n_total_pairs": len(keep),
         "n_naturally_terminated_pairs": int(keep.sum()),
+        "paired_surface_text_view": "differing_final_message_only",
         "read_points": {},
     }
     for read_point in ASSISTANT_READ_POINTS:
-        original = np.load(acts_path(args.tag, "genuine", read_point))["acts"].astype(np.float64)[keep]
+        original = np.load(
+            acts_path(args.genuine_tag or args.tag, "genuine", read_point)
+        )["acts"].astype(np.float64)[keep]
         resampled = np.load(acts_path(args.tag, "resampled", read_point))["acts"].astype(np.float64)[keep]
-        result = score_pair(resampled, original,
-                            [serialize(c) for c, k in zip(rebuilt, keep) if k],
-                            [serialize(c) for c, k in zip(genuine, keep) if k],
-                            args.seeds, args.test_frac)
+        rebuilt_text, genuine_text = differing_final_messages(rebuilt, genuine)
+        result = score_pair(
+            resampled,
+            original,
+            [t for t, k in zip(rebuilt_text, keep) if k],
+            [t for t, k in zip(genuine_text, keep) if k],
+            args.seeds,
+            args.test_frac,
+        )
         summary = {key: (float(np.mean(value)), float(np.std(value))) for key, value in result.items()}
         surfaces = {key: summary[key][0] for key in ("bow", "format", "length")}
         best_surface, surface_auroc = max(surfaces.items(), key=lambda item: abs(item[1] - .5))
@@ -184,6 +192,7 @@ def compare(args) -> None:
         "right_tag": args.right_tag,
         "n_total_pairs": len(keep),
         "n_shared_naturally_terminated_pairs": int(keep.sum()),
+        "paired_surface_text_view": "differing_final_message_only",
         "read_points": {},
     }
     for read_point in ASSISTANT_READ_POINTS:
@@ -194,10 +203,11 @@ def compare(args) -> None:
             ("right", args.right_tag, right_rebuilt),
         ):
             replacement = np.load(acts_path(tag, "resampled", read_point))["acts"].astype(np.float64)[keep]
+            rebuilt_text, genuine_text = differing_final_messages(rebuilt, genuine)
             result = score_pair(
                 replacement, original,
-                [serialize(c) for c, chosen in zip(rebuilt, keep) if chosen],
-                [serialize(c) for c, chosen in zip(genuine, keep) if chosen],
+                [t for t, chosen in zip(rebuilt_text, keep) if chosen],
+                [t for t, chosen in zip(genuine_text, keep) if chosen],
                 args.seeds, args.test_frac,
             )
             summary = {key: (float(np.mean(value)), float(np.std(value))) for key, value in result.items()}
@@ -242,6 +252,11 @@ def main() -> None:
     ana.add_argument("--reconstructions", type=Path, default=RECONSTRUCTIONS)
     ana.add_argument("--tag", default=DEFAULT_TAG,
                      help="cache namespace matching the extraction run")
+    ana.add_argument(
+        "--genuine-tag",
+        default=None,
+        help="tag holding shared genuine activations when this tag cached only replacements",
+    )
     ana.add_argument("--seeds", type=int, nargs="+", default=[0, 1, 2, 3, 4])
     ana.add_argument("--test-frac", type=float, default=.3)
     ana.add_argument("--min-pairs", type=int, default=30)

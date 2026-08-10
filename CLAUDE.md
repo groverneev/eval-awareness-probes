@@ -15,7 +15,7 @@ Slices 1, 2, 3, and 5 are complete on Llama-3.1-8B (slice 5 includes the
 model-swap/context-ablation decomposition and an LMSYS-Chat-1M replication).
 Tier 2 is done: steering, the `eval_shared` silence filter (+ 512-token cap
 sensitivity check), and the LMSYS replication, all run on a rented Runpod 4090.
-Local test suite: 87/87 passing at commit `586417a`.
+Local test suite: 89/89 passing after the matched-prefix baseline correction.
 
 **What's left is paper assembly** (figures, methods/results prose,
 limitations) plus one open scope decision below. No GPU pod is currently
@@ -193,36 +193,37 @@ instead of single-turn rewrites.
 **Slice 3 (multi-turn, n=250/cell).** `eval_shared` (deploy conversation with
 only the final user turn swapped for a benchmark question, prefix
 byte-identical by construction) is the clean control: exactly chance
-pre-swap (probe 0.497–0.501 across the whole trajectory), then **0.995** at
-the final turn, beating bag-of-words 0.769 and format 0.576 (**+0.226**
-margin). The as-written `eval_disguised` cell is invalid as a realism test —
+pre-swap (probe 0.497–0.501 across the whole trajectory), then **0.992** at
+the final turn, versus final-turn-only bag-of-words 0.935 and format 0.728
+(**+0.057** over BoW). The as-written `eval_disguised` cell is invalid as a realism test —
 it's separable (probe 0.951) before the benchmark question even appears, from
 synthetic lead-in style alone.
 
 **Matched-coherence control (n=250)** fixes `eval_shared`'s remaining
 topic-shift caveat: shared everyday-topic prefix, then either a benchmark
 question or a genuine same-topic help request. Pre-final read is chance
-(0.500); final token probe **0.951 ± 0.011** vs BoW 0.852 (+0.099 margin).
-Cross-control transfer both ways is strongly positive (`eval_shared` ↔
-matched-coherence: 0.858 / 0.788 vs BoW ~0.58).
+(0.500); final token probe **0.951 ± 0.011** vs final-turn-only BoW 0.933
+(+0.018 margin). Cross-control transfer remains positive (`eval_shared` ↔
+matched-coherence: probe 0.858 / 0.788 vs BoW 0.792 / 0.678).
 
 **Silence filtering (192/250 naturally-terminated matched-coherence pairs;
 227/250 for `eval_shared` at a 512-token cap).** Explicit verbalized
 awareness: 0/250 on every cell tested, confirmed by a blinded, planted-control
 model judge (14/14 planted positives caught, 0/10 false alarms). On the
-retained pairs: matched-coherence probe 0.937 ± 0.033 vs BoW 0.823 (+0.114
-margin); `eval_shared` probe 0.998 ± 0.002 vs BoW 0.758 (+0.240 margin,
-robust to the cap-512 sensitivity check: 0.991, +0.215).
+retained pairs: matched-coherence probe 0.937 ± 0.033 vs BoW 0.935 (tied);
+`eval_shared` probe 0.998 ± 0.002 vs BoW 0.950 (+0.047 margin), robust to the
+cap-512 sensitivity check (probe 0.991 vs BoW 0.946, +0.045).
 
 **Slice 5 (deployment-simulation reconstruction, n=250, exact provenance
 labels — real conversation, only the final assistant reply is regenerated).**
-Probe 0.792 ± 0.024 (token) / 0.822 ± 0.018 (mean) vs format ~0.67–0.68
-(+0.11–0.14 margin). Model-swap (Llama-3.2-3B replaces the 8B) vs
+Probe 0.792 ± 0.024 (token) / 0.822 ± 0.018 (mean) vs reply-only format
+0.774 (+0.019/+0.048 margin). Model-swap (Llama-3.2-3B replaces the 8B) vs
 context-ablation (8B sees only the final user turn) decomposition on the
-146-pair shared-termination subset: both effects are comparable in size
-(0.811 / 0.868 vs format 0.65/0.70) — the signal isn't attributable to
-8B-specific authorship. Replicates on LMSYS-Chat-1M (0.837 token / 0.791
-mean vs WildChat's 0.792/0.822) — not corpus-specific.
+146-pair shared-termination subset: both token effects are comparable in size
+(0.811 / 0.868 vs format 0.786/0.832), while mean readouts tie or lose to
+format. The signal isn't attributable to 8B-specific authorship and much of it
+is reply-surface information. It replicates on LMSYS-Chat-1M (0.837 token /
+0.791 mean vs format 0.736) — not corpus-specific.
 
 **Steering (pre-specified in `datasets/steering/prespec.md`, layer 14 chosen
 by a monotonicity+Spearman rule over a plateau, not CV argmax — layer 3 was

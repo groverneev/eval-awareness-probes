@@ -114,7 +114,7 @@ Copy back `results/s3_*_eval_shared_greedy_responses.json`, then on the desktop:
 ```
 
 Compare against the matched-coherence cell: 192/250 silent pairs, probe
-0.937 +/- 0.033, BoW 0.823, format 0.567. A much lower cap-hit count is expected
+0.937 +/- 0.033, final-turn-only BoW 0.935, format 0.698. A much lower cap-hit count is expected
 here, since `eval_shared` questions are benchmark items with short answers.
 
 ## Item 2 — steering (~1 hour)

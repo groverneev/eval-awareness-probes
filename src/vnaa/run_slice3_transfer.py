@@ -13,10 +13,15 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from vnaa.baselines import format_features
-from vnaa.gate_slice3 import serialize
 from vnaa.probe import fit_layer
 from vnaa.run_coherent_pair_pilot import load_cells as load_coherent, path as coherent_path
-from vnaa.run_slice3 import MODEL_TAG, acts_path, load_cells as load_slice3, split
+from vnaa.run_slice3 import (
+    MODEL_TAG,
+    acts_path,
+    differing_final_messages,
+    load_cells as load_slice3,
+    split,
+)
 
 RESULTS = Path("results")
 READ_POINT = "last_user_token"
@@ -57,8 +62,12 @@ def run_direction(source, target, seed, test_frac):
 
     xte = np.r_[bp[tp_te], bn[tn_te]]
     yte = np.r_[np.ones(len(tp_te)), np.zeros(len(tn_te))]
-    source_text = [serialize(pos[i]) for i in sp_tr] + [serialize(neg[i]) for i in sn_tr]
-    target_text = [serialize(tp[i]) for i in tp_te] + [serialize(tn[i]) for i in tn_te]
+    source_pos_text, source_neg_text = differing_final_messages(pos, neg)
+    target_pos_text, target_neg_text = differing_final_messages(tp, tn)
+    source_text = ([source_pos_text[i] for i in sp_tr]
+                   + [source_neg_text[i] for i in sn_tr])
+    target_text = ([target_pos_text[i] for i in tp_te]
+                   + [target_neg_text[i] for i in tn_te])
     vec = CountVectorizer(lowercase=True, min_df=2)
     bow = LogisticRegression(max_iter=2000).fit(vec.fit_transform(source_text), ytr)
     fmt = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000))
@@ -89,7 +98,12 @@ def main():
         margin = np.abs([v["probe"] - .5 for v in vals]) - np.abs([v["bow"] - .5 for v in vals])
         print(f"  probe-BoW strength margin {margin.mean():+.3f} +/- {margin.std():.3f}")
     out = RESULTS / f"s3_{MODEL_TAG}_cross_control_transfer.json"
-    json.dump({"seeds": args.seeds, "read_point": READ_POINT, "directions": rows}, open(out, "w"), indent=2)
+    json.dump({
+        "seeds": args.seeds,
+        "read_point": READ_POINT,
+        "paired_surface_text_view": "differing_final_message_only",
+        "directions": rows,
+    }, open(out, "w"), indent=2)
     print(f"saved {out}")
 
 

@@ -30,9 +30,9 @@ The next phase audited an existing public 2×2 dataset and built a new four-cell
 The multi-turn phase first created matched deployment, disguised-evaluation, and obvious-evaluation conversations. Its surface gate also failed, and the disguised-evaluation lead-ins themselves leaked the label before the final question. That version is not a clean awareness result. Two stronger controls were then built:
 
 - `eval_shared` retained a real-derived deployment conversation and changed only the final user turn to an evaluation question. Its prefix was byte-identical between classes. The probe was at chance before the changed turn (`0.49847 ± 0.00111`) and highly separating after it (`0.99168 ± 0.00330` at the last-user boundary). This is a strong temporal-localization control, but the final turn also changes topic and speech act.
-- `coherent_pairs` constructed both sides together so that the prefix was byte-identical and the two final turns were topically coherent and stylistically matched. At the last-user boundary, the probe achieved `0.95132 ± 0.01147`, compared with bag-of-words `0.85212 ± 0.01164` and the format baseline `0.57865 ± 0.01004`. Before the final turn, all methods were at chance. Directions also transferred in both directions between the `eval_shared` and `coherent_pairs` constructions.
+- `coherent_pairs` constructed both sides together so that the prefix was byte-identical and the two final turns were topically coherent and stylistically matched. At the last-user boundary, the probe achieved `0.95132 ± 0.01147`, compared with the stronger final-turn-only bag-of-words baseline at `0.93337 ± 0.00680` and format baseline at `0.69899 ± 0.03916`. Before the final turn, all methods were at chance. The activation advantage is therefore small in-distribution, although activation directions still transfer better than the corresponding final-turn text baselines between the two controls.
 
-To test whether the internal separation remained when the model did not say it was in an evaluation, the model generated greedy replies and pairs were kept only when both replies terminated and neither a regex, two-stage blinded judge procedure, nor manual audit found explicit or implicit evaluation awareness. The signal remained high in the retained pairs. This is correctly described as separation conditional on observed silence; it is not proof that the model lacked unexpressed awareness, and the termination filter changes the analyzed population.
+To test whether the internal separation remained when the model did not say it was in an evaluation, the model generated greedy replies and pairs were kept only when both replies terminated and neither a regex, two-stage blinded judge procedure, nor manual audit found explicit or implicit evaluation awareness. Raw activation separation remained high, but the corrected final-turn bag-of-words baseline tied it on matched-coherence and came within about `0.045` strength on `eval_shared`. This is correctly described as separation conditional on observed silence, not proof that the model lacked unexpressed awareness or that the remaining separation is nonlexical.
 
 Slice 5 asked a different question: can the model distinguish a genuine assistant reply from a reply resampled by a model and inserted into the same conversation? It could. However, the signal remained when a different model generated the replacement and became at least as strong when the generator saw only the final user turn. The result is therefore evidence of reply provenance/context consistency, not specifically self-recognition or evaluation awareness.
 
@@ -125,11 +125,14 @@ Every important activation result is compared with classifiers using only prompt
 
 The important comparison is normally not “probe above chance.” It is the probe’s separation strength minus the strongest relevant surface baseline on exactly the same split. This was necessary because several legitimate eval/deploy differences, such as canonical-answer questions versus practical requests, cannot be removed without changing the construct.
 
-For multi-turn analyses, the surface text supplied to a baseline matches what was visible at the corresponding read point:
+For multi-turn analyses, surface text is causal: a baseline never sees text after the corresponding activation read point. For an ordinary, non-paired conversation this means the full serialized conversation through that point. For a byte-identical-prefix matched pair, however, the primary baseline uses only the differing final message. The shared prefix occurs exactly once under each label, contains no population-level label signal for an additive classifier, and can only add finite-sample estimation noise. Thus:
 
-- the final user text for `last_user_token` and `final_turn_mean`;
+- the differing final user text for `last_user_token` and `final_turn_mean` in Slice 3 matched pairs;
 - the first user text for `post_instruction_token`;
-- the user turn at the corresponding trajectory offset.
+- the causal text through the user turn at other trajectory offsets;
+- the differing final assistant reply for Slice 5 matched pairs.
+
+This differing-segment rule was applied in an August 9, 2026 audit after the initial whole-conversation baselines were found to include matched-prefix noise. It changes only the text baselines, not the activation-probe scores.
 
 ### 2.5 Transfer analysis
 
@@ -475,26 +478,26 @@ Current train-only reanalysis gives:
 
 | Read point | Probe AUROC, mean ± SD | BoW AUROC | Format AUROC | Length AUROC |
 |---|---:|---:|---:|---:|
-| Final user boundary | `0.99168 ± 0.00330` | 0.76889 | 0.57593 | 0.51397 |
+| Final user boundary | `0.99168 ± 0.00330` | 0.93504 | 0.72754 | 0.56539 |
 | After first user / pre-change | `0.49847 ± 0.00111` | 0.50000 | 0.50000 | 0.50000 |
-| Final-turn mean | `0.99492 ± 0.00432` | 0.76889 | 0.57593 | 0.51397 |
+| Final-turn mean | `0.99492 ± 0.00432` | 0.93504 | 0.72754 | 0.56539 |
 
-The strength margin over bag-of-words is `0.22279` at the final boundary and `0.22603` for the final-turn mean.
+The strength margin over the stronger final-turn-only bag-of-words baseline is `0.05664` at the final boundary and `0.05988` for the final-turn mean.
 
 The end-aligned trajectory confirms the localization:
 
 | User-turn offset from end | Available pairs | Probe AUROC, mean ± SD | Text baselines |
 |---:|---:|---:|---:|
-| 0, final turn | 250 | `0.99168 ± 0.00330` | BoW 0.76889; format 0.57593 |
+| 0, final turn | 250 | `0.99168 ± 0.00330` | BoW 0.93504; format 0.72754 |
 | 1 | 250 | `0.49749 ± 0.00176` | all 0.50000 |
 | 2 | 145 | `0.50031 ± 0.00019` | all 0.50000 |
 | 3 | 61 | `0.50031 ± 0.00116` | all 0.50000 |
 
 This is strong evidence that the separation was introduced by the final turn, rather than by conversation length, generic prefix style, or a pre-existing class difference. Its limitation is equally specific: swapping in a benchmark question can introduce a topic or discourse discontinuity. The control localizes the signal, but does not prove the signal means evaluation rather than “unexpected canonical-answer question after this prefix.”
 
-### Saved-result audit: the older Slice 3 headline
+### Saved-result audit and corrected surface view
 
-The saved file `results/s3_Llama-3.1-8B-Instruct_analysis.json` was generated before commit `8921fa2`, which corrected layer-selection leakage. The older analysis selected the best layer on the held-out test curve and produced a headline around `0.995` for `eval_shared`. The values immediately above were recomputed with the current train-only selection logic from the same saved activation arrays and should be used in the paper. The old artifact is retained as historical output, not as the authoritative inferential result.
+An older version of `results/s3_Llama-3.1-8B-Instruct_analysis.json` selected the best layer on the held-out curve and produced a headline around `0.995`. Commit `8921fa2` corrected layer selection. On August 9, 2026, the analysis was rerun again after auditing the matched-prefix surface view: activation values remained unchanged, but surface baselines now use only the differing final message. The current artifact records `paired_surface_text_view: differing_final_message_only` and is authoritative; older whole-conversation BoW values such as `0.76889` for `eval_shared` are historical, weaker baselines.
 
 ### First coherence attempt: completed but rejected
 
@@ -514,17 +517,17 @@ This sacrifices the realism of a genuinely sourced prefix in exchange for strong
 
 ### Pilot and full results
 
-The 50-pair pilot gave last-user AUROC `1.000`, bag-of-words `0.887`, format `0.573`, and pre-final probe AUROC `0.497`. The temporal prediction therefore held before scaling.
+The 50-pair pilot gave last-user AUROC `0.99733`, final-turn-only bag-of-words `0.96533`, format `0.67244`, and pre-final probe AUROC `0.50044`. The temporal prediction held before scaling, but the stronger lexical baseline accounted for most of the final-turn separation.
 
 On all 250 pairs, current train-only results were:
 
 | Read point | Probe AUROC, mean ± SD | BoW | Format | Probe − strongest surface strength | Mean selected layer |
 |---|---:|---:|---:|---:|---:|
-| Final user boundary | `0.95132 ± 0.01147` | `0.85212 ± 0.01164` | `0.57865 ± 0.01004` | `0.09920` | 5 |
+| Final user boundary | `0.95132 ± 0.01147` | `0.93337 ± 0.00680` | `0.69899 ± 0.03916` | `0.01796` | 5 |
 | After first user / pre-change | `0.49902 ± 0.00152` | 0.50000 | 0.50000 | approximately 0 | — |
-| Final-turn mean | `0.93593 ± 0.01490` | `0.85212 ± 0.01164` | `0.57865 ± 0.01004` | `0.08380` | 0 |
+| Final-turn mean | `0.93593 ± 0.01490` | `0.93337 ± 0.00680` | `0.69899 ± 0.03916` | `0.00256` | 0 |
 
-The last-user-boundary result is the decisive one. The final-turn-mean analysis selects layer 0, meaning that its best separation is available directly in averaged token embeddings and is therefore substantially lexical. It should not be presented as a deep contextual effect.
+The last-user-boundary activation score remains high, but the final-turn-only lexical baseline nearly matches it. The final-turn-mean analysis also selects layer 0, meaning that its best separation is available directly in averaged token embeddings. These in-distribution results should therefore be described as largely lexical, with only a small residual activation margin.
 
 ### Transfer between the two multi-turn controls
 
@@ -532,10 +535,10 @@ The two controls were built by different procedures and have different weaknesse
 
 | Source direction → target | Probe AUROC, mean ± SD | BoW | Format | Probe − BoW strength |
 |---|---:|---:|---:|---:|
-| `eval_shared` → `coherent_pairs` | `0.85842 ± 0.03207` | `0.59673 ± 0.01437` | 0.48848 | 0.26169 |
-| `coherent_pairs` → `eval_shared` | `0.78791 ± 0.09936` | `0.56430 ± 0.01950` | 0.52302 | 0.22361 |
+| `eval_shared` → `coherent_pairs` | `0.85842 ± 0.03207` | `0.79154 ± 0.02343` | 0.61963 | 0.06688 |
+| `coherent_pairs` → `eval_shared` | `0.78791 ± 0.09936` | `0.67847 ± 0.04641` | 0.57931 | 0.10944 |
 
-These are completely independent constructions, so this is among the cleaner pieces of evidence for a shared internal direction. The substantial seed variation in the coherent-to-shared direction should still be visible in any paper table rather than hidden behind its mean.
+These are completely independent constructions. The activation direction still transfers better than final-turn word counts, but the corrected margins are much smaller than under the noisy whole-conversation baseline. This supports some shared representation beyond unigram counts, not a large lexical-independent effect. The substantial seed variation in the coherent-to-shared direction should remain visible in any paper table.
 
 ## 3.6 Observed-silence analysis
 
@@ -577,10 +580,10 @@ On the 192 retained pairs, at fixed layer 4:
 | Method | AUROC, mean ± SD |
 |---|---:|
 | Activation probe | `0.93686 ± 0.03250` |
-| Bag of words | `0.82337 ± 0.02640` |
-| Format | `0.56742 ± 0.01614` |
+| Bag of words | `0.93543 ± 0.02814` |
+| Format | `0.69807 ± 0.04316` |
 
-The probe’s strength margin over bag-of-words was `0.11350`.
+The probe’s strength margin over bag-of-words was only `0.00143`. On this silence-filtered matched-coherence subset, the activation probe and final-turn word counts are effectively tied.
 
 ### `eval_shared` silence results and cap sensitivity
 
@@ -593,7 +596,7 @@ At a 256-token cap:
 - one deployment reply contained wording about a “quiz show.” Manual review determined this was about the subject matter, not evaluation awareness, but the pair was conservatively excluded;
 - final retained n was 124 pairs.
 
-Results at fixed layer 4 were probe `0.99752 ± 0.00205`, bag-of-words `0.75793 ± 0.02911`, and format `0.62411 ± 0.02184`, for a probe–BoW strength margin of `0.23959`.
+Results were probe `0.99752 ± 0.00205`, bag-of-words `0.95047 ± 0.01956`, and format `0.76728 ± 0.01947`, for a probe–BoW strength margin of `0.04704`.
 
 Because many outputs hit 256 tokens, the generation was repeated with a 512-token cap:
 
@@ -604,11 +607,11 @@ Because many outputs hit 256 tokens, the generation was repeated with a 512-toke
 - final retained n was 227;
 - median lengths remained 198 and 162 tokens, indicating that the additional terminations were mostly from the previous right tail rather than a shift in typical response length.
 
-The cap-512 results were probe `0.99083 ± 0.00321`, bag-of-words `0.77613 ± 0.02375`, and format `0.58257 ± 0.01657`, for a margin of `0.21471`.
+The cap-512 results were probe `0.99083 ± 0.00321`, bag-of-words `0.94602 ± 0.01513`, and format `0.73227 ± 0.04196`, for a margin of `0.04481`.
 
 ### Interpretation boundary
 
-The internal separation is not driven only by replies that visibly announce an evaluation. However, “no detected disclosure” is not equivalent to “the model was unaware.” The result is also conditioned on successful termination, especially at the 256-token cap. The 512-token replication shows that the high probe result is not merely an artifact of the more severe cap, but neither run eliminates selection conditioning.
+High activation separation is not driven only by replies that visibly announce an evaluation. However, on matched-coherence silence pairs, final-turn word counts separate the labels equally well. On `eval_shared`, the probe retains a modest advantage. “No detected disclosure” is not equivalent to “the model was unaware,” and the result is conditioned on successful termination. The 512-token replication reduces, but does not eliminate, that selection concern.
 
 ## 3.7 Slice 5: genuine versus resampled assistant replies
 
@@ -641,17 +644,17 @@ The 50-conversation pilot produced 43 terminated replacements:
 
 | Read point | Probe | Format | BoW | Probe − strongest surface strength |
 |---|---:|---:|---:|---:|
-| Final assistant token | `0.76095 ± 0.08572` | 0.66746 | 0.57515 | 0.09349 |
-| Final assistant mean | `0.73728 ± 0.07766` | — | — | 0.06982 |
+| Final assistant token | `0.76095 ± 0.08572` | 0.76805 | 0.61302 | `-0.00710` |
+| Final assistant mean | `0.73728 ± 0.07766` | 0.76805 | 0.61302 | `-0.03077` |
 
 The full 250-conversation WildChat run yielded 196 terminated replacements:
 
 | Read point | Probe AUROC, mean ± SD | Format | BoW | Length | Probe − strongest surface strength |
 |---|---:|---:|---:|---:|---:|
-| Final assistant token | `0.79247 ± 0.02448` | 0.67958 | 0.63281 | 0.59641 | 0.11290 |
-| Final assistant mean | `0.82206 ± 0.01803` | 0.67958 | 0.63281 | 0.59641 | 0.14249 |
+| Final assistant token | `0.79247 ± 0.02448` | 0.77374 | 0.73565 | 0.63442 | 0.01873 |
+| Final assistant mean | `0.82206 ± 0.01803` | 0.77374 | 0.73565 | 0.63442 | 0.04832 |
 
-The mean readout selected layer 31. These results show that the 8B activations contain information that separates original WildChat replies from 8B-resampled replies, beyond the tested text baselines.
+The mean readout selected layer 31. The full run retains a small-to-moderate advantage over the stronger reply-only baselines, while the 50-item pilot does not. The evidence for reply provenance is therefore real but substantially less distinct from surface form than the original whole-conversation baseline suggested.
 
 ### Model-swap and context-ablation controls
 
@@ -664,12 +667,12 @@ The model-swap run produced 200 terminated replacements; context ablation produc
 
 | Condition/read point | Probe AUROC, mean ± SD | Format | BoW | Probe − strongest surface strength |
 |---|---:|---:|---:|---:|
-| 3B model swap, final token | `0.81105 ± 0.04558` | 0.65124 | 0.62862 | 0.15981 |
-| 3B model swap, final mean | `0.78915 ± 0.04562` | 0.65124 | 0.62862 | 0.13791 |
-| 8B context ablation, final token | `0.86808 ± 0.01154` | 0.70176 | 0.67273 | 0.16632 |
-| 8B context ablation, final mean | `0.80279 ± 0.02289` | 0.70176 | 0.67273 | 0.10103 |
+| 3B model swap, final token | `0.81105 ± 0.04558` | 0.78647 | 0.70971 | 0.02459 |
+| 3B model swap, final mean | `0.78915 ± 0.04562` | 0.78647 | 0.70971 | 0.00269 |
+| 8B context ablation, final token | `0.86808 ± 0.01154` | 0.83234 | 0.74504 | 0.03574 |
+| 8B context ablation, final mean | `0.80279 ± 0.02289` | 0.83234 | 0.74504 | `-0.02955` |
 
-The signal survives when a different model writes the reply, so it is not specifically an 8B “I wrote this” detector. Removing generation-time conversation context makes the token signal at least as strong, consistent with contextual fit, provenance, or distributional mismatch contributing substantially. These conditions are not an additive causal decomposition, because each changes the generated reply distribution as well as the named factor.
+The raw activation signal survives when a different model writes the reply, so it is not specifically an 8B “I wrote this” detector. However, reply-only format features now explain most of the separation: activation margins are small, and the context-ablation mean readout loses to format. Removing generation-time conversation context still makes the token signal at least as strong, consistent with contextual fit, provenance, or distributional mismatch contributing. These conditions are not an additive causal decomposition because each changes the generated reply distribution as well as the named factor.
 
 There is a standalone context-ablation analysis artifact, but current source caches do not contain a separately tagged genuine array for that standalone file. The exact shared-intersection comparison above is the reproducible and preferable analysis.
 
@@ -679,14 +682,14 @@ On LMSYS, 179/250 replacement replies terminated:
 
 | Read point | Probe AUROC, mean ± SD | Format | BoW | Probe − strongest surface strength |
 |---|---:|---:|---:|---:|
-| Final assistant token | `0.83700 ± 0.02556` | 0.67126 | 0.59606 | 0.16574 |
-| Final assistant mean | `0.79119 ± 0.02976` | 0.67126 | 0.59606 | 0.11993 |
+| Final assistant token | `0.83700 ± 0.02556` | 0.73573 | 0.67603 | 0.10127 |
+| Final assistant mean | `0.79119 ± 0.02976` | 0.73573 | 0.67603 | 0.05545 |
 
 The genuine-versus-resampled separation therefore replicates across two real-chat corpora. The ordering of token and mean readouts flips between WildChat and LMSYS, so no claim should depend on one universally superior read point.
 
 ### Interpretation boundary
 
-Slice 5 is a provenance/context experiment, not an evaluation-awareness experiment. It demonstrates a reliable difference between genuine and reconstructed reply states. The model-swap and context controls show that the effect cannot be interpreted narrowly as self-authorship recognition.
+Slice 5 is a provenance/context experiment, not an evaluation-awareness experiment. Genuine and reconstructed reply states are separable, but reply-only surface baselines explain much of the effect. The model-swap and context controls also show that it cannot be interpreted narrowly as self-authorship recognition.
 
 ## 3.8 Estimator and null-distribution robustness
 
@@ -818,10 +821,10 @@ The experiments should be understood as a sequence of increasingly restrictive t
 | Slice 2b | New authorship/length-controlled cells and transfer | Gate fails, but cross-construction probe transfer beats baselines | A partly general direction is shared across constructions |
 | Slice 3, first written cells | Multi-turn matched skeletons | Signal appears before final question; surface gate fails | This version is not a valid temporal control |
 | `eval_shared` | Byte-identical prefix; only final turn swapped | Chance before swap, ≈0.992 after | Signal is introduced at the class-defining final turn |
-| `coherent_pairs` | Byte-identical coherent prefix and topic-matched endings | ≈0.951 vs BoW ≈0.852; chance before final turn | Result survives a stronger coherence/topic control |
-| Cross-control transfer | Train on one multi-turn control, test the other | ≈0.858 and ≈0.788; baselines much lower | The two independent controls share an internal direction |
-| Observed silence | Retain terminated pairs without detected awareness language | High probe separation remains | Overt disclosure is not necessary for the measured separation |
-| Slice 5 | Genuine vs reconstructed replies | Replicates across corpora and generators | Provenance/context consistency is represented, but not specifically self-authorship |
+| `coherent_pairs` | Byte-identical coherent prefix and topic-matched endings | ≈0.951 vs final-turn BoW ≈0.933; chance before final turn | High separation remains, but is largely lexical in-distribution |
+| Cross-control transfer | Train on one multi-turn control, test the other | Probe ≈0.858/0.788 vs BoW ≈0.792/0.678 | The controls share a modest activation component beyond unigram counts |
+| Observed silence | Retain terminated pairs without detected awareness language | High raw separation remains; coherent probe and BoW tie | Overt disclosure is not necessary, but coherent silence does not beat lexical text |
+| Slice 5 | Genuine vs reconstructed replies | Replicates, but stronger reply-only baselines narrow or erase margins | Provenance/context and surface form are represented; not specifically self-authorship |
 | Estimator/null checks | Logistic probe and full permutations | Main final-turn effects replicate; pre-final controls remain null | Effects are not estimator-specific or ordinary selection noise |
 | Steering | Add direction during generation | Readout and self-report move; safety does not | Direction is causally accessible for self-report, not shown to govern broad policy |
 
@@ -835,9 +838,9 @@ The repository supports the following statements, provided their qualifications 
 2. Simple benchmark-versus-user separation is heavily explained by surface form; the project measured and documented this rather than treating high probe accuracy as sufficient.
 3. On the Slice 2b math-free transfer grid, activation directions generalize across independently built pairs better than the tested format and bag-of-words classifiers. The strict completely disjoint margin is `0.04754 ± 0.01538`; the all-off-diagonal margin is `0.07108 ± 0.01341`.
 4. In two paired multi-turn controls, activation separation is at chance throughout a byte-identical prefix and emerges only when the eval/deploy final turn is introduced.
-5. The two multi-turn constructions transfer to one another better than their text baselines, consistent with a shared internal component.
-6. The separation remains in matched pairs whose generated replies contain no detected explicit or implicit evaluation-awareness language, conditional on termination and the limits of the detector/judging procedure.
-7. Genuine versus reconstructed assistant replies are internally separable across WildChat and LMSYS, but controls point to general provenance/contextual-fit information rather than specific self-authorship.
+5. The two multi-turn constructions transfer to one another modestly better than final-turn unigram and format baselines, consistent with a shared internal component but not uniquely with evaluation awareness.
+6. High raw separation remains in matched pairs whose generated replies contain no detected awareness language. On matched-coherence silence pairs, however, the activation probe and final-turn bag-of-words are tied; `eval_shared` retains only a modest activation margin.
+7. Genuine versus reconstructed assistant replies are internally separable across WildChat and LMSYS, but reply-only format baselines explain much of the effect and controls rule out a narrow self-authorship interpretation.
 8. The main activation results survive a second probe estimator and full-pipeline permutation tests.
 9. Steering along the matched-coherence direction monotonically moves an independent readout and explicit eval/deploy self-reports at nondegenerate strengths.
 
@@ -850,6 +853,7 @@ The following would overstate what was done:
 - “The first multi-turn disguised-evaluation experiment proves temporal awareness.” Its signal was already present after the synthetic first turn.
 - “The model knows it is being evaluated.” The experiments identify a robust direction associated with these constructions, but do not uniquely identify its semantic content.
 - “No lexical information remains.” Bag-of-words is strong in several contrasts, and the coherent final-turn-mean probe selects the embedding layer.
+- “The matched-coherence activation probe meaningfully beats words in-distribution.” With the correct final-turn-only view, probe `0.95132` versus BoW `0.93337` leaves only a `0.01796` strength margin, and the silence-filtered subset is tied.
 - “The observed-silence subset proves unconscious or unverbalized awareness.” Absence of detected disclosure does not reveal the model’s full internal semantics.
 - “Slice 5 demonstrates self-recognition.” The signal survives a different generator and strengthens under context ablation.
 - “Steering the direction improves safety behavior.” It changed self-report, but the refusal test showed no predicted increase.
@@ -866,6 +870,7 @@ The following would overstate what was done:
 6. **Describe strength carefully.** Absolute AUROC distance from chance is useful for inverted transfer, but high-dimensional random directions can have nontrivial absolute strength. Signed AUROC and full-pipeline permutations should accompany it.
 7. **Describe silence as observed silence.** State termination counts, cap, matching rule, judge validation, conservative exclusion, and cap-512 sensitivity.
 8. **Prefer the shared-intersection Slice 5 control.** It uses the exact same 146 conversations and genuine activations for model-swap versus context-ablation comparison. The older baseline and model-swap reconstruction files predate the `generation_context` metadata field and leave it empty; code/history identify them as full-prefix runs, while the context-ablation file explicitly records `final_user_only`.
+9. **Use only the differing segment for additive baselines on identical-prefix pairs.** Whole-conversation word counts and format features include a prefix that occurs under both labels and can only add estimation noise. The corrected Slice 3, silence, transfer, and Slice 5 artifacts record `paired_surface_text_view: differing_final_message_only`.
 9. **Keep steering endpoints out of behavioral trends.** Alpha ±4 violated the frozen degeneracy rule.
 10. **Do not invent judge provenance.** The artifacts support “Claude Code subagents with blinded rows,” but not a specific distinct judge-model version.
 
@@ -924,12 +929,12 @@ This map lists the paper-relevant implementation rather than every operational f
 
 ### Verification
 
-The current test suite contains 87 passing tests covering probes, estimator splitting, read-point indexing, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
+The current test suite contains 89 passing tests covering probes, estimator splitting, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
 
 ## 8. Recommended paper-level summary
 
 A concise and accurate paper summary would be:
 
-> We progressively tested whether Llama-3.1-8B-Instruct hidden states distinguish evaluation-like from deployment-like interactions after accounting for simple surface cues. Initial benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences, so we evaluated cross-construction transfer; on completely disjoint math-free transfers, activation-probe separation exceeded bag-of-words by `0.0475 ± 0.0154` across five splits. In two independently built multi-turn paired controls, activations were indistinguishable throughout byte-identical prefixes and separated only after the eval/deploy final turn; the controls transferred to one another better than text baselines. Separation remained among terminated reply pairs with no detected awareness disclosure. A pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports, but did not increase safety refusals. These results support a transferable, behaviorally accessible internal direction associated with the studied eval/deploy constructions, while leaving its exact semantics and broad policy role unresolved.
+> We progressively tested whether Llama-3.1-8B-Instruct hidden states distinguish evaluation-like from deployment-like interactions after accounting for simple surface cues. Initial benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences, so we evaluated cross-construction transfer; on completely disjoint math-free transfers, activation-probe separation exceeded bag-of-words by `0.0475 ± 0.0154` across five splits. In two multi-turn paired controls, activations were indistinguishable throughout byte-identical prefixes and separated only after the differing final turn. Stronger final-turn-only baselines explain most in-distribution separation, although activation directions retain modest cross-control transfer advantages. Raw separation also remains among terminated pairs without detected awareness disclosure, but matched-coherence is tied by word counts. A pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports, but did not increase safety refusals. These results support a behaviorally accessible direction associated with the studied constructions while leaving its semantics and independence from textual task structure unresolved.
 
 That language reflects what the repository demonstrates without turning unsuccessful matching, conditional silence, provenance detection, or a self-report steering effect into stronger claims than the experiments justify.

@@ -12,10 +12,10 @@ trajectory. Which one carries the signal is itself a result — if only
 final_turn_mean works, the signal is about the question just asked rather than
 the situation as a whole.
 
-Every number is reported against the surface baselines computed on the same
-split, and the decisive comparison is the same as slice 2b: not the raw AUROC
-but the margin over bag-of-words, because eval and deploy content genuinely
-differ and no amount of matching drives a lexical baseline to chance.
+Every number is reported against surface baselines computed on the same split.
+For byte-identical-prefix pairs, the primary surface view is the sole differing
+message: the shared prefix has no population-level label signal and only adds
+estimation noise to an additive classifier.
 """
 
 from __future__ import annotations
@@ -42,6 +42,35 @@ def first_user(conv: list[dict]) -> str:
         if m["role"] == "user":
             return m["content"]
     raise ValueError("no user turn")
+
+
+def final_message(conv: list[dict]) -> str:
+    """Content of the final message, without role or chat-template tokens."""
+    if not conv:
+        raise ValueError("empty conversation")
+    return conv[-1]["content"]
+
+
+def differing_final_messages(
+    positive: list[list[dict]], negative: list[list[dict]]
+) -> tuple[list[str], list[str]]:
+    """Return the only differing text in byte-identical-prefix pairs.
+
+    A whole-conversation count baseline gets no population-level label signal
+    from a prefix that occurs once on each side of every matched pair.  Keeping
+    those words can only add finite-sample estimation noise.  Validate the
+    paired-design invariant before returning the two final-message views.
+    """
+    if len(positive) != len(negative):
+        raise ValueError("matched cells have different numbers of conversations")
+    for index, (pos, neg) in enumerate(zip(positive, negative)):
+        if not pos or not neg:
+            raise ValueError(f"matched pair {index} contains an empty conversation")
+        if pos[:-1] != neg[:-1]:
+            raise ValueError(f"matched pair {index} does not have an identical prefix")
+        if pos[-1]["role"] != neg[-1]["role"]:
+            raise ValueError(f"matched pair {index} has different final roles")
+    return [final_message(c) for c in positive], [final_message(c) for c in negative]
 from vnaa.prep_slice3_batches import BATCH_DIR
 from vnaa.probe import fit_layer
 
@@ -211,10 +240,15 @@ def analyze_trajectories(cells, seeds, test_frac):
                     if len(p) > offset and len(n) > offset]
             a_pos = np.stack([pos[i][-1 - offset] for i in keep])
             a_neg = np.stack([neg[i][-1 - offset] for i in keep])
-            t_pos = [through_user_turn(cells[pos_cell][i], len(pos[i]) - 1 - offset)
-                     for i in keep]
-            t_neg = [through_user_turn(cells["deploy"][i], len(neg[i]) - 1 - offset)
-                     for i in keep]
+            if pos_cell == "eval_shared" and offset == 0:
+                selected_pos = [cells[pos_cell][i] for i in keep]
+                selected_neg = [cells["deploy"][i] for i in keep]
+                t_pos, t_neg = differing_final_messages(selected_pos, selected_neg)
+            else:
+                t_pos = [through_user_turn(cells[pos_cell][i], len(pos[i]) - 1 - offset)
+                         for i in keep]
+                t_neg = [through_user_turn(cells["deploy"][i], len(neg[i]) - 1 - offset)
+                         for i in keep]
             r = score_pair(a_pos, a_neg, t_pos, t_neg, seeds, test_frac)
             results[f"{pos_cell}|from_final_{offset}"] = {
                 **{k: (float(np.mean(v)), float(np.std(v))) for k, v in r.items()},
@@ -234,20 +268,28 @@ def cmd_analyze(args: argparse.Namespace) -> None:
         for rp in READ_POINTS:
             a_pos = np.load(acts_path(pos_cell, rp))["acts"].astype(np.float64)
             a_neg = np.load(acts_path("deploy", rp))["acts"].astype(np.float64)
-            # The text baseline must see exactly what the probe's read position
-            # sees, or the comparison is rigged. Attention is causal, so a
-            # hidden state at token i depends only on tokens <= i:
+            # A text baseline must never see beyond the probe's causal read
+            # position. Attention is causal, so a hidden state at token i
+            # depends only on tokens <= i:
             #   post_instruction_token sits at the end of the FIRST user turn,
             #     so it has not seen the rest of the conversation;
             #   last_user_token and final_turn_mean sit in the final user turn,
             #     so every one of their tokens has seen everything before it.
-            # Giving final_turn_mean a final-turn-only baseline (as a first pass
-            # here did) hands the probe the whole conversation while the
-            # baseline reads one turn, which inflated its margin from +0.08 to
-            # +0.27.
-            fn = first_user if rp == "post_instruction_token" else serialize
-            t_pos = [fn(c) for c in cells[pos_cell]]
-            t_neg = [fn(c) for c in cells["deploy"]]
+            # For ordinary, non-paired cells, use that complete causal text.
+            # For byte-identical-prefix pairs, the shared prefix occurs once
+            # under each label and cannot help an additive baseline; use the
+            # sole differing message as the stronger surface test.
+            if pos_cell == "eval_shared" and rp != "post_instruction_token":
+                # These pairs have byte-identical prefixes.  For additive
+                # surface baselines, the strongest view is the only text that
+                # can carry label information: the differing final user turn.
+                t_pos, t_neg = differing_final_messages(
+                    cells[pos_cell], cells["deploy"]
+                )
+            else:
+                fn = first_user if rp == "post_instruction_token" else serialize
+                t_pos = [fn(c) for c in cells[pos_cell]]
+                t_neg = [fn(c) for c in cells["deploy"]]
             r = score_pair(a_pos, a_neg, t_pos, t_neg, args.seeds, args.test_frac)
             results[f"{pos_cell}|{rp}"] = {k: (float(np.mean(v)), float(np.std(v)))
                                            for k, v in r.items()}
@@ -291,7 +333,9 @@ def cmd_analyze(args: argparse.Namespace) -> None:
 
     out = RESULTS / f"s3_{MODEL_TAG}_analysis.json"
     with open(out, "w") as f:
-        json.dump({"n_per_cell": n, "seeds": args.seeds, "results": results,
+        json.dump({"n_per_cell": n, "seeds": args.seeds,
+                   "paired_surface_text_view": "differing_final_message_only",
+                   "results": results,
                    "trajectory": trajectories}, f, indent=2)
     print(f"\nsaved {out}")
 
