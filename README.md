@@ -10,8 +10,7 @@ structure) that a probe could read instead of genuine recognition.
 Full proposal, methodology, and citations: `VNAA-Proposal.pdf`. Detailed
 results, gotchas, and the agent-facing project state: `CLAUDE.md`.
 
-Authors: Neev Grover, Apurva Reddy, Vedaswaroop Kunamneni, Arya Kumar, Maheep
-Chaudhary.
+Author information is withheld for double-blind review.
 
 ## Status
 

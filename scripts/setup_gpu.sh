@@ -2,7 +2,7 @@
 # One-shot setup for running slice 1 on a cloud GPU (e.g. Lightning AI L4).
 #
 # Run this from a Studio terminal AFTER cloning the repo:
-#   git clone https://github.com/groverneev/Algoverse-VNAA.git
+#   git clone <repository-url>
 #   cd Algoverse-VNAA
 #   bash scripts/setup_gpu.sh
 #

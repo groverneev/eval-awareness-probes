@@ -31,7 +31,7 @@ less if the manipulation check has already been run locally.
 
 1. **Accept the LMSYS-Chat-1M terms** at
    `https://huggingface.co/datasets/lmsys/lmsys-chat-1m` with the same HF account
-   that has Llama access (`LightningPro1`). It is a gated dataset and the prep
+   that has Llama access. It is a gated dataset and the prep
    step will 403 without this. This is the only hard blocker.
 2. Start the pod and note the SSH details **outside this repo** (no keys, hosts,
    or ports in git).

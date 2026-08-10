@@ -2,7 +2,9 @@
 
 **Read `VNAA-Proposal.pdf` (repo root) before doing anything else.** It has the
 full methodology and motivation; this file only covers what changed since, what
-to run, and what will bite you.
+to run, and what will bite you. However, keep in mind that the proposal is not
+the final version of what we have actually ran. Only use it to get a general idea
+of this paper, but not to assume what has been done.
 
 Last updated: August 2026.
 
@@ -41,11 +43,11 @@ not the raw AUROC, which can be near-perfect for boring reasons (see Slice 1).
 
 Full proposal, authors, and citations: `VNAA-Proposal.pdf`.
 
-## How Neev likes to work
+## Project working conventions
 
 - One slice at a time; finish and verify before moving on.
 - Ground claims in a concrete run before generalizing.
-- Correct him directly when he's wrong
+- Correct assumptions directly when they are wrong.
 - Prose: brief, one job per sentence, minimal em dashes.
 - **No `Co-Authored-By: Claude` trailer or self-attribution in commits.**
 - Push commits to GitHub as part of finishing a unit of work.
@@ -74,15 +76,15 @@ if local offload is too slow. See `scripts/kaggle_slice1.md`.
 
 ## Model access (Hugging Face)
 
-Llama is gated. Account `LightningPro1` is approved for Llama-3.2-1B and
-Llama-3.1-8B; desktop is logged in via `.venv\Scripts\hf.exe auth login`. A
+Llama is gated. Use an approved account for Llama-3.2-1B and Llama-3.1-8B;
+the desktop is logged in via `.venv\Scripts\hf.exe auth login`. A
 fine-grained token without "read access to public gated repos" gives 403 even
 after approval — the metadata endpoint returning 200 is not proof of file
 access.
 
 ## Compute
 
-- Neev doesn't have access to API
+- No project API access is available.
 - Free-tier GPUs (Kaggle, Lightning) cover everything that's just forward
   passes. Paid GPU is for the generation-heavy Tier 2 work (silence filter,
   steering) and would be for a scaling sweep, not routine inference.

@@ -20,7 +20,7 @@ Paste each block into its own cell and run top to bottom.
 
 **Cell 1 — get the code**
 ```python
-!git clone https://github.com/groverneev/Algoverse-VNAA.git
+!git clone <repository-url>
 %cd Algoverse-VNAA
 ```
 
