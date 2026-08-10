@@ -1,10 +1,11 @@
 # CLAUDE.md — agent onboarding
 
-**Read `VNAA-Proposal.pdf` (repo root) before doing anything else.** It has the
+Readng `VNAA-Proposal.pdf` (repo root) is fairly useful. It has the
 full methodology and motivation; this file only covers what changed since, what
 to run, and what will bite you. However, keep in mind that the proposal is not
 the final version of what we have actually ran. Only use it to get a general idea
-of this paper, but not to assume what has been done.
+of this paper, but not to assume what has been done. Reading 'EXPERIMENT_REPORT.md`
+is highly recomended to see what we have done.
 
 Last updated: August 2026.
 
