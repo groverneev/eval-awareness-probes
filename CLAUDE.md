@@ -33,19 +33,26 @@ No GPU pod is currently running; the RunPod used for generation was deleted.
 The current cross-model protocol is the pre-result v2 amendment in
 `datasets/cross_model/confirmatory_suite_v2.json`. It replaces the older panel
 with current 5--12B models: Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B. All
-are revision-pinned. The eight-pair Qwen smoke now passes after adding a
+are revision-pinned. The eight-pair Qwen smoke passed after adding a
 validated ChatML boundary fallback and switching temporal extraction to
-independent causal-prefix passes. Both paired controls have exactly zero
-pre-final activation difference. No full-sample new-model activations have
-been extracted.
+independent causal-prefix passes. The full 250-pair Qwen3-8B core is now
+complete at the frozen revision and bfloat16 precision. Both controls have
+exactly zero pre-final activation difference. Qwen's probe beats the strongest
+text baseline on `eval_shared` (AUROC 0.99357 vs 0.95293; difference 0.04064,
+95% CI [0.02364, 0.05982], p=0.0050), but ties character TF-IDF on
+`coherent_pairs` (0.94653 vs 0.94474; difference 0.00179, 95% CI
+[-0.01495, 0.01798], p=0.4448). Bidirectional transfer is high in absolute
+terms (0.88195 and 0.82446), but neither direction significantly beats the
+strongest character baseline. This is one cross-family replication, not yet a
+broad cross-model result.
 
 **What's left:** if a second independent human is available, collect the same
 blinded 30-row review under a separate reviewer ID and use it only to diagnose
 reviewer/rubric reliability. Do not extract v2 activations or retroactively
 change its failed gate. Use the diagnostic to design and freeze a v3
-construction/rubric before generating new pilot data. Independently, run the
-full frozen Qwen3 core locally or on a 48 GB GPU, then implement and smoke-test
-the text-only Gemma 3 and Ministral 3 adapters. After a successful new
+construction/rubric before generating new pilot data. Independently, implement
+and smoke-test the text-only Gemma 3 and Ministral 3 adapters, then run their
+frozen cores regardless of the Qwen outcome. After a successful new
 authorship pilot and the cross-model core, assemble the paper.
 
 **Open scope decision.** Cut agentic/tool-use to future work because it needs a

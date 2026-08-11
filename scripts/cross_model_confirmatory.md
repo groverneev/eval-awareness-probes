@@ -123,3 +123,19 @@ For each model, retain:
 Do not run the silence or steering extensions until all core analyses are
 complete. Those generation-heavy arms are secondary in the frozen manifest and
 will receive separate model-aware adapters and cost checks before execution.
+
+## Completed Qwen3-8B core
+
+The full local Qwen3-8B run completed on 2026-08-11 at the frozen revision.
+All four 250-pair caches passed provenance checks and both temporal controls had
+exactly zero pre-final difference. The primary grouped results are:
+
+| Test | Probe AUROC | Strongest text AUROC | Difference (95% CI) | p |
+|---|---:|---:|---:|---:|
+| `eval_shared` within | 0.99357 | 0.95293 | +0.04064 [+0.02364, +0.05982] | 0.0050 |
+| `coherent_pairs` within | 0.94653 | 0.94474 | +0.00179 [-0.01495, +0.01798] | 0.4448 |
+| eval-shared -> coherent | 0.88195 | 0.86614 | +0.01581 [-0.01079, +0.04309] | 0.0795 |
+| coherent -> eval-shared | 0.82446 | 0.84854 | -0.02408 [-0.06007, +0.01192] | 0.8486 |
+
+These results do not change the stopping rule: Gemma 3 and Ministral 3 must run
+regardless of the Qwen outcome.

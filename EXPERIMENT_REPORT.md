@@ -67,7 +67,9 @@ Two other model sizes appear, but neither is a second fully studied organism:
 - Llama-3.2-1B-Instruct was used early to validate that the extraction and probing pipeline could recover a known separation. This was an engineering/preliminary check.
 - Llama-3.2-3B-Instruct was used only as an alternative reply generator in one Slice 5 control. Llama-3.1-8B-Instruct still supplied the activations and probe readout.
 
-The repository contains no completed 70B, Qwen, Gemma, or systematic model-scaling experiment.
+The full frozen 250-pair core has now also been completed on Qwen3-8B. Gemma,
+Ministral, 70B, and systematic model-scaling experiments remain incomplete.
+Qwen is a first cross-family replication, not a completed model sweep.
 
 ## 2. Common measurement pipeline
 
@@ -75,7 +77,7 @@ The repository contains no completed 70B, Qwen, Gemma, or systematic model-scali
 
 Every example is represented as a list of chat messages with `user` and, for multi-turn examples, `assistant` roles. The tokenizer’s native Llama chat template is applied with `add_generation_prompt=False`. The code does not manually concatenate prompt wrappers, retokenize an already formatted string, or add a second beginning-of-sequence token.
 
-Extraction uses one conversation at a time with no padding. This avoids ambiguity about which token is the endpoint. Hidden states are converted to `float32` before being stored. The scientific analyses operate on the stored vectors and do not depend on reduced-precision or quantized model weights.
+Extraction uses one conversation at a time with no padding. This avoids ambiguity about which token is the endpoint. Hidden states are converted to `float32` before being stored. The original Llama study used unquantized full-precision loading; the frozen cross-model suite uses unquantized bfloat16 loading and independent causal-prefix passes. No paper result uses 4-bit or 8-bit weights.
 
 The token spans for individual turns are found by rendering progressively longer message prefixes and comparing their token lengths. Tests verify these spans against the actual Llama chat template.
 
@@ -844,13 +846,39 @@ Under the frozen conservative rule, any human failure excludes the entire scenar
 
 If a future version passes its pre-activation gate, the primary question remains whether an evaluation direction selected under one history author transfers with stable orientation to the other authors. Secondary diagnostics fit authorship directions, compare direction cosines, and residualize their span before refitting evaluation probes. All splits and inference are grouped by scenario, and the stronger word/character TF-IDF hierarchy remains mandatory.
 
-## 3.11 Cross-model confirmatory suite: current-model amendment and smoke
+## 3.11 Cross-model confirmatory suite: current-model amendment and first replication
 
 The compact cross-model suite excludes failed and exploratory constructions and retains only the two valid 250-pair controls: `eval_shared` and matched coherence. Before any new-model activation extraction, the scope was narrowed to current open-weight instruction models in the 5--12B range. The resulting amendment is frozen in `datasets/cross_model/confirmatory_suite_v2.json`; v1 is preserved with its hash in the amendment record. The reference is the completed Llama-3.1-8B-Instruct study. The three revision-pinned primary replications are Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B-Instruct. All three must run regardless of earlier outcomes.
 
 Each model's mandatory core consists of 2,824 unquantized bfloat16 causal-prefix forward passes, one for every user-turn boundary in both conditions. This prefixwise rule prevents different final-turn lengths from selecting different BF16 kernels and introducing suffix-length-dependent numerical differences at earlier tokens. The analysis freezes matched-scenario grouping, train-only layer selection, the full word/character TF-IDF baseline hierarchy, paired bootstrap intervals, paired prediction-randomization tests, and bidirectional transfer between controls. Artifacts are isolated by a collision-resistant hash of the full model repository and embed the immutable model revision, manifest hash, dataset-content hash, precision, extraction method, and sample identity. Smoke and full artifacts cannot share paths.
 
-A one-pair integration smoke using the already cached Llama reference completed all four extraction cells. The first Qwen3 smoke then correctly failed before writing activations because Qwen3's template inserts an empty thinking block when an assistant message ends a rendered prefix, violating the historical incremental-template assumption. A narrowly validated ChatML-delimiter fallback fixed boundary recovery. A subsequent full-sequence smoke found suffix-length-dependent BF16 differences at the pre-final boundary in 3/8 matched-coherence pairs despite identical tokens. Those caches were rejected and archived, and cross-model temporal extraction was changed to independent causal-prefix passes. The corrected eight-pair Qwen3 smoke completed all four cells with 37 by 4,096 states, exact zero pre-final differences in both controls, nonzero final differences, complete strong-baseline analysis, and both transfer directions. Smoke outputs are implementation checks, not evidence. No full-sample new-model activations have yet been extracted, so the repository still does not support cross-model generalization.
+A one-pair integration smoke using the already cached Llama reference completed all four extraction cells. The first Qwen3 smoke then correctly failed before writing activations because Qwen3's template inserts an empty thinking block when an assistant message ends a rendered prefix, violating the historical incremental-template assumption. A narrowly validated ChatML-delimiter fallback fixed boundary recovery. A subsequent full-sequence smoke found suffix-length-dependent BF16 differences at the pre-final boundary in 3/8 matched-coherence pairs despite identical tokens. Those caches were rejected and archived, and cross-model temporal extraction was changed to independent causal-prefix passes. The corrected eight-pair Qwen3 smoke completed all four cells with 37 by 4,096 states, exact zero pre-final differences in both controls, nonzero final differences, complete strong-baseline analysis, and both transfer directions. Smoke outputs are implementation checks, not evidence.
+
+The full frozen Qwen3-8B core was then completed locally on all 250 pairs per
+contrast. Each of the four caches contains 706 user-turn observations across
+the embedding and 36 transformer layers, with 4,096 hidden dimensions. Both
+temporal controls pass exactly: maximum absolute positive/negative difference
+at every byte-identical pre-final boundary is `0.0`, while the mean final-state
+L2 differences are nonzero (`142.71` for `eval_shared`, `96.71` for
+`coherent_pairs`). Cache provenance matches the immutable Qwen revision,
+manifest hash, dataset hashes, bfloat16 precision, prefixwise method, and full
+sample.
+
+The grouped five-fold result qualitatively replicates the reference-model
+pattern. On `eval_shared`, the Qwen probe reaches AUROC `0.99357` versus
+`0.95293` for the strongest text baseline (word TF-IDF), a paired difference of
+`+0.04064` with 95% pair-bootstrap interval `[+0.02364, +0.05982]` and
+one-sided paired-randomization `p=0.0050`. On `coherent_pairs`, the probe
+reaches `0.94653` versus character TF-IDF `0.94474`; the `+0.00179` difference
+is not established (95% CI `[-0.01495, +0.01798]`, `p=0.4448`). Transfer from
+`eval_shared` to `coherent_pairs` is `0.88195` versus character TF-IDF
+`0.86614` (`+0.01581`, 95% CI `[-0.01079, +0.04309]`, `p=0.0795`). The reverse
+transfer is `0.82446` versus character TF-IDF `0.84854` (`-0.02408`, 95% CI
+`[-0.06007, +0.01192]`, `p=0.8486` for the prespecified greater alternative).
+Thus Qwen is strong evidence that the temporal separation is not unique to
+Llama, but it reproduces rather than resolves the central lexical-confound
+limit. Gemma and Ministral remain mandatory before claiming broad cross-model
+generalization.
 
 ## 4. Final evidential chain
 
@@ -870,7 +898,7 @@ The experiments should be understood as a sequence of increasingly restrictive t
 | Estimator/null checks | Logistic probe and full permutations | Main final-turn effects replicate; pre-final controls remain null | Effects are not estimator-specific or ordinary selection noise |
 | Steering | Add direction during generation | Readout and self-report move; safety does not | Direction is causally accessible for self-report, not shown to govern broad policy |
 | Authorship pilot, pre-activation gate | Cross final-turn status with three generated history authors | 150/150 histories terminate, but only 36/50 scenarios survive the combined coherence gate | v2 fails before activation extraction; authorship effects remain untested |
-| Cross-model confirmatory suite | Freeze two valid controls and two new model families | Protocol and real-model smoke pass; no new-model activations yet | Cross-model generalization remains untested |
+| Cross-model confirmatory suite | Freeze two valid controls across three current model families | Full Qwen3-8B replication passes temporal controls; `eval_shared` beats text, while coherent and transfer tests do not beat character TF-IDF | Temporal separation is not Llama-specific, but broad cross-model and activation-specific generalization remain unestablished |
 
 ## 5. What the paper can and cannot claim
 
@@ -887,6 +915,7 @@ The repository supports the following statements, provided their qualifications 
 7. Genuine versus reconstructed assistant replies are internally separable across WildChat and LMSYS, but reply-only format baselines explain much of the effect and controls rule out a narrow self-authorship interpretation.
 8. The main activation results survive a second probe estimator and full-pipeline permutation tests.
 9. Steering along the matched-coherence direction monotonically moves an independent readout and explicit eval/deploy self-reports at nondegenerate strengths.
+10. Qwen3-8B independently replicates exact temporal localization and high final-turn separation on the two frozen paired controls. It also replicates the limitation: only `eval_shared` reliably beats the strongest text baseline, while matched coherence and cross-control transfer do not.
 
 ### Claims the repository does not support
 
@@ -903,7 +932,7 @@ The following would overstate what was done:
 - “Slice 5 demonstrates self-recognition.” The signal survives a different generator and strengthens under context ablation.
 - “Steering the direction improves safety behavior.” It changed self-report, but the refusal test showed no predicted increase.
 - “The effect is invariant to who generated the preceding conversation.” The v2 authorship-factorial pilot failed its coherence gate before activation extraction, so this remains untested.
-- “The effect generalizes across model families or scales.” Those experiments were not completed.
+- “The effect broadly generalizes across model families or scales.” One Qwen3-8B cross-family replication is complete, but Gemma and Ministral remain mandatory and no scale trend has been tested.
 - “The project measured agentic tool-use behavior or positive spontaneous verbalization cases.” There is no completed per-class tool-use dataset, and no real positive-disclosure classifier could be estimated because the judged matched-coherence outputs contained zero positives.
 
 ## 6. Reproducibility and audit notes that should survive into the paper
@@ -996,8 +1025,8 @@ The current test suite contains 123 passing tests covering probes, estimator spl
 
 ## 8. Recommended paper-level summary
 
-A concise and accurate paper summary would be:
+A concise and accurate paper summary, updated after the first cross-family replication, would be:
 
-> We progressively tested whether Llama-3.1-8B-Instruct hidden states distinguish evaluation-like from deployment-like interactions after accounting for surface cues. Initial benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences, so we evaluated cross-construction transfer; on completely disjoint math-free transfers, activation-probe separation exceeded unigram counts by `0.0475 ± 0.0154` across five splits. In two multi-turn paired controls, activations were indistinguishable throughout byte-identical prefixes and separated only after the differing final turn. A grouped stronger-baseline audit finds a reliable probe advantage only for the topic-shifted `eval_shared` control (`+0.0349`, 95% CI `[+0.0187, +0.0533]`); matched coherence ties character n-grams, and character n-grams outperform the probe in cross-control transfer. Raw separation also remains among terminated pairs without detected awareness disclosure, but matched coherence is tied by text. A pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports, but did not increase safety refusals. These results identify a behaviorally accessible direction associated with the studied constructions while showing that current evidence does not isolate it from textual task structure.
+> We progressively tested whether hidden states distinguish evaluation-like from deployment-like interactions after accounting for surface cues. Initial Llama-3.1-8B-Instruct benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences, so we evaluated cross-construction transfer; on completely disjoint math-free transfers, activation-probe separation exceeded unigram counts by `0.0475 ± 0.0154` across five splits. In two multi-turn paired controls, activations were indistinguishable throughout byte-identical prefixes and separated only after the differing final turn. Qwen3-8B independently replicated this exact temporal localization and high final-turn separation. In both model families, however, a grouped stronger-baseline audit finds a reliable activation advantage only for the topic-shifted `eval_shared` control; matched coherence ties character n-grams, and cross-control transfer does not reliably beat them. On Llama, raw separation also remains among terminated pairs without detected awareness disclosure, and a pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports but did not increase safety refusals. These results identify a cross-family, behaviorally accessible direction associated with the studied constructions while showing that current evidence does not isolate it from textual task structure.
 
 That language reflects what the repository demonstrates without turning unsuccessful matching, conditional silence, provenance detection, or a self-report steering effect into stronger claims than the experiments justify.
