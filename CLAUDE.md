@@ -15,8 +15,9 @@ Slices 1, 2, 3, and 5 are complete on Llama-3.1-8B (slice 5 includes the
 model-swap/context-ablation decomposition and an LMSYS-Chat-1M replication).
 Tier 2 is done: steering, the `eval_shared` silence filter (+ 512-token cap
 sensitivity check), and the LMSYS replication, all run on a rented Runpod 4090.
-Local test suite: 109/109 passing after the stronger sparse-text baseline,
-paired-margin inference, and independent-reviewer diagnostic upgrade.
+Local test suite: 119/119 passing after the stronger sparse-text baseline,
+paired-margin inference, independent-reviewer diagnostic, and cross-model suite
+upgrade.
 
 The CPU-only stronger-baseline audit is complete and materially changes the
 Slice-3 transfer interpretation (details below). The evaluation-status x
@@ -29,19 +30,26 @@ scenarios and v2 formally fails its pre-activation threshold. No activations
 have been extracted or inspected.
 No GPU pod is currently running; the RunPod used for generation was deleted.
 
+The cross-model confirmatory suite is frozen before new-model extraction in
+`datasets/cross_model/confirmatory_suite_v1.json`. It runs only `eval_shared`
+and matched coherence, with Qwen2.5-7B-Instruct and Gemma-2-9B-IT as the two
+primary replications. A one-pair Llama integration smoke passed, including
+exactly zero pre-final activation difference in both paired controls. No Qwen
+or Gemma activations have been extracted.
+
 **What's left:** if a second independent human is available, collect the same
 blinded 30-row review under a separate reviewer ID and use it only to diagnose
 reviewer/rubric reliability. Do not extract v2 activations or retroactively
 change its failed gate. Use the diagnostic to design and freeze a v3
-construction/rubric before generating new pilot data. After a successful new
-pilot, freeze the confirmatory sample/thresholds and assemble the paper.
+construction/rubric before generating new pilot data. Independently, run the
+Qwen local smoke, then the full frozen Qwen and Gemma core on a 48 GB GPU.
+After a successful new authorship pilot and the cross-model core, assemble the
+paper.
 
-**Open scope decision.** The proposal promises a model scaling sweep (70B,
-Qwen2.5-7B/32B, Gemma-2/3) and per-class agentic/tool-use results. Neither is
-started and both cannot fit before the deadline. Recommendation: cut
-agentic/tool-use to future work (needs a dataset that doesn't exist); if any
-scaling sweep runs, do Qwen2.5-7B on `eval_shared` only (~1 pod-hour) as a
-check of whether the effect is Llama-specific.
+**Open scope decision.** Cut agentic/tool-use to future work because it needs a
+dataset that does not exist. The frozen model sweep uses Qwen2.5-7B and
+Gemma-2-9B on the two valid paired controls. Llama-3.1-70B is explicitly
+deferred until both primary replications are complete and budget remains.
 
 **Single biggest risk right now (not scientific):** `data/` and `results/`
 are gitignored and exist only on this desktop now that the rented pod is
@@ -154,15 +162,18 @@ src/vnaa/
   run_steering.py          steering direction, manipulation check, behaviour
   run_slice5.py            reconstruction / model-swap / context-ablation / lmsys
   prep_slice5.py           genuine-conversation sampling (WildChat or LMSYS)
+  cross_model_suite.py     frozen model-aware paired-control extraction/analysis
 scripts/
   make_figures.py, make_2b_figures.py     slice figures
   gpu_session_tier2.md                    the frozen Tier 2 runbook
+  cross_model_confirmatory.md             cross-model smoke/full-run instructions
 datasets/judge/awareness_judge_v1.md      committed, hashed judge rubric
 datasets/steering/prespec.md              steering protocol, frozen pre-run
 datasets/authorship/prespec.md            frozen eval-status x history-author pilot
 datasets/authorship/pilot_manifest.json   50 hashed-ID-selected pilot scenarios
 datasets/authorship/prespec_v2.md         frozen 1,024-token cap amendment after v1 failure
 datasets/authorship/pilot_manifest_v2.json v2 manifest; same 50 pilot scenarios
+datasets/cross_model/confirmatory_suite_v1.json frozen cross-model core/panel
 tests/  test_probe.py, test_read_points.py, test_estimators.py,
         test_judge_batches.py, test_steering.py, test_prep_slice5.py
 ```

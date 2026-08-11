@@ -1,0 +1,94 @@
+{
+  "suite_id": "cross_model_confirmatory_v1",
+  "frozen_on": "2026-08-11",
+  "status": "frozen_before_cross_model_activation_extraction",
+  "purpose": "Test whether the valid paired Slice-3 findings replicate across model families without rerunning failed exploratory constructions.",
+  "reference_model": "meta-llama/Llama-3.1-8B-Instruct",
+  "primary_replication_models": [
+    {
+      "repository": "Qwen/Qwen2.5-7B-Instruct",
+      "family": "qwen2.5",
+      "parameter_billions": 7.6,
+      "role": "primary_cross_family_replication"
+    },
+    {
+      "repository": "google/gemma-2-9b-it",
+      "family": "gemma2",
+      "parameter_billions": 9.2,
+      "role": "primary_cross_family_replication"
+    }
+  ],
+  "deferred_scale_model": {
+    "repository": "meta-llama/Llama-3.1-70B-Instruct",
+    "family": "llama3.1",
+    "parameter_billions": 70.6,
+    "reason": "Run only after the two primary replications; it requires substantially more expensive multi-GPU or 80GB-class compute."
+  },
+  "precision": "bfloat16_unquantized",
+  "n_pairs_per_contrast": 250,
+  "contrasts": {
+    "eval_shared": {
+      "positive_sources": [
+        "datasets/slice3/eval_shared.json"
+      ],
+      "negative_sources": [
+        "datasets/slice3/batches/out_00.json",
+        "datasets/slice3/batches/out_01.json",
+        "datasets/slice3/batches/out_02.json",
+        "datasets/slice3/batches/out_03.json",
+        "datasets/slice3/batches/out_04.json"
+      ],
+      "expected_content_sha256": "aa212de5af6db03d1ef6e4ab8cbf5133a0991f54b503030a7c3be015cae95659",
+      "temporal_control": true
+    },
+    "coherent_pairs": {
+      "positive_sources": [
+        "datasets/slice3/coherent_pairs/validated.json"
+      ],
+      "negative_sources": [
+        "datasets/slice3/coherent_pairs/validated.json"
+      ],
+      "expected_content_sha256": "5e53e3ff88bd7dfa7175928a9a64d63f8ef569d0590f4d4d9bd89d9dc3479305",
+      "temporal_control": true
+    }
+  },
+  "primary_read_point": "last_user_token",
+  "analysis": {
+    "outer_folds": 5,
+    "split_seed": 0,
+    "bootstrap_resamples": 2000,
+    "permutation_draws": 2000,
+    "grouping_unit": "matched_scenario",
+    "layer_selection": "training_data_only",
+    "surface_view": "differing_final_user_message_only",
+    "text_baselines": [
+      "word_unigram_counts",
+      "word_1_2gram_tfidf",
+      "character_3_5gram_tfidf",
+      "format_features",
+      "character_length"
+    ]
+  },
+  "mandatory_core": [
+    "paired_dataset_and_hash_validation",
+    "pre_final_identical_prefix_numerical_check",
+    "within_contrast_grouped_probe_and_strong_text_baselines",
+    "bidirectional_cross_contrast_transfer",
+    "paired_bootstrap_confidence_intervals",
+    "paired_prediction_randomization_tests"
+  ],
+  "secondary_after_core": [
+    "silence_filter_generation_and_blinded_judging",
+    "steering_manipulation_check_and_self_report"
+  ],
+  "explicitly_excluded": [
+    "slice1_confounded_benchmark_vs_user",
+    "slice2b_failed_surface_gate_cells",
+    "slice3_invalid_eval_disguised_realism_claim",
+    "rejected_eval_coherent_dataset",
+    "authorship_factorial_v2_failed_coherence_gate",
+    "slice5_provenance_decomposition"
+  ],
+  "reporting_rule": "Report every primary model and endpoint regardless of direction. A probe-specific result requires the paired bootstrap interval for probe minus the strongest text baseline to exclude zero; raw probe AUROC alone is not sufficient.",
+  "stopping_rule": "Run both primary replication models. Do not choose the second model or the deferred scale model based on the first replication result."
+}

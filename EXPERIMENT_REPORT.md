@@ -844,6 +844,14 @@ Under the frozen conservative rule, any human failure excludes the entire scenar
 
 If a future version passes its pre-activation gate, the primary question remains whether an evaluation direction selected under one history author transfers with stable orientation to the other authors. Secondary diagnostics fit authorship directions, compare direction cosines, and residualize their span before refitting evaluation probes. All splits and inference are grouped by scenario, and the stronger word/character TF-IDF hierarchy remains mandatory.
 
+## 3.11 Cross-model confirmatory suite: frozen before replication
+
+The compact cross-model suite in `datasets/cross_model/confirmatory_suite_v1.json` was frozen before extracting activations from any new target model. It excludes failed and exploratory constructions and retains only the two valid 250-pair controls: `eval_shared` and matched coherence. The reference is the completed Llama-3.1-8B-Instruct study. The two primary replications are Qwen2.5-7B-Instruct and Gemma-2-9B-IT; both must run regardless of the first replication's outcome. Llama-3.1-70B-Instruct is deferred until the primary panel is complete and budget remains.
+
+Each model's mandatory core consists of 1,000 unquantized bfloat16 forward passes, saving all user-turn boundaries in a single pass. The analysis freezes matched-scenario grouping, train-only layer selection, the full word/character TF-IDF baseline hierarchy, paired bootstrap intervals, paired prediction-randomization tests, and bidirectional transfer between controls. Artifacts are isolated by a collision-resistant hash of the full model repository and embed the model ID, manifest hash, dataset-content hash, precision, and sample identity. Smoke and full artifacts cannot share paths.
+
+A one-pair integration smoke using the already cached Llama reference completed all four extraction cells. Both controls had exactly zero pre-final activation difference and nonzero final-turn differences, validating the real model/chat-template path. This smoke is an implementation check, not evidence. No Qwen or Gemma activations have yet been extracted, so the repository still does not support cross-model generalization.
+
 ## 4. Final evidential chain
 
 The experiments should be understood as a sequence of increasingly restrictive tests, not as interchangeable AUROC values:
@@ -862,6 +870,7 @@ The experiments should be understood as a sequence of increasingly restrictive t
 | Estimator/null checks | Logistic probe and full permutations | Main final-turn effects replicate; pre-final controls remain null | Effects are not estimator-specific or ordinary selection noise |
 | Steering | Add direction during generation | Readout and self-report move; safety does not | Direction is causally accessible for self-report, not shown to govern broad policy |
 | Authorship pilot, pre-activation gate | Cross final-turn status with three generated history authors | 150/150 histories terminate, but only 36/50 scenarios survive the combined coherence gate | v2 fails before activation extraction; authorship effects remain untested |
+| Cross-model confirmatory suite | Freeze two valid controls and two new model families | Protocol and real-model smoke pass; no new-model activations yet | Cross-model generalization remains untested |
 
 ## 5. What the paper can and cannot claim
 
@@ -975,9 +984,15 @@ This map lists the paper-relevant implementation rather than every operational f
 - `src/vnaa/review_authorship_human.py`, `src/vnaa/finalize_authorship_gate.py`: reviewer-identified, resumable 30-row human review and conservative final gate.
 - `src/vnaa/compare_authorship_reviewers.py`: second-reviewer agreement diagnostic that does not modify the frozen gate result.
 
+### Cross-model confirmation
+
+- `datasets/cross_model/confirmatory_suite_v1.json`: frozen controls, primary model panel, analysis hierarchy, exclusions, reporting rule, and stopping rule.
+- `src/vnaa/cross_model_suite.py`: content-hash validation, model-isolated activation caches, provenance checking, temporal diagnostics, grouped strong-baseline analysis, and bidirectional transfer.
+- `scripts/cross_model_confirmatory.md`: local smoke, rented-GPU execution, compute envelope, and artifact-copy checklist.
+
 ### Verification
 
-The current test suite contains 109 passing tests covering probes, estimator splitting, stronger text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
+The current test suite contains 119 passing tests covering probes, estimator splitting, stronger text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, cross-model dataset fingerprints and artifact isolation, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved reference-model activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
 
 ## 8. Recommended paper-level summary
 
