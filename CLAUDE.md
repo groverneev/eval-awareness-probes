@@ -15,21 +15,26 @@ Slices 1, 2, 3, and 5 are complete on Llama-3.1-8B (slice 5 includes the
 model-swap/context-ablation decomposition and an LMSYS-Chat-1M replication).
 Tier 2 is done: steering, the `eval_shared` silence filter (+ 512-token cap
 sensitivity check), and the LMSYS replication, all run on a rented Runpod 4090.
-Local test suite: 97/97 passing after the stronger sparse-text baseline and
-paired-margin inference upgrade.
+Local test suite: 109/109 passing after the stronger sparse-text baseline,
+paired-margin inference, and independent-reviewer diagnostic upgrade.
 
 The CPU-only stronger-baseline audit is complete and materially changes the
 Slice-3 transfer interpretation (details below). The evaluation-status x
 history-authorship pilot has generated all 150 histories under a documented v2
 cap amendment. All histories terminated naturally. Claude Sonnet 5 passed both
 endings in 144/150 blinded rows, leaving 46/50 scenarios retained before the
-frozen 30-row human review. No activations have been extracted or inspected.
+frozen 30-row human review. The human reviewer passed both endings in only
+16/30 sampled rows; the conservative combined gate therefore retains 36/50
+scenarios and v2 formally fails its pre-activation threshold. No activations
+have been extracted or inspected.
 No GPU pod is currently running; the RunPod used for generation was deleted.
 
-**What's left:** run `python -m vnaa.review_authorship_human`, finalize the gate
-with `python -m vnaa.finalize_authorship_gate`, then extract/analyze pilot
-activations only if at least 40/50 scenarios survive. After the pilot decision,
-freeze the confirmatory sample/thresholds and assemble the paper.
+**What's left:** if a second independent human is available, collect the same
+blinded 30-row review under a separate reviewer ID and use it only to diagnose
+reviewer/rubric reliability. Do not extract v2 activations or retroactively
+change its failed gate. Use the diagnostic to design and freeze a v3
+construction/rubric before generating new pilot data. After a successful new
+pilot, freeze the confirmatory sample/thresholds and assemble the paper.
 
 **Open scope decision.** The proposal promises a model scaling sweep (70B,
 Qwen2.5-7B/32B, Gemma-2/3) and per-class agentic/tool-use results. Neither is

@@ -828,7 +828,7 @@ Spearman correlation was `-0.356`, opposite the predicted increase. Across the f
 
 The chosen intervention causally moved an independent internal readout and explicit eval/deploy self-reports in the predicted direction before output degeneration. It did not demonstrate a corresponding broad change in safety behavior. Steering therefore strengthens the claim that the direction is behaviorally accessible, but not the stronger claim that it is the causal mechanism behind deployment-policy changes.
 
-## 3.10 Authorship factorial pilot: generation complete, human gate pending
+## 3.10 Authorship factorial pilot: v2 stopped at the coherence gate
 
 The experiment frozen in `datasets/authorship/prespec.md` crosses eval/deploy final-user status with three preceding-history authors: target-model on-policy Llama-3.1-8B, same-family off-policy Llama-3.2-3B, and cross-family off-policy Qwen2.5-7B. The pilot uses 50 deterministically selected two-user-turn matched-coherence scenarios so that exactly one assistant response is regenerated per authorship condition. Within each author, the eval and deploy prefixes are byte-identical; across authors, the two final user endings are fixed.
 
@@ -836,9 +836,13 @@ The v1 feasibility run stopped before activation extraction when its frozen 256-
 
 Under v2, all 150 histories across all three generators terminated naturally. The longest observed generated history was 863 tokens. The mechanical builder validated all 300 cells, including the required user/assistant/user sequence, byte-identical eval/deploy prefixes within each author, and identical final endings across authors.
 
-The coherence rubric was frozen in `datasets/authorship/coherence_judge_v1.md`. Five blinded batches were judged with the resolved identifier `claude-sonnet-5`; tools were disabled. Claude passed both endings in 144/150 rows. The six failed rows belong to four scenarios, so 46/50 scenarios provisionally survive. The prespecified independent human review covers 30/150 rows and is still pending. Therefore the pilot gate is **not yet final**, and no activations have been extracted or inspected. The pending artifact is `results/authorship/v2/coherence/gate_pending_human.json`.
+The coherence rubric was frozen in `datasets/authorship/coherence_judge_v1.md`. Five blinded batches were judged with the resolved identifier `claude-sonnet-5`; tools were disabled. Claude passed both endings in 144/150 rows. The six failed rows belong to four scenarios, so 46/50 scenarios provisionally survived the model review.
 
-The primary post-gate question remains whether an evaluation direction selected under one history author transfers with stable orientation to the other authors. Secondary diagnostics fit authorship directions, compare direction cosines, and residualize their span before refitting evaluation probes. All splits and inference are grouped by scenario, and the stronger word/character TF-IDF hierarchy is mandatory.
+The prespecified human reviewer then assessed the frozen 30-row blinded sample. Both endings passed in 16/30 rows; ending A failed in 8 rows and ending B failed in 10, with at least one failure in 14 rows spanning 11 scenarios. These failures were distributed across all author conditions (6 same-family, 5 cross-family, and 3 target-model rows), rather than being confined to one generator. On the same 60 ending-level decisions, the human passed 42 while Claude passed 59. They agreed on 41/60 decisions (Cohen's kappa `-0.033`; descriptive only), with 18 human-fail/Claude-pass decisions and one human-pass/Claude-fail decision.
+
+Under the frozen conservative rule, any human failure excludes the entire scenario in addition to the model exclusions. The final artifact therefore retains 36/50 scenarios, below the prespecified 40/50 threshold: **the v2 pilot fails the pre-activation gate**. No v2 activations were extracted or inspected. A second independent review of the same blinded sample may be used to diagnose reviewer and rubric reliability, but it cannot retroactively change this gate result. A revised construction and/or rubric must be frozen as a new pilot version before further generation.
+
+If a future version passes its pre-activation gate, the primary question remains whether an evaluation direction selected under one history author transfers with stable orientation to the other authors. Secondary diagnostics fit authorship directions, compare direction cosines, and residualize their span before refitting evaluation probes. All splits and inference are grouped by scenario, and the stronger word/character TF-IDF hierarchy remains mandatory.
 
 ## 4. Final evidential chain
 
@@ -857,7 +861,7 @@ The experiments should be understood as a sequence of increasingly restrictive t
 | Slice 5 | Genuine vs reconstructed replies | Replicates, but stronger reply-only baselines narrow or erase margins | Provenance/context and surface form are represented; not specifically self-authorship |
 | Estimator/null checks | Logistic probe and full permutations | Main final-turn effects replicate; pre-final controls remain null | Effects are not estimator-specific or ordinary selection noise |
 | Steering | Add direction during generation | Readout and self-report move; safety does not | Direction is causally accessible for self-report, not shown to govern broad policy |
-| Authorship pilot, pre-activation gate | Cross final-turn status with three generated history authors | 150/150 histories terminate; 46/50 provisionally survive Claude coherence review | Construction is feasible; activation conclusions await human gate and extraction |
+| Authorship pilot, pre-activation gate | Cross final-turn status with three generated history authors | 150/150 histories terminate, but only 36/50 scenarios survive the combined coherence gate | v2 fails before activation extraction; authorship effects remain untested |
 
 ## 5. What the paper can and cannot claim
 
@@ -889,6 +893,7 @@ The following would overstate what was done:
 - “The observed-silence subset proves unconscious or unverbalized awareness.” Absence of detected disclosure does not reveal the model’s full internal semantics.
 - “Slice 5 demonstrates self-recognition.” The signal survives a different generator and strengthens under context ablation.
 - “Steering the direction improves safety behavior.” It changed self-report, but the refusal test showed no predicted increase.
+- “The effect is invariant to who generated the preceding conversation.” The v2 authorship-factorial pilot failed its coherence gate before activation extraction, so this remains untested.
 - “The effect generalizes across model families or scales.” Those experiments were not completed.
 - “The project measured agentic tool-use behavior or positive spontaneous verbalization cases.” There is no completed per-class tool-use dataset, and no real positive-disclosure classifier could be estimated because the judged matched-coherence outputs contained zero positives.
 
@@ -896,7 +901,7 @@ The following would overstate what was done:
 
 1. **Use train-only layer selection.** The historical Slice 1 best-layer curve and saved main Slice 3 analysis used held-out curves for layer selection. The later estimator-check artifact and the corrected values in this report use train-only selection.
 2. **Do not silently combine transfer regimes.** Report either the disjoint Slice 2b transfer subset as primary or show it beside the 10 shared-cell entries and the all-30 average.
-3. **Keep failed gates visible.** Slice 2b and the initial Slice 3 written cells did not satisfy their surface gates. Later transfer and paired controls are responses to those failures, not evidence that the failures disappeared.
+3. **Keep failed gates visible.** Slice 2b and the initial Slice 3 written cells did not satisfy their surface gates. The v2 authorship-factorial pilot also failed its combined human/model coherence gate at 36/50 and was stopped before activation extraction. Later experiments or revised pilots are responses to those failures, not evidence that the failures disappeared.
 4. **Keep rejected datasets out of the headline.** `eval_coherent` failed manual coherence review despite having cached activations. `casual_deploy_rw` is a stale pilot.
 5. **Distinguish selection SD from confidence intervals.** Five-seed `±` values are population SD across splits. Bootstrap intervals and permutation p-values answer different questions.
 6. **Describe strength carefully.** Absolute AUROC distance from chance is useful for inverted transfer, but high-dimensional random directions can have nontrivial absolute strength. Signed AUROC and full-pipeline permutations should accompany it.
@@ -967,11 +972,12 @@ This map lists the paper-relevant implementation rather than every operational f
 - `src/vnaa/run_authorship_generation.py`: unquantized greedy generation with immutable revision, rendered-input hash, token-id, and termination metadata.
 - `src/vnaa/build_authorship_gate.py`: construction of the 300 factorial cells and blinded 150-row coherence set.
 - `datasets/authorship/coherence_judge_v1.md`, `src/vnaa/authorship_coherence.py`: frozen rubric, deterministic batches, strict label validation, and judge-run provenance.
-- `src/vnaa/review_authorship_human.py`, `src/vnaa/finalize_authorship_gate.py`: resumable 30-row human review and conservative final gate.
+- `src/vnaa/review_authorship_human.py`, `src/vnaa/finalize_authorship_gate.py`: reviewer-identified, resumable 30-row human review and conservative final gate.
+- `src/vnaa/compare_authorship_reviewers.py`: second-reviewer agreement diagnostic that does not modify the frozen gate result.
 
 ### Verification
 
-The current test suite contains 107 passing tests covering probes, estimator splitting, stronger text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
+The current test suite contains 109 passing tests covering probes, estimator splitting, stronger text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
 
 ## 8. Recommended paper-level summary
 

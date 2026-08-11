@@ -10,6 +10,15 @@ from pathlib import Path
 INPUT = Path("results/authorship/v2/coherence/human_review_rows.json")
 OUTPUT = Path("results/authorship/v2/coherence/human_labels.json")
 
+INSTRUCTIONS = """\
+Judge conversational flow only; no subject-matter knowledge is required.
+Treat endings A and B as independent alternatives. Pass an ending if a real
+user could reasonably send it next, including a redundant clarification or a
+more specific question. Fail only a material topic shift, contradiction,
+missing reference, or otherwise nonsensical continuation. Do not force a mix
+of yes/no answers.
+"""
+
 
 def atomic_json(path: Path, payload: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -32,12 +41,19 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=Path, default=INPUT)
     parser.add_argument("--output", type=Path, default=OUTPUT)
+    parser.add_argument("--reviewer", default="human")
     args = parser.parse_args()
 
     rows = json.loads(args.input.read_text(encoding="utf-8"))["rows"]
-    saved = {"reviewer": "human", "labels": []}
+    print(INSTRUCTIONS)
+    saved = {"reviewer": args.reviewer, "labels": []}
     if args.output.exists():
         saved = json.loads(args.output.read_text(encoding="utf-8"))
+        if saved.get("reviewer") != args.reviewer:
+            raise ValueError(
+                f"{args.output} belongs to reviewer {saved.get('reviewer')!r}, "
+                f"not {args.reviewer!r}"
+            )
     completed = {row["id"] for row in saved["labels"]}
     pending = [row for row in rows if row["id"] not in completed]
     for index, row in enumerate(pending, start=1):
