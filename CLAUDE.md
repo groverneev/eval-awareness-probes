@@ -9,17 +9,27 @@ is highly recomended to see what we have done.
 
 Last updated: August 2026.
 
-## Status: all experiments done, paper assembly remains
+## Status: core experiments complete; validity upgrade in progress
 
 Slices 1, 2, 3, and 5 are complete on Llama-3.1-8B (slice 5 includes the
 model-swap/context-ablation decomposition and an LMSYS-Chat-1M replication).
 Tier 2 is done: steering, the `eval_shared` silence filter (+ 512-token cap
 sensitivity check), and the LMSYS replication, all run on a rented Runpod 4090.
-Local test suite: 90/90 passing after the matched-prefix baseline correction.
+Local test suite: 97/97 passing after the stronger sparse-text baseline and
+paired-margin inference upgrade.
 
-**What's left is paper assembly** (figures, methods/results prose,
-limitations) plus one open scope decision below. No GPU pod is currently
-running.
+The CPU-only stronger-baseline audit is complete and materially changes the
+Slice-3 transfer interpretation (details below). The evaluation-status x
+history-authorship pilot has generated all 150 histories under a documented v2
+cap amendment. All histories terminated naturally. Claude Sonnet 5 passed both
+endings in 144/150 blinded rows, leaving 46/50 scenarios retained before the
+frozen 30-row human review. No activations have been extracted or inspected.
+No GPU pod is currently running; the RunPod used for generation was deleted.
+
+**What's left:** run `python -m vnaa.review_authorship_human`, finalize the gate
+with `python -m vnaa.finalize_authorship_gate`, then extract/analyze pilot
+activations only if at least 40/50 scenarios survive. After the pilot decision,
+freeze the confirmatory sample/thresholds and assemble the paper.
 
 **Open scope decision.** The proposal promises a model scaling sweep (70B,
 Qwen2.5-7B/32B, Gemma-2/3) and per-class agentic/tool-use results. Neither is
@@ -144,6 +154,10 @@ scripts/
   gpu_session_tier2.md                    the frozen Tier 2 runbook
 datasets/judge/awareness_judge_v1.md      committed, hashed judge rubric
 datasets/steering/prespec.md              steering protocol, frozen pre-run
+datasets/authorship/prespec.md            frozen eval-status x history-author pilot
+datasets/authorship/pilot_manifest.json   50 hashed-ID-selected pilot scenarios
+datasets/authorship/prespec_v2.md         frozen 1,024-token cap amendment after v1 failure
+datasets/authorship/pilot_manifest_v2.json v2 manifest; same 50 pilot scenarios
 tests/  test_probe.py, test_read_points.py, test_estimators.py,
         test_judge_batches.py, test_steering.py, test_prep_slice5.py
 ```
@@ -203,8 +217,14 @@ synthetic lead-in style alone.
 topic-shift caveat: shared everyday-topic prefix, then either a benchmark
 question or a genuine same-topic help request. Pre-final read is chance
 (0.500); final token probe **0.951 ± 0.011** vs final-turn-only BoW 0.933
-(+0.018 margin). Cross-control transfer remains positive (`eval_shared` ↔
-matched-coherence: probe 0.858 / 0.788 vs BoW 0.792 / 0.678).
+(+0.018 margin). A later grouped five-fold audit with word 1--2-gram and
+character 3--5-gram TF-IDF baselines changes the interpretation: coherent-pair
+probe 0.9468 ties character TF-IDF 0.9447 (+0.0021, 95% pair-bootstrap CI
+[-0.0134, +0.0168]), and character TF-IDF beats the probe in both cross-control
+transfer directions. Only `eval_shared` retains a reliable probe advantage over
+the stronger sparse-text set: 0.9878 vs word TF-IDF 0.9529 (+0.0349, 95% CI
+[+0.0187, +0.0533], paired randomization p=0.0045). Do not claim that the
+cross-control activation transfer beats strong text baselines.
 
 **Silence filtering (192/250 naturally-terminated matched-coherence pairs;
 227/250 for `eval_shared` at a 512-token cap).** Explicit verbalized

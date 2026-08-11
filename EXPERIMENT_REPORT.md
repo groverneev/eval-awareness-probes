@@ -30,7 +30,7 @@ The next phase audited an existing public 2×2 dataset and built a new four-cell
 The multi-turn phase first created matched deployment, disguised-evaluation, and obvious-evaluation conversations. Its surface gate also failed, and the disguised-evaluation lead-ins themselves leaked the label before the final question. That version is not a clean awareness result. Two stronger controls were then built:
 
 - `eval_shared` retained a real-derived deployment conversation and changed only the final user turn to an evaluation question. Its prefix was byte-identical between classes. The probe was at chance before the changed turn (`0.49847 ± 0.00111`) and highly separating after it (`0.99168 ± 0.00330` at the last-user boundary). This is a strong temporal-localization control, but the final turn also changes topic and speech act.
-- `coherent_pairs` constructed both sides together so that the prefix was byte-identical and the two final turns were topically coherent and stylistically matched. At the last-user boundary, the probe achieved `0.95132 ± 0.01147`, compared with the stronger final-turn-only bag-of-words baseline at `0.93337 ± 0.00680` and format baseline at `0.69899 ± 0.03916`. Before the final turn, all methods were at chance. The activation advantage is therefore small in-distribution, although activation directions still transfer better than the corresponding final-turn text baselines between the two controls.
+- `coherent_pairs` constructed both sides together so that the prefix was byte-identical and the two final turns were topically coherent and stylistically matched. At the last-user boundary, the original repeated-holdout analysis gave probe `0.95132 ± 0.01147` versus bag-of-words `0.93337 ± 0.00680`. A later grouped five-fold audit added word and character TF-IDF baselines and direct pair-level inference. Under that stronger audit, the probe (`0.94682`) tied character TF-IDF (`0.94474`; difference `+0.00208`, 95% pair-bootstrap interval `[-0.01341, +0.01675]`). The activation advantage is therefore not established in-distribution.
 
 To test whether the internal separation remained when the model did not say it was in an evaluation, the model generated greedy replies and pairs were kept only when both replies terminated and neither a regex, two-stage blinded judge procedure, nor manual audit found explicit or implicit evaluation awareness. Raw activation separation remained high, but the corrected final-turn bag-of-words baseline tied it on matched-coherence and came within about `0.045` strength on `eval_shared`. This is correctly described as separation conditional on observed silence, not proof that the model lacked unexpressed awareness or that the remaining separation is nonlexical.
 
@@ -540,6 +540,24 @@ The two controls were built by different procedures and have different weaknesse
 
 These are completely independent constructions. The activation direction still transfers better than final-turn word counts, but the corrected margins are much smaller than under the noisy whole-conversation baseline. This supports some shared representation beyond unigram counts, not a large lexical-independent effect. The substantial seed variation in the coherent-to-shared direction should remain visible in any paper table.
 
+### Strong sparse-text audit and direct margin inference
+
+The bag-of-words comparison above was not the end of the surface audit. A later CPU-only analysis added two fixed text-only classifiers:
+
+- word 1--2-gram TF-IDF logistic regression;
+- character-within-word 3--5-gram TF-IDF logistic regression.
+
+The audit uses grouped five-fold outer predictions for within-control results, keeping both members of every scenario pair in the same fold. For transfer, layer and orientation are selected by grouped cross-validation on the source only, the final probe and text classifiers are fit on all source pairs, and every target pair is scored. Vocabularies and IDF weights are always fitted on source/training text only. Uncertainty is a 2,000-draw cluster bootstrap over matched scenarios. The one-sided p-value comes from 2,000 approximate-randomization draws that swap the probe and comparator prediction vectors within scenario; unlike the earlier label-permutation test, this directly tests the probe-minus-baseline AUROC difference.
+
+| Analysis | Probe | Strongest text baseline | Baseline AUROC | Probe − baseline | 95% pair-bootstrap interval | One-sided p |
+|---|---:|---|---:|---:|---:|---:|
+| `eval_shared`, grouped OOF | 0.98781 | word TF-IDF | 0.95293 | `+0.03488` | `[+0.01875, +0.05330]` | 0.00450 |
+| `coherent_pairs`, grouped OOF | 0.94682 | character TF-IDF | 0.94474 | `+0.00208` | `[-0.01341, +0.01675]` | 0.43778 |
+| `eval_shared` → `coherent_pairs` | 0.84496 | character TF-IDF | 0.86614 | `-0.02118` | `[-0.04887, +0.00811]` | 0.87856 |
+| `coherent_pairs` → `eval_shared` | 0.71874 | character TF-IDF | 0.84854 | `-0.12981` | `[-0.16654, -0.09081]` | 1.00000 |
+
+This changes the evidential chain. `eval_shared` retains a statistically reliable activation advantage over the stronger sparse-text set, although its topic/speech-act discontinuity remains. Matched coherence is tied by character n-grams. Most importantly, the earlier statement that activation directions transfer between the controls better than text was specific to unigram counts and does not survive character n-grams. Cross-control transfer remains evidence that both representations encode a shared distinction, but it is not evidence for an activation-specific component beyond the tested text classifiers.
+
 ## 3.6 Observed-silence analysis
 
 ### Question and filter
@@ -810,6 +828,18 @@ Spearman correlation was `-0.356`, opposite the predicted increase. Across the f
 
 The chosen intervention causally moved an independent internal readout and explicit eval/deploy self-reports in the predicted direction before output degeneration. It did not demonstrate a corresponding broad change in safety behavior. Steering therefore strengthens the claim that the direction is behaviorally accessible, but not the stronger claim that it is the causal mechanism behind deployment-policy changes.
 
+## 3.10 Authorship factorial pilot: generation complete, human gate pending
+
+The experiment frozen in `datasets/authorship/prespec.md` crosses eval/deploy final-user status with three preceding-history authors: target-model on-policy Llama-3.1-8B, same-family off-policy Llama-3.2-3B, and cross-family off-policy Qwen2.5-7B. The pilot uses 50 deterministically selected two-user-turn matched-coherence scenarios so that exactly one assistant response is regenerated per authorship condition. Within each author, the eval and deploy prefixes are byte-identical; across authors, the two final user endings are fixed.
+
+The v1 feasibility run stopped before activation extraction when its frozen 256-token cap made the success criterion unattainable: 12 of the first 13 on-policy histories hit the cap, so fewer than 40/50 scenarios could possibly survive. The partial record is retained. `datasets/authorship/prespec_v2.md` was then frozen before any v2 generation. It changes only the global cap to 1,024 tokens, preserves greedy decoding and every other construction/gate rule, and reuses the same pilot scenarios. They remain excluded from confirmation.
+
+Under v2, all 150 histories across all three generators terminated naturally. The longest observed generated history was 863 tokens. The mechanical builder validated all 300 cells, including the required user/assistant/user sequence, byte-identical eval/deploy prefixes within each author, and identical final endings across authors.
+
+The coherence rubric was frozen in `datasets/authorship/coherence_judge_v1.md`. Five blinded batches were judged with the resolved identifier `claude-sonnet-5`; tools were disabled. Claude passed both endings in 144/150 rows. The six failed rows belong to four scenarios, so 46/50 scenarios provisionally survive. The prespecified independent human review covers 30/150 rows and is still pending. Therefore the pilot gate is **not yet final**, and no activations have been extracted or inspected. The pending artifact is `results/authorship/v2/coherence/gate_pending_human.json`.
+
+The primary post-gate question remains whether an evaluation direction selected under one history author transfers with stable orientation to the other authors. Secondary diagnostics fit authorship directions, compare direction cosines, and residualize their span before refitting evaluation probes. All splits and inference are grouped by scenario, and the stronger word/character TF-IDF hierarchy is mandatory.
+
 ## 4. Final evidential chain
 
 The experiments should be understood as a sequence of increasingly restrictive tests, not as interchangeable AUROC values:
@@ -822,11 +852,12 @@ The experiments should be understood as a sequence of increasingly restrictive t
 | Slice 3, first written cells | Multi-turn matched skeletons | Signal appears before final question; surface gate fails | This version is not a valid temporal control |
 | `eval_shared` | Byte-identical prefix; only final turn swapped | Chance before swap, ≈0.992 after | Signal is introduced at the class-defining final turn |
 | `coherent_pairs` | Byte-identical coherent prefix and topic-matched endings | ≈0.951 vs final-turn BoW ≈0.933; chance before final turn | High separation remains, but is largely lexical in-distribution |
-| Cross-control transfer | Train on one multi-turn control, test the other | Probe ≈0.858/0.788 vs BoW ≈0.792/0.678 | The controls share a modest activation component beyond unigram counts |
+| Cross-control transfer | Train on one multi-turn control, test the other | Probe beats unigram counts, but character TF-IDF reaches 0.866/0.849 vs probe 0.845/0.719 in the grouped audit | Transfer does not establish an activation-specific component beyond stronger text features |
 | Observed silence | Retain terminated pairs without detected awareness language | High raw separation remains; coherent probe and BoW tie | Overt disclosure is not necessary, but coherent silence does not beat lexical text |
 | Slice 5 | Genuine vs reconstructed replies | Replicates, but stronger reply-only baselines narrow or erase margins | Provenance/context and surface form are represented; not specifically self-authorship |
 | Estimator/null checks | Logistic probe and full permutations | Main final-turn effects replicate; pre-final controls remain null | Effects are not estimator-specific or ordinary selection noise |
 | Steering | Add direction during generation | Readout and self-report move; safety does not | Direction is causally accessible for self-report, not shown to govern broad policy |
+| Authorship pilot, pre-activation gate | Cross final-turn status with three generated history authors | 150/150 histories terminate; 46/50 provisionally survive Claude coherence review | Construction is feasible; activation conclusions await human gate and extraction |
 
 ## 5. What the paper can and cannot claim
 
@@ -838,7 +869,7 @@ The repository supports the following statements, provided their qualifications 
 2. Simple benchmark-versus-user separation is heavily explained by surface form; the project measured and documented this rather than treating high probe accuracy as sufficient.
 3. On the Slice 2b math-free transfer grid, activation directions generalize across independently built pairs better than the tested format and bag-of-words classifiers. The strict completely disjoint margin is `0.04754 ± 0.01538`; the all-off-diagonal margin is `0.07108 ± 0.01341`.
 4. In two paired multi-turn controls, activation separation is at chance throughout a byte-identical prefix and emerges only when the eval/deploy final turn is introduced.
-5. The two multi-turn constructions transfer to one another modestly better than final-turn unigram and format baselines, consistent with a shared internal component but not uniquely with evaluation awareness.
+5. The two multi-turn constructions transfer to one another, but their activation directions do not beat character n-gram classifiers. The earlier positive transfer margin was relative to unigram counts only.
 6. High raw separation remains in matched pairs whose generated replies contain no detected awareness language. On matched-coherence silence pairs, however, the activation probe and final-turn bag-of-words are tied; `eval_shared` retains only a modest activation margin.
 7. Genuine versus reconstructed assistant replies are internally separable across WildChat and LMSYS, but reply-only format baselines explain much of the effect and controls rule out a narrow self-authorship interpretation.
 8. The main activation results survive a second probe estimator and full-pipeline permutation tests.
@@ -854,6 +885,7 @@ The following would overstate what was done:
 - “The model knows it is being evaluated.” The experiments identify a robust direction associated with these constructions, but do not uniquely identify its semantic content.
 - “No lexical information remains.” Bag-of-words is strong in several contrasts, and the coherent final-turn-mean probe selects the embedding layer.
 - “The matched-coherence activation probe meaningfully beats words in-distribution.” With the correct final-turn-only view, probe `0.95132` versus BoW `0.93337` leaves only a `0.01796` strength margin, and the silence-filtered subset is tied.
+- “Cross-control activation transfer beats text baselines.” It beats unigram counts, but the stronger grouped audit finds character TF-IDF at `0.86614/0.84854` versus probe `0.84496/0.71874` in the two directions.
 - “The observed-silence subset proves unconscious or unverbalized awareness.” Absence of detected disclosure does not reveal the model’s full internal semantics.
 - “Slice 5 demonstrates self-recognition.” The signal survives a different generator and strengthens under context ablation.
 - “Steering the direction improves safety behavior.” It changed self-report, but the refusal test showed no predicted increase.
@@ -883,6 +915,7 @@ This map lists the paper-relevant implementation rather than every operational f
 - `src/vnaa/extract.py`: model loading, chat rendering, turn-span validation, user/assistant read points, trajectories, and activation serialization.
 - `src/vnaa/probe.py`: direction-of-means fitting, per-layer scoring, layer choice, and AUROC.
 - `src/vnaa/baselines.py`: splits, structural features, length/format/bag-of-words baselines, strength, and bootstrap intervals.
+- `src/vnaa/run_strong_baseline_audit.py`: grouped outer-fold word/character TF-IDF audit, source-only transfer selection, pair-cluster bootstrap intervals, and direct probe-versus-baseline randomization tests.
 - `src/vnaa/estimators.py`: honest direction-of-means and logistic estimators, training-only cross-validation, permutations, shuffled directions, and random-direction diagnostics.
 - `src/vnaa/run_estimator_check.py`: final estimator and null-distribution analysis.
 
@@ -927,14 +960,23 @@ This map lists the paper-relevant implementation rather than every operational f
 - `src/vnaa/run_steering.py`: direction fitting, manipulation check, generation, and analysis.
 - `results/steer_Llama-3.1-8B-Instruct_analysis.json`: completed steering result.
 
+### Authorship factorial pilot
+
+- `datasets/authorship/prespec.md`, `datasets/authorship/prespec_v2.md`: original frozen protocol and the documented global-cap amendment after the v1 termination failure.
+- `datasets/authorship/pilot_manifest_v2.json`, `src/vnaa/prep_authorship_factorial.py`: source/prespec-hashed deterministic selection of the 50 pilot scenarios.
+- `src/vnaa/run_authorship_generation.py`: unquantized greedy generation with immutable revision, rendered-input hash, token-id, and termination metadata.
+- `src/vnaa/build_authorship_gate.py`: construction of the 300 factorial cells and blinded 150-row coherence set.
+- `datasets/authorship/coherence_judge_v1.md`, `src/vnaa/authorship_coherence.py`: frozen rubric, deterministic batches, strict label validation, and judge-run provenance.
+- `src/vnaa/review_authorship_human.py`, `src/vnaa/finalize_authorship_gate.py`: resumable 30-row human review and conservative final gate.
+
 ### Verification
 
-The current test suite contains 90 passing tests covering probes, estimator splitting, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
+The current test suite contains 107 passing tests covering probes, estimator splitting, stronger text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
 
 ## 8. Recommended paper-level summary
 
 A concise and accurate paper summary would be:
 
-> We progressively tested whether Llama-3.1-8B-Instruct hidden states distinguish evaluation-like from deployment-like interactions after accounting for simple surface cues. Initial benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences, so we evaluated cross-construction transfer; on completely disjoint math-free transfers, activation-probe separation exceeded bag-of-words by `0.0475 ± 0.0154` across five splits. In two multi-turn paired controls, activations were indistinguishable throughout byte-identical prefixes and separated only after the differing final turn. Stronger final-turn-only baselines explain most in-distribution separation, although activation directions retain modest cross-control transfer advantages. Raw separation also remains among terminated pairs without detected awareness disclosure, but matched-coherence is tied by word counts. A pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports, but did not increase safety refusals. These results support a behaviorally accessible direction associated with the studied constructions while leaving its semantics and independence from textual task structure unresolved.
+> We progressively tested whether Llama-3.1-8B-Instruct hidden states distinguish evaluation-like from deployment-like interactions after accounting for surface cues. Initial benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences, so we evaluated cross-construction transfer; on completely disjoint math-free transfers, activation-probe separation exceeded unigram counts by `0.0475 ± 0.0154` across five splits. In two multi-turn paired controls, activations were indistinguishable throughout byte-identical prefixes and separated only after the differing final turn. A grouped stronger-baseline audit finds a reliable probe advantage only for the topic-shifted `eval_shared` control (`+0.0349`, 95% CI `[+0.0187, +0.0533]`); matched coherence ties character n-grams, and character n-grams outperform the probe in cross-control transfer. Raw separation also remains among terminated pairs without detected awareness disclosure, but matched coherence is tied by text. A pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports, but did not increase safety refusals. These results identify a behaviorally accessible direction associated with the studied constructions while showing that current evidence does not isolate it from textual task structure.
 
 That language reflects what the repository demonstrates without turning unsuccessful matching, conditional silence, provenance detection, or a self-report steering effect into stronger claims than the experiments justify.

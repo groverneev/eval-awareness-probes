@@ -21,7 +21,7 @@ from __future__ import annotations
 import re
 
 import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
@@ -113,6 +113,161 @@ def bag_of_words_auroc(
 ) -> float:
     scores = bag_of_words_scores(texts, labels, train_idx, test_idx, min_df, seed)
     return roc_auc_score(labels[test_idx], scores)
+
+
+def text_logistic_scores(
+    texts: list[str],
+    labels: np.ndarray,
+    train_idx,
+    test_idx,
+    kind: str,
+    min_df: int = 2,
+    seed: int = 0,
+) -> np.ndarray:
+    """Scores from stronger sparse text-only classifiers.
+
+    ``word_tfidf`` includes word unigrams and bigrams. ``char_tfidf`` uses
+    character 3--5 grams inside word boundaries, capturing spelling, affixes,
+    punctuation-adjacent patterns, and short formatting cues that word counts
+    miss.  Every vocabulary and IDF statistic is fitted on training text only.
+
+    Empty causal text is a real condition for identical-prefix pre-final
+    controls.  In that case there is no text signal, so return a constant score
+    rather than allowing a vectorizer's empty-vocabulary error to obscure the
+    intended chance result.
+    """
+    train_texts = [texts[i] for i in train_idx]
+    test_texts = [texts[i] for i in test_idx]
+    if not any(t.strip() for t in train_texts):
+        return np.zeros(len(test_texts), dtype=float)
+
+    if kind == "word_tfidf":
+        vectorizer = TfidfVectorizer(
+            lowercase=True,
+            ngram_range=(1, 2),
+            min_df=min_df,
+            sublinear_tf=True,
+            max_features=50_000,
+        )
+    elif kind == "char_tfidf":
+        vectorizer = TfidfVectorizer(
+            analyzer="char_wb",
+            lowercase=True,
+            ngram_range=(3, 5),
+            min_df=min_df,
+            sublinear_tf=True,
+            max_features=100_000,
+        )
+    else:
+        raise ValueError(f"unknown text baseline kind: {kind}")
+
+    x_train = vectorizer.fit_transform(train_texts)
+    x_test = vectorizer.transform(test_texts)
+    classifier = LogisticRegression(max_iter=3000, random_state=seed)
+    classifier.fit(x_train, labels[train_idx])
+    return classifier.predict_proba(x_test)[:, 1]
+
+
+def bootstrap_auroc_difference_ci(
+    y_true: np.ndarray,
+    scores_a: np.ndarray,
+    scores_b: np.ndarray,
+    cluster_ids: np.ndarray | None = None,
+    n_boot: int = 2000,
+    seed: int = 0,
+) -> dict[str, float]:
+    """Cluster bootstrap for the paired AUROC difference ``A - B``.
+
+    Matched eval/deploy examples share a scenario and must be resampled as one
+    unit.  Passing their pair ids in ``cluster_ids`` preserves that dependence.
+    With no ids, each prediction is treated as an independent singleton.
+    """
+    y_true = np.asarray(y_true)
+    scores_a = np.asarray(scores_a, dtype=np.float64)
+    scores_b = np.asarray(scores_b, dtype=np.float64)
+    if not (len(y_true) == len(scores_a) == len(scores_b)):
+        raise ValueError("labels and score arrays must have equal length")
+    if len(np.unique(y_true)) < 2:
+        raise ValueError("AUROC needs both classes present")
+
+    clusters = (np.arange(len(y_true)) if cluster_ids is None
+                else np.asarray(cluster_ids))
+    if len(clusters) != len(y_true):
+        raise ValueError("cluster_ids must match labels")
+    unique = np.unique(clusters)
+    members = {cluster: np.flatnonzero(clusters == cluster) for cluster in unique}
+    rng = np.random.default_rng(seed)
+    values: list[float] = []
+    while len(values) < n_boot:
+        sampled = rng.choice(unique, size=len(unique), replace=True)
+        index = np.concatenate([members[cluster] for cluster in sampled])
+        labels = y_true[index]
+        if len(np.unique(labels)) < 2:
+            continue
+        values.append(
+            roc_auc_score(labels, scores_a[index])
+            - roc_auc_score(labels, scores_b[index])
+        )
+    observed = roc_auc_score(y_true, scores_a) - roc_auc_score(y_true, scores_b)
+    return {
+        "difference": float(observed),
+        "ci_low": float(np.percentile(values, 2.5)),
+        "ci_high": float(np.percentile(values, 97.5)),
+        "n_boot": int(n_boot),
+        "n_clusters": int(len(unique)),
+    }
+
+
+def paired_prediction_permutation_test(
+    y_true: np.ndarray,
+    scores_a: np.ndarray,
+    scores_b: np.ndarray,
+    cluster_ids: np.ndarray | None = None,
+    n_permutations: int = 5000,
+    seed: int = 0,
+    alternative: str = "greater",
+) -> dict[str, float]:
+    """Approximate-randomization test for a paired AUROC difference.
+
+    Under the null that methods A and B are exchangeable, swap their prediction
+    vectors independently per scenario cluster and recompute AUROC(A)-AUROC(B).
+    This directly tests the paper's central margin, unlike a label-permutation
+    test which only asks whether either method separates the labels at all.
+    """
+    y_true = np.asarray(y_true)
+    scores_a = np.asarray(scores_a, dtype=np.float64)
+    scores_b = np.asarray(scores_b, dtype=np.float64)
+    if not (len(y_true) == len(scores_a) == len(scores_b)):
+        raise ValueError("labels and score arrays must have equal length")
+    if alternative not in {"greater", "two-sided"}:
+        raise ValueError("alternative must be 'greater' or 'two-sided'")
+
+    clusters = (np.arange(len(y_true)) if cluster_ids is None
+                else np.asarray(cluster_ids))
+    if len(clusters) != len(y_true):
+        raise ValueError("cluster_ids must match labels")
+    unique, inverse = np.unique(clusters, return_inverse=True)
+    observed = roc_auc_score(y_true, scores_a) - roc_auc_score(y_true, scores_b)
+    rng = np.random.default_rng(seed)
+    null = np.empty(n_permutations, dtype=np.float64)
+    for draw in range(n_permutations):
+        row_swap = rng.integers(0, 2, size=len(unique), dtype=np.int8)[inverse].astype(bool)
+        perm_a = np.where(row_swap, scores_b, scores_a)
+        perm_b = np.where(row_swap, scores_a, scores_b)
+        null[draw] = (
+            roc_auc_score(y_true, perm_a) - roc_auc_score(y_true, perm_b)
+        )
+    if alternative == "greater":
+        exceed = int((null >= observed).sum())
+    else:
+        exceed = int((np.abs(null) >= abs(observed)).sum())
+    return {
+        "difference": float(observed),
+        "p_value": float((exceed + 1) / (n_permutations + 1)),
+        "n_permutations": int(n_permutations),
+        "n_clusters": int(len(unique)),
+        "alternative": alternative,
+    }
 
 
 _OPTION_MARKER = re.compile(r"(?m)(^\s*\(?[A-Da-d][\)\.]\s)|(\([A-D]\))")
