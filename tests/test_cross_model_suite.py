@@ -14,6 +14,7 @@ from vnaa.cross_model_suite import (
     frozen_revision,
     load_contrasts,
     load_manifest,
+    model_loader_adapter,
     model_slug,
     temporal_diagnostic,
     unpack_trajectories,
@@ -84,6 +85,16 @@ def test_model_slug_uses_full_repository_identity():
     second = model_slug("org-b/shared-name")
     assert first != second
     assert first == model_slug("org-a/shared-name")
+
+
+def test_multimodal_loader_adapters_are_explicit_and_model_specific():
+    assert model_loader_adapter("Qwen/Qwen3-8B") is None
+    assert model_loader_adapter("google/gemma-3-12b-it") == (
+        "gemma3_wrapper_language_model"
+    )
+    assert model_loader_adapter(
+        "mistralai/Ministral-3-8B-Instruct-2512-BF16"
+    ) == "mistral3_wrapper_language_model_fix_mistral_regex"
 
 
 def test_trajectory_cache_round_trip():

@@ -68,6 +68,16 @@ def model_slug(repository: str) -> str:
     return f"{readable}-{digest}"
 
 
+def model_loader_adapter(repository: str) -> str | None:
+    """Frozen text-only adapter identity for multimodal top-level checkpoints."""
+    return {
+        "google/gemma-3-12b-it": "gemma3_wrapper_language_model",
+        "mistralai/Ministral-3-8B-Instruct-2512-BF16": (
+            "mistral3_wrapper_language_model_fix_mistral_regex"
+        ),
+    }.get(repository)
+
+
 def _load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -240,7 +250,7 @@ def expected_provenance(
     dtype: str,
     limit: int | None,
 ) -> dict:
-    return {
+    provenance = {
         "suite_id": load_manifest(manifest_path)["suite_id"],
         "manifest_sha256": manifest_sha256(manifest_path),
         "model_repository": repository,
@@ -255,6 +265,10 @@ def expected_provenance(
         "n_conversations": len(contrast.item_ids) if limit is None else limit,
         "sample": "full" if limit is None else f"smoke_n{limit}",
     }
+    adapter = model_loader_adapter(repository)
+    if adapter is not None:
+        provenance["model_loader_adapter"] = adapter
+    return provenance
 
 
 def extract(args: argparse.Namespace) -> None:

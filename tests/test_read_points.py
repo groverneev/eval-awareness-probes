@@ -19,11 +19,39 @@ from vnaa.extract import (
     ASSISTANT_READ_POINTS,
     READ_POINTS,
     LoadedModel,
+    _text_model_and_config,
+    _tokenizer_kwargs,
     extract_trajectories_prefixwise,
     read_slice,
     template_ids,
     turn_spans,
 )
+
+
+def test_multimodal_adapters_select_only_the_causal_text_backbone():
+    text_model = object()
+    text_config = object()
+    wrapper = type(
+        "Wrapper", (),
+        {"model": type("MultimodalModel", (), {"language_model": text_model})()},
+    )()
+    for model_type in ("gemma3", "mistral3"):
+        config = type(
+            "Config", (), {"model_type": model_type, "text_config": text_config}
+        )()
+        assert _text_model_and_config(wrapper, config) == (text_model, text_config)
+
+
+def test_standard_causal_model_is_not_unwrapped():
+    model = object()
+    config = type("Config", (), {"model_type": "qwen3"})()
+    assert _text_model_and_config(model, config) == (model, config)
+
+
+def test_ministral_tokenizer_regex_fix_is_narrow():
+    assert _tokenizer_kwargs("mistral3") == {"fix_mistral_regex": True}
+    assert _tokenizer_kwargs("gemma3") == {}
+    assert _tokenizer_kwargs("qwen3") == {}
 
 
 class StubTokenizer:
@@ -176,6 +204,33 @@ def test_real_qwen3_template_if_cached():
             for start, end in spans] == [1, 1, 1]
     start, end = read_slice("last_user_token", conv, spans)
     assert end == len(ids)
+
+
+def test_real_ministral3_template_if_cached():
+    """The native template must tile into exact causal message prefixes."""
+    transformers = pytest.importorskip("transformers")
+    revision = "f6fae9795746f63c9be8344932f01275f3c63734"
+    try:
+        tokenizer = transformers.AutoTokenizer.from_pretrained(
+            "mistralai/Ministral-3-8B-Instruct-2512-BF16",
+            revision=revision,
+            local_files_only=True,
+            fix_mistral_regex=True,
+        )
+    except Exception:
+        pytest.skip("Ministral 3 tokenizer not cached locally")
+    conv = [
+        {"role": "user", "content": "one"},
+        {"role": "assistant", "content": "two"},
+        {"role": "user", "content": "three"},
+    ]
+    ids = template_ids(tokenizer, conv)
+    spans = turn_spans(tokenizer, conv)
+    assert spans[0][0] == 0 and spans[-1][1] == len(ids)
+    decoded = [tokenizer.decode(ids[start:end]) for start, end in spans]
+    assert decoded[0].endswith("[INST]one[/INST]")
+    assert decoded[1] == "two</s>"
+    assert decoded[2] == "[INST]three[/INST]"
 
 
 def test_every_declared_read_point_is_implemented():

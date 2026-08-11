@@ -33,7 +33,12 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 from tqdm import tqdm
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import (
+    AutoConfig,
+    AutoModelForCausalLM,
+    AutoModelForImageTextToText,
+    AutoTokenizer,
+)
 
 Conversation = list[dict[str, str]]  # [{"role": "user"|"assistant"|"system", "content": ...}]
 
@@ -77,6 +82,40 @@ class LoadedModel:
     hidden_size: int
 
 
+_MULTIMODAL_TEXT_BACKBONES = {"gemma3", "mistral3"}
+
+
+def _tokenizer_kwargs(model_type: str) -> dict:
+    """Model-specific tokenizer fixes frozen as part of the loader adapter."""
+    if model_type == "mistral3":
+        # The checkpoint predates a corrected Mistral pre-tokenizer regex.
+        # Transformers warns that omitting this flag changes tokenization.
+        return {"fix_mistral_regex": True}
+    return {}
+
+
+def _text_model_and_config(model, config):
+    """Return the causal text backbone and its architecture config.
+
+    Gemma 3 and Ministral 3 publish vision-capable top-level checkpoints. Their
+    text path is a normal causal decoder under ``model.language_model``. We
+    load the official wrapper so checkpoint key mapping remains authoritative,
+    then retain only that text backbone. This avoids running the vision tower
+    or materializing vocabulary logits during activation extraction.
+    """
+    if config.model_type not in _MULTIMODAL_TEXT_BACKBONES:
+        return model, config
+    try:
+        text_model = model.model.language_model
+        text_config = config.text_config
+    except AttributeError as error:
+        raise ValueError(
+            f"{config.model_type}: expected an official multimodal wrapper "
+            "with model.language_model and text_config"
+        ) from error
+    return text_model, text_config
+
+
 def load_model(
     model_name: str,
     device: str | None = None,
@@ -96,34 +135,51 @@ def load_model(
     places the layers, and inputs go to the embedding layer's device. When None,
     the model loads on a single device as usual.
     """
-    tokenizer = AutoTokenizer.from_pretrained(model_name, revision=revision)
+    config = AutoConfig.from_pretrained(model_name, revision=revision)
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name,
+        revision=revision,
+        **_tokenizer_kwargs(config.model_type),
+    )
+    loader = (
+        AutoModelForImageTextToText
+        if config.model_type in _MULTIMODAL_TEXT_BACKBONES
+        else AutoModelForCausalLM
+    )
     if device_map is not None:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name, dtype=dtype, device_map=device_map, revision=revision
+        loaded = loader.from_pretrained(
+            model_name,
+            config=config,
+            dtype=dtype,
+            device_map=device_map,
+            revision=revision,
         )
-        model.eval()
+        loaded.eval()
+        model, architecture = _text_model_and_config(loaded, config)
         # Inputs must land on whatever device holds the embedding layer.
         input_device = str(model.get_input_embeddings().weight.device)
         return LoadedModel(
             tokenizer=tokenizer,
             model=model,
             device=input_device,
-            n_layers=model.config.num_hidden_layers,
-            hidden_size=model.config.hidden_size,
+            n_layers=architecture.num_hidden_layers,
+            hidden_size=architecture.hidden_size,
         )
 
     device = pick_device(device)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name, dtype=dtype, revision=revision
+    loaded = loader.from_pretrained(
+        model_name, config=config, dtype=dtype, revision=revision
     )
+    loaded.eval()
+    model, architecture = _text_model_and_config(loaded, config)
     model.to(device)
     model.eval()
     return LoadedModel(
         tokenizer=tokenizer,
         model=model,
         device=device,
-        n_layers=model.config.num_hidden_layers,
-        hidden_size=model.config.hidden_size,
+        n_layers=architecture.num_hidden_layers,
+        hidden_size=architecture.hidden_size,
     )
 
 
