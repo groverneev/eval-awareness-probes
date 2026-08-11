@@ -15,7 +15,7 @@ Slices 1, 2, 3, and 5 are complete on Llama-3.1-8B (slice 5 includes the
 model-swap/context-ablation decomposition and an LMSYS-Chat-1M replication).
 Tier 2 is done: steering, the `eval_shared` silence filter (+ 512-token cap
 sensitivity check), and the LMSYS replication, all run on a rented Runpod 4090.
-Local test suite: 123/123 passing after the stronger sparse-text baseline,
+Local test suite: 130/130 passing after the stronger sparse-text baseline,
 paired-margin inference, independent-reviewer diagnostic, and cross-model suite
 upgrade.
 
@@ -28,32 +28,32 @@ frozen 30-row human review. The human reviewer passed both endings in only
 16/30 sampled rows; the conservative combined gate therefore retains 36/50
 scenarios and v2 formally fails its pre-activation threshold. No activations
 have been extracted or inspected.
-No GPU pod is currently running; the RunPod used for generation was deleted.
+No GPU pod is currently running; both cross-model RunPod pods were deleted
+after checksummed artifacts were copied locally.
 
 The current cross-model protocol is the pre-result v2 amendment in
 `datasets/cross_model/confirmatory_suite_v2.json`. It replaces the older panel
 with current 5--12B models: Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B. All
-are revision-pinned. The eight-pair Qwen smoke passed after adding a
-validated ChatML boundary fallback and switching temporal extraction to
-independent causal-prefix passes. The full 250-pair Qwen3-8B core is now
-complete at the frozen revision and bfloat16 precision. Both controls have
-exactly zero pre-final activation difference. Qwen's probe beats the strongest
-text baseline on `eval_shared` (AUROC 0.99357 vs 0.95293; difference 0.04064,
-95% CI [0.02364, 0.05982], p=0.0050), but ties character TF-IDF on
-`coherent_pairs` (0.94653 vs 0.94474; difference 0.00179, 95% CI
-[-0.01495, 0.01798], p=0.4448). Bidirectional transfer is high in absolute
-terms (0.88195 and 0.82446), but neither direction significantly beats the
-strongest character baseline. This is one cross-family replication, not yet a
-broad cross-model result.
+are revision-pinned, and the full 250-pair bfloat16 core is complete on all
+three. Every model has exactly zero pre-final activation difference on both
+controls and nonzero final differences. On `eval_shared`, Qwen (0.99357 vs
+0.95293, difference +0.04064, p=0.0050) and Ministral (0.98062 vs 0.95293,
+difference +0.02770, p=0.0155) beat word TF-IDF, while Gemma is much weaker
+(0.72667 vs 0.95293, difference -0.22626). No replication model reliably beats
+character TF-IDF on matched coherence or either transfer direction. The panel
+therefore establishes cross-family temporal decodability, not architecture-
+invariant strength or an activation-specific signal beyond textual structure.
+Full caches, analyses, logs, and SHA-256 manifests are under
+`results/cross_model/v2/`.
 
 **What's left:** if a second independent human is available, collect the same
 blinded 30-row review under a separate reviewer ID and use it only to diagnose
 reviewer/rubric reliability. Do not extract v2 activations or retroactively
 change its failed gate. Use the diagnostic to design and freeze a v3
-construction/rubric before generating new pilot data. Independently, implement
-and smoke-test the text-only Gemma 3 and Ministral 3 adapters, then run their
-frozen cores regardless of the Qwen outcome. After a successful new
-authorship pilot and the cross-model core, assemble the paper.
+construction/rubric before generating new pilot data. The frozen cross-model
+core needs no additional primary models. Assemble the paper around the
+completed panel and treat a successful new authorship pilot as an optional
+validity upgrade, not a reason to alter the failed v2 result.
 
 **Open scope decision.** Cut agentic/tool-use to future work because it needs a
 dataset that does not exist. The frozen model sweep uses Qwen3-8B,

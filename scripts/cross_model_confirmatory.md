@@ -50,7 +50,7 @@ baseline, whether favorable or unfavorable.
 $env:PYTHONPATH='.'
 uv run python -m vnaa.cross_model_suite validate
 uv run python -m vnaa.cross_model_suite plan
-uv run pytest -q
+uv run python -m pytest -q
 ```
 
 Run an eight-pair Qwen smoke test on the local RTX 5070 Ti. `device-map auto`
@@ -95,17 +95,31 @@ uv run python -m vnaa.cross_model_suite extract \
   --device-map auto --dtype bfloat16
 uv run python -m vnaa.cross_model_suite analyze \
   --model Qwen/Qwen3-8B
+
+uv run python -m vnaa.cross_model_suite extract \
+  --model google/gemma-3-12b-it \
+  --device-map auto --dtype bfloat16
+uv run python -m vnaa.cross_model_suite analyze \
+  --model google/gemma-3-12b-it
+
+uv run python -m vnaa.cross_model_suite extract \
+  --model mistralai/Ministral-3-8B-Instruct-2512-BF16 \
+  --device-map auto --dtype bfloat16
+uv run python -m vnaa.cross_model_suite analyze \
+  --model mistralai/Ministral-3-8B-Instruct-2512-BF16
 ```
 
-Add Gemma 3 and Ministral 3 commands only after their text-only adapters pass
-the same local smoke and hidden-state shape tests.
+Gemma 3 and Ministral 3 use explicit text-only adapters for their official
+multimodal wrappers. Their real-tokenizer and eight-pair smoke gates passed
+before these full commands were run.
 
 As checked on 2026-08-11, RunPod's public Pod pricing listed the 48 GB A40 at
 $0.44/hour, RTX A6000 at $0.53/hour, and L40S at $0.99/hour:
 https://www.runpod.io/pricing. Runtime has not yet been benchmarked on the new
-runner. A conservative planning range is 2--4 GPU-hours per model for the core
-extraction, or roughly $0.88--$1.76 for the first Qwen run on an A40, excluding
-setup time and storage. Treat that as a budget envelope, not a measured cost.
+runner. The measured full extraction times on separate A40s were 11m09s for
+Gemma and 12m15s for Ministral; full analyses took about 4.5 and 5.3 minutes.
+Including setup, downloads, smokes, analysis, and artifact transfer, both pods
+together cost approximately $0.86 at $0.44/hour each before termination.
 
 Do not use 4-bit or 8-bit quantization. Models outside 5--12B are not part of
 the v2 primary panel.
@@ -124,7 +138,7 @@ Do not run the silence or steering extensions until all core analyses are
 complete. Those generation-heavy arms are secondary in the frozen manifest and
 will receive separate model-aware adapters and cost checks before execution.
 
-## Completed Qwen3-8B core
+## Completed primary panel
 
 The full local Qwen3-8B run completed on 2026-08-11 at the frozen revision.
 All four 250-pair caches passed provenance checks and both temporal controls had
@@ -137,5 +151,20 @@ exactly zero pre-final difference. The primary grouped results are:
 | eval-shared -> coherent | 0.88195 | 0.86614 | +0.01581 [-0.01079, +0.04309] | 0.0795 |
 | coherent -> eval-shared | 0.82446 | 0.84854 | -0.02408 [-0.06007, +0.01192] | 0.8486 |
 
-These results do not change the stopping rule: Gemma 3 and Ministral 3 must run
-regardless of the Qwen outcome.
+Gemma 3 and Ministral 3 were subsequently completed on the same 250-pair
+endpoints. All eight additional caches passed provenance and temporal checks.
+
+| Model | Test | Probe | Strongest text | Difference (95% CI) | p |
+|---|---|---:|---:|---:|---:|
+| Gemma | `eval_shared` within | 0.72667 | 0.95293 | -0.22626 [-0.24987, -0.19998] | 1.0000 |
+| Gemma | `coherent_pairs` within | 0.64744 | 0.94474 | -0.29730 [-0.31696, -0.27304] | 1.0000 |
+| Gemma | eval-shared -> coherent | 0.72642 | 0.86614 | -0.13973 [-0.17575, -0.10417] | 1.0000 |
+| Gemma | coherent -> eval-shared | 0.65408 | 0.84854 | -0.19446 [-0.23496, -0.15188] | 1.0000 |
+| Ministral | `eval_shared` within | 0.98062 | 0.95293 | +0.02770 [+0.01017, +0.04720] | 0.0155 |
+| Ministral | `coherent_pairs` within | 0.92789 | 0.94474 | -0.01685 [-0.03509, +0.00127] | 0.8736 |
+| Ministral | eval-shared -> coherent | 0.84232 | 0.86614 | -0.02382 [-0.05075, +0.00519] | 0.9030 |
+| Ministral | coherent -> eval-shared | 0.87557 | 0.84854 | +0.02702 [-0.00619, +0.06111] | 0.0660 |
+
+The stopping rule is satisfied. The panel supports cross-family temporal
+decodability but not architecture-invariant effect size: Gemma is much weaker,
+and no replication model beats character TF-IDF on coherent or transfer tests.

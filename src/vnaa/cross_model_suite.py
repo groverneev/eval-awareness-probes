@@ -45,7 +45,34 @@ def load_manifest(path: Path = DEFAULT_MANIFEST) -> dict:
 
 
 def manifest_sha256(path: Path = DEFAULT_MANIFEST) -> str:
-    return sha256_file(path)
+    """Hash a manifest independently of platform checkout line endings."""
+    payload = path.read_bytes().replace(b"\r\n", b"\n")
+    return sha256_bytes(payload)
+
+
+def _manifest_sha256_variants(path: Path) -> set[str]:
+    """Accepted raw hashes for pre-normalization LF/CRLF artifacts."""
+    payload = path.read_bytes().replace(b"\r\n", b"\n")
+    return {
+        sha256_bytes(payload),
+        sha256_bytes(payload.replace(b"\n", b"\r\n")),
+    }
+
+
+def _provenance_matches(
+    found: dict, expected: dict, manifest_path: Path
+) -> bool:
+    """Compare provenance while accepting only the legacy EOL hash variant."""
+    if found == expected:
+        return True
+    found_without_hash = {k: v for k, v in found.items() if k != "manifest_sha256"}
+    expected_without_hash = {
+        k: v for k, v in expected.items() if k != "manifest_sha256"
+    }
+    return (
+        found_without_hash == expected_without_hash
+        and found.get("manifest_sha256") in _manifest_sha256_variants(manifest_path)
+    )
 
 
 def frozen_revision(manifest: dict, repository: str) -> str | None:
@@ -291,7 +318,9 @@ def extract(args: argparse.Namespace) -> None:
                 args.model, args.manifest, contrast, condition, args.dtype, args.limit
             )
             if path.exists():
-                if _cache_provenance(path) != provenance:
+                if not _provenance_matches(
+                    _cache_provenance(path), provenance, args.manifest
+                ):
                     raise ValueError(f"refusing incompatible existing cache: {path}")
                 print(f"verified existing {path}")
             else:
@@ -346,7 +375,7 @@ def _load_cache(
     )
     with np.load(path, allow_pickle=False) as cached:
         found = json.loads(str(cached["provenance"].item()))
-        if found != expected:
+        if not _provenance_matches(found, expected, manifest_path):
             raise ValueError(f"cache provenance mismatch: {path}")
         return unpack_trajectories(
             cached["acts"].astype(np.float64), cached["n_turns"]

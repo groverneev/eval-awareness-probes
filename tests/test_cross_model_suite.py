@@ -1,5 +1,6 @@
 import argparse
 import copy
+import hashlib
 import json
 
 import numpy as np
@@ -8,18 +9,38 @@ import pytest
 from vnaa.cross_model_suite import (
     DEFAULT_MANIFEST,
     _pack_trajectories,
+    _provenance_matches,
     analysis_path,
     cache_path,
     extract,
     frozen_revision,
     load_contrasts,
     load_manifest,
+    manifest_sha256,
     model_loader_adapter,
     model_slug,
     temporal_diagnostic,
     unpack_trajectories,
     validate_suite,
 )
+
+
+def test_manifest_hash_and_legacy_provenance_are_eol_stable(tmp_path):
+    lf_path = tmp_path / "lf.json"
+    crlf_path = tmp_path / "crlf.json"
+    lf_path.write_bytes(b'{\n  "suite_id": "test"\n}\n')
+    crlf_path.write_bytes(b'{\r\n  "suite_id": "test"\r\n}\r\n')
+    assert manifest_sha256(lf_path) == manifest_sha256(crlf_path)
+
+    expected = {"manifest_sha256": manifest_sha256(lf_path), "sample": "full"}
+    legacy = {
+        "manifest_sha256": hashlib.sha256(crlf_path.read_bytes()).hexdigest(),
+        "sample": "full",
+    }
+    assert _provenance_matches(legacy, expected, lf_path)
+    assert not _provenance_matches(
+        {**legacy, "manifest_sha256": "0" * 64}, expected, lf_path
+    )
 
 
 def test_frozen_suite_and_real_datasets_validate():

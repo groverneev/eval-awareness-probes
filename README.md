@@ -21,7 +21,10 @@ silence-verified subset), a deployment-simulation reconstruction with a
 model-swap/context-ablation decomposition (replicated on a second corpus,
 LMSYS-Chat-1M), and a causal steering arm. A second estimator (logistic
 regression) and full-pipeline permutation nulls confirm no conclusion depends
-on the fitting method. What remains is paper assembly.
+on the fitting method. The frozen cross-model core is also complete on
+Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B. What remains is paper assembly
+and, optionally, a newly frozen authorship pilot after v2 failed its coherence
+gate.
 
 ## Headline results
 
@@ -46,6 +49,14 @@ removed from additive baselines, final-turn BoW reaches 0.935, leaving a
 versus final-turn BoW 0.933 (+0.018). On silence-filtered subsets, matched
 coherence is tied by BoW (0.937 vs 0.935), while `eval_shared` retains a modest
 advantage (0.991 vs 0.946 at the 512-token cap).
+
+**Cross-model confirmation.** Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B
+all reproduce exact zero pre-final difference and above-chance final-turn
+decodability on both frozen 250-pair controls. Qwen and Ministral beat the
+strongest text baseline on `eval_shared`; Gemma is substantially weaker than
+text. No replication model beats character TF-IDF on matched coherence or
+cross-control transfer, so the result is cross-family but not architecture-
+invariant or generally activation-specific.
 
 **Slice 5 — deployment-simulation reconstruction.** Real WildChat/LMSYS
 conversations with only the final assistant reply regenerated give exact
