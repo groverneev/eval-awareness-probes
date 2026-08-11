@@ -20,8 +20,8 @@ import numpy as np
 
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_MANIFEST = ROOT / "datasets/cross_model/confirmatory_suite_v1.json"
-DEFAULT_RESULTS = ROOT / "results/cross_model/v1"
+DEFAULT_MANIFEST = ROOT / "datasets/cross_model/confirmatory_suite_v2.json"
+DEFAULT_RESULTS = ROOT / "results/cross_model/v2"
 
 
 @dataclass(frozen=True)
@@ -46,6 +46,19 @@ def load_manifest(path: Path = DEFAULT_MANIFEST) -> dict:
 
 def manifest_sha256(path: Path = DEFAULT_MANIFEST) -> str:
     return sha256_file(path)
+
+
+def frozen_revision(manifest: dict, repository: str) -> str | None:
+    """Return the prespecified immutable revision for an allowed model."""
+    if repository == manifest["reference_model"]:
+        return manifest.get("reference_revision")
+    for model in manifest["primary_replication_models"]:
+        if model["repository"] == repository:
+            revision = model.get("revision")
+            if not revision or not re.fullmatch(r"[0-9a-f]{40}", revision):
+                raise ValueError(f"{repository}: missing immutable 40-hex revision")
+            return revision
+    raise ValueError(f"{repository}: model is not in the frozen suite panel")
 
 
 def model_slug(repository: str) -> str:
@@ -159,12 +172,15 @@ def validate_suite(
     repositories.extend(
         model["repository"] for model in manifest["primary_replication_models"]
     )
-    repositories.append(manifest["deferred_scale_model"]["repository"])
+    if manifest.get("deferred_scale_model"):
+        repositories.append(manifest["deferred_scale_model"]["repository"])
     slugs = [model_slug(repository) for repository in repositories]
     if len(slugs) != len(set(slugs)):
         raise ValueError("model artifact slugs collide")
     if manifest["precision"] != "bfloat16_unquantized":
         raise ValueError("confirmatory precision must remain unquantized bfloat16")
+    for repository in repositories[1:]:
+        frozen_revision(manifest, repository)
     return fingerprints
 
 
@@ -228,12 +244,14 @@ def expected_provenance(
         "suite_id": load_manifest(manifest_path)["suite_id"],
         "manifest_sha256": manifest_sha256(manifest_path),
         "model_repository": repository,
+        "model_revision": frozen_revision(load_manifest(manifest_path), repository),
         "model_slug": model_slug(repository),
         "contrast": contrast.name,
         "condition": condition,
         "contrast_sha256": contrast_sha256(contrast),
         "dtype": dtype,
         "quantized": False,
+        "extraction_method": "independent_causal_prefix_per_user_turn",
         "n_conversations": len(contrast.item_ids) if limit is None else limit,
         "sample": "full" if limit is None else f"smoke_n{limit}",
     }
@@ -242,7 +260,7 @@ def expected_provenance(
 def extract(args: argparse.Namespace) -> None:
     import torch
 
-    from vnaa.extract import extract_trajectories, load_model
+    from vnaa.extract import extract_trajectories_prefixwise, load_model
 
     manifest = load_manifest(args.manifest)
     contrasts = load_contrasts(ROOT)
@@ -270,7 +288,11 @@ def extract(args: argparse.Namespace) -> None:
 
     dtype = {"bfloat16": torch.bfloat16, "float32": torch.float32}[args.dtype]
     lm = load_model(
-        args.model, device=args.device, dtype=dtype, device_map=args.device_map
+        args.model,
+        device=args.device,
+        dtype=dtype,
+        device_map=args.device_map,
+        revision=frozen_revision(manifest, args.model),
     )
     print(
         f"model={args.model} layers={lm.n_layers} hidden={lm.hidden_size} "
@@ -280,7 +302,7 @@ def extract(args: argparse.Namespace) -> None:
         conversations = getattr(contrast, condition)
         if args.limit is not None:
             conversations = conversations[: args.limit]
-        trajectories = extract_trajectories(
+        trajectories = extract_trajectories_prefixwise(
             lm, conversations, show_progress=not args.quiet
         )
         flat, n_turns = _pack_trajectories(trajectories)
@@ -424,14 +446,21 @@ def validate(args: argparse.Namespace) -> None:
 
 def plan(args: argparse.Namespace) -> None:
     manifest = load_manifest(args.manifest)
-    validate_suite(manifest, load_contrasts(ROOT))
+    contrasts = load_contrasts(ROOT)
+    validate_suite(manifest, contrasts)
+    forward_passes = sum(
+        sum(message["role"] == "user" for message in conversation)
+        for contrast in contrasts.values()
+        for conversation in contrast.positive + contrast.negative
+    )
     rows = [
         {
             "repository": model["repository"],
+            "revision": model["revision"],
             "role": model["role"],
             "parameter_billions": model["parameter_billions"],
             "bf16_weight_gb": round(2 * model["parameter_billions"], 1),
-            "full_forward_passes": 4 * manifest["n_pairs_per_contrast"],
+            "full_forward_passes": forward_passes,
             "artifact_root": str(run_root(model["repository"], results=args.results)),
         }
         for model in manifest["primary_replication_models"]

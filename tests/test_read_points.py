@@ -15,7 +15,15 @@ from __future__ import annotations
 import pytest
 import torch
 
-from vnaa.extract import ASSISTANT_READ_POINTS, READ_POINTS, read_slice, template_ids, turn_spans
+from vnaa.extract import (
+    ASSISTANT_READ_POINTS,
+    READ_POINTS,
+    LoadedModel,
+    extract_trajectories_prefixwise,
+    read_slice,
+    template_ids,
+    turn_spans,
+)
 
 
 class StubTokenizer:
@@ -41,6 +49,34 @@ class NonPrefixTokenizer(StubTokenizer):
         ids = out["input_ids"][0].tolist() + [9]
         t = torch.tensor([ids])
         return {"input_ids": t} if return_dict else t
+
+
+class QwenStyleChatMLTokenizer:
+    """ChatML stub whose final assistant prefix gains an empty think block."""
+
+    pieces = {
+        10: "<|im_start|>", 11: "<|im_end|>", 12: "\n",
+        20: "user", 21: "assistant", 30: "<think>", 31: "</think>",
+        100: "x",
+    }
+
+    def get_vocab(self):
+        return {piece: token for token, piece in self.pieces.items()}
+
+    def decode(self, ids, skip_special_tokens=False):
+        return "".join(self.pieces.get(int(token), "x") for token in ids)
+
+    def apply_chat_template(self, conv, add_generation_prompt=False,
+                            return_dict=False, return_tensors=None):
+        ids = []
+        for index, message in enumerate(conv):
+            role = 20 if message["role"] == "user" else 21
+            ids.extend([10, role, 12])
+            if message["role"] == "assistant" and index == len(conv) - 1:
+                ids.extend([30, 12, 31, 12])
+            ids.extend([100, 11, 12])
+        tensor = torch.tensor([ids])
+        return {"input_ids": tensor} if return_dict else tensor
 
 
 CONV = [
@@ -105,11 +141,72 @@ def test_non_prefix_template_is_rejected_not_silently_wrong():
         turn_spans(NonPrefixTokenizer(), CONV)
 
 
+def test_chatml_delimiters_recover_qwen_style_nonprefix_template():
+    conv = [
+        {"role": "user", "content": "one"},
+        {"role": "assistant", "content": "two"},
+        {"role": "user", "content": "three"},
+    ]
+    tokenizer = QwenStyleChatMLTokenizer()
+    assert template_ids(tokenizer, conv[:2]) != template_ids(tokenizer, conv)[:10]
+    spans = turn_spans(tokenizer, conv)
+    assert spans == [(0, 6), (6, 12), (12, 18)]
+    assert read_slice("last_user_token", conv, spans) == (17, 18)
+
+
+def test_real_qwen3_template_if_cached():
+    """Qwen3's empty thinking block triggers the ChatML fallback."""
+    transformers = pytest.importorskip("transformers")
+    revision = "b968826d9c46dd6066d109eabc6255188de91218"
+    try:
+        tokenizer = transformers.AutoTokenizer.from_pretrained(
+            "Qwen/Qwen3-8B", revision=revision, local_files_only=True
+        )
+    except Exception:
+        pytest.skip("Qwen3 tokenizer not cached locally")
+    conv = [
+        {"role": "user", "content": "one"},
+        {"role": "assistant", "content": "two"},
+        {"role": "user", "content": "three"},
+    ]
+    ids = template_ids(tokenizer, conv)
+    spans = turn_spans(tokenizer, conv)
+    assert spans[0][0] == 0 and spans[-1][1] == len(ids)
+    assert [tokenizer.decode(ids[start:end]).count("<|im_start|>")
+            for start, end in spans] == [1, 1, 1]
+    start, end = read_slice("last_user_token", conv, spans)
+    assert end == len(ids)
+
+
 def test_every_declared_read_point_is_implemented():
     spans = turn_spans(StubTokenizer(), CONV)
     for rp in READ_POINTS + ASSISTANT_READ_POINTS:
         start, end = read_slice(rp, CONV, spans)
         assert 0 <= start < end <= spans[-1][1]
+
+
+def test_prefixwise_trajectory_runs_exact_causal_user_prefixes():
+    class RecordingModel:
+        def __init__(self):
+            self.lengths = []
+
+        def __call__(self, input_ids, output_hidden_states):
+            self.lengths.append(input_ids.shape[1])
+            base = input_ids.float().unsqueeze(-1).repeat(1, 1, 3)
+            return type("Output", (), {"hidden_states": (base, base + 1)})()
+
+    tokenizer = StubTokenizer()
+    model = RecordingModel()
+    lm = LoadedModel(tokenizer, model, "cpu", n_layers=1, hidden_size=3)
+    trajectories = extract_trajectories_prefixwise(
+        lm, [CONV], show_progress=False
+    )
+    first_user_end = len(template_ids(tokenizer, CONV[:2]))
+    final_user_end = len(template_ids(tokenizer, CONV))
+    assert model.lengths == [first_user_end, final_user_end]
+    assert trajectories[0].shape == (2, 2, 3)
+    assert trajectories[0][0, 0, 0] == template_ids(tokenizer, CONV[:2])[-1]
+    assert trajectories[0][1, 1, 0] == template_ids(tokenizer, CONV)[-1] + 1
 
 
 def test_real_llama_template_if_cached():

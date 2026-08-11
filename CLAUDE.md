@@ -15,7 +15,7 @@ Slices 1, 2, 3, and 5 are complete on Llama-3.1-8B (slice 5 includes the
 model-swap/context-ablation decomposition and an LMSYS-Chat-1M replication).
 Tier 2 is done: steering, the `eval_shared` silence filter (+ 512-token cap
 sensitivity check), and the LMSYS replication, all run on a rented Runpod 4090.
-Local test suite: 119/119 passing after the stronger sparse-text baseline,
+Local test suite: 123/123 passing after the stronger sparse-text baseline,
 paired-margin inference, independent-reviewer diagnostic, and cross-model suite
 upgrade.
 
@@ -30,26 +30,28 @@ scenarios and v2 formally fails its pre-activation threshold. No activations
 have been extracted or inspected.
 No GPU pod is currently running; the RunPod used for generation was deleted.
 
-The cross-model confirmatory suite is frozen before new-model extraction in
-`datasets/cross_model/confirmatory_suite_v1.json`. It runs only `eval_shared`
-and matched coherence, with Qwen2.5-7B-Instruct and Gemma-2-9B-IT as the two
-primary replications. A one-pair Llama integration smoke passed, including
-exactly zero pre-final activation difference in both paired controls. No Qwen
-or Gemma activations have been extracted.
+The current cross-model protocol is the pre-result v2 amendment in
+`datasets/cross_model/confirmatory_suite_v2.json`. It replaces the older panel
+with current 5--12B models: Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B. All
+are revision-pinned. The eight-pair Qwen smoke now passes after adding a
+validated ChatML boundary fallback and switching temporal extraction to
+independent causal-prefix passes. Both paired controls have exactly zero
+pre-final activation difference. No full-sample new-model activations have
+been extracted.
 
 **What's left:** if a second independent human is available, collect the same
 blinded 30-row review under a separate reviewer ID and use it only to diagnose
 reviewer/rubric reliability. Do not extract v2 activations or retroactively
 change its failed gate. Use the diagnostic to design and freeze a v3
 construction/rubric before generating new pilot data. Independently, run the
-Qwen local smoke, then the full frozen Qwen and Gemma core on a 48 GB GPU.
-After a successful new authorship pilot and the cross-model core, assemble the
-paper.
+full frozen Qwen3 core locally or on a 48 GB GPU, then implement and smoke-test
+the text-only Gemma 3 and Ministral 3 adapters. After a successful new
+authorship pilot and the cross-model core, assemble the paper.
 
 **Open scope decision.** Cut agentic/tool-use to future work because it needs a
-dataset that does not exist. The frozen model sweep uses Qwen2.5-7B and
-Gemma-2-9B on the two valid paired controls. Llama-3.1-70B is explicitly
-deferred until both primary replications are complete and budget remains.
+dataset that does not exist. The frozen model sweep uses Qwen3-8B,
+Gemma-3-12B, and Ministral-3-8B on the two valid paired controls. Models outside
+5--12B are excluded from the primary replication panel.
 
 **Single biggest risk right now (not scientific):** `data/` and `results/`
 are gitignored and exist only on this desktop now that the rented pod is
@@ -173,7 +175,8 @@ datasets/authorship/prespec.md            frozen eval-status x history-author pi
 datasets/authorship/pilot_manifest.json   50 hashed-ID-selected pilot scenarios
 datasets/authorship/prespec_v2.md         frozen 1,024-token cap amendment after v1 failure
 datasets/authorship/pilot_manifest_v2.json v2 manifest; same 50 pilot scenarios
-datasets/cross_model/confirmatory_suite_v1.json frozen cross-model core/panel
+datasets/cross_model/confirmatory_suite_v1.json preserved original model panel
+datasets/cross_model/confirmatory_suite_v2.json current frozen 5--12B panel
 tests/  test_probe.py, test_read_points.py, test_estimators.py,
         test_judge_batches.py, test_steering.py, test_prep_slice5.py
 ```

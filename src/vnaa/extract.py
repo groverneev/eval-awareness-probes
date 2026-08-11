@@ -82,6 +82,7 @@ def load_model(
     device: str | None = None,
     dtype: torch.dtype = torch.float32,
     device_map: str | None = None,
+    revision: str | None = None,
 ) -> LoadedModel:
     """Load tokenizer and model for activation extraction.
 
@@ -95,10 +96,10 @@ def load_model(
     places the layers, and inputs go to the embedding layer's device. When None,
     the model loads on a single device as usual.
     """
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, revision=revision)
     if device_map is not None:
         model = AutoModelForCausalLM.from_pretrained(
-            model_name, dtype=dtype, device_map=device_map
+            model_name, dtype=dtype, device_map=device_map, revision=revision
         )
         model.eval()
         # Inputs must land on whatever device holds the embedding layer.
@@ -112,7 +113,9 @@ def load_model(
         )
 
     device = pick_device(device)
-    model = AutoModelForCausalLM.from_pretrained(model_name, dtype=dtype)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name, dtype=dtype, revision=revision
+    )
     model.to(device)
     model.eval()
     return LoadedModel(
@@ -151,13 +154,57 @@ def turn_spans(tokenizer, conv: Conversation) -> list[tuple[int, int]]:
     for k in range(1, len(conv) + 1):
         prefix = template_ids(tokenizer, conv[:k])
         if prefix != full[: len(prefix)]:
+            chatml = _chatml_turn_spans(tokenizer, conv, full)
+            if chatml is not None:
+                return chatml
             raise ValueError(
-                "chat template is not prefix-consistent, so per-turn token spans "
-                "cannot be derived by incremental templating; a read-point "
-                "implementation specific to this template is needed"
+                "chat template is not prefix-consistent and no validated "
+                "message-delimiter fallback applies; a read-point implementation "
+                "specific to this template is needed"
             )
         bounds.append(len(prefix))
     return list(zip(bounds[:-1], bounds[1:]))
+
+
+def _chatml_turn_spans(
+    tokenizer, conv: Conversation, full: list[int]
+) -> list[tuple[int, int]] | None:
+    """Validated fallback for ChatML templates such as Qwen3.
+
+    Qwen3 inserts an empty ``<think>`` block when an assistant message is the
+    final message in a rendered prefix, but omits it when that same assistant
+    message is followed by another user turn. Growing rendered prefixes are
+    therefore not token prefixes of the full conversation. The full template
+    still has one ``<|im_start|> ... <|im_end|>`` segment per input message, so
+    those explicit boundaries are safer than trying to compensate for the
+    thinking block.
+
+    This fallback is deliberately narrow: both delimiter tokens must be in the
+    tokenizer vocabulary, there must be exactly one start and one end marker
+    per input message, and every decoded segment must begin with its expected
+    role header. Otherwise it declines and the caller raises.
+    """
+    get_vocab = getattr(tokenizer, "get_vocab", None)
+    if get_vocab is None:
+        return None
+    vocab = get_vocab()
+    start_token, end_token = "<|im_start|>", "<|im_end|>"
+    if start_token not in vocab or end_token not in vocab:
+        return None
+    start_id, end_id = vocab[start_token], vocab[end_token]
+    starts = [index for index, token in enumerate(full) if token == start_id]
+    ends = [index for index, token in enumerate(full) if token == end_id]
+    if len(starts) != len(conv) or len(ends) != len(conv):
+        return None
+    boundaries = starts + [len(full)]
+    spans = list(zip(boundaries[:-1], boundaries[1:]))
+    for message, (start, end), marker in zip(conv, spans, ends):
+        if not start <= marker < end:
+            return None
+        segment = tokenizer.decode(full[start:end], skip_special_tokens=False)
+        if not segment.startswith(f"{start_token}{message['role']}\n"):
+            return None
+    return spans
 
 
 def _last_index_of_role(conv: Conversation, spans, roles: tuple[str, ...]) -> int:
@@ -285,4 +332,47 @@ def extract_trajectories(
         per_layer = [hs[0].float().cpu().numpy() for hs in result.hidden_states]
         # (n_user_turns, n_layers + 1, hidden)
         out.append(np.stack([np.stack([pl[j] for pl in per_layer]) for j in idx]))
+    return out
+
+
+@torch.no_grad()
+def extract_trajectories_prefixwise(
+    lm: LoadedModel,
+    conversations: list[Conversation],
+    show_progress: bool = True,
+) -> list[np.ndarray]:
+    """Extract each user-turn state from an independent causal-prefix pass.
+
+    This is more expensive than ``extract_trajectories`` but avoids a subtle
+    cross-template/kernel assumption. Some models choose different BF16
+    attention kernels for different total sequence lengths. Even with a causal
+    mask, that can produce suffix-length-dependent numerical differences at an
+    earlier token. Running the exact prefix through the user boundary makes
+    the tensor shape, tokens, and causal context identical for matched-prefix
+    controls, so a pre-final difference is again a hard implementation check.
+    """
+    out: list[np.ndarray] = []
+    iterator = tqdm(conversations, disable=not show_progress,
+                    desc="prefix trajectories")
+    for conv in iterator:
+        user_ends = [index for index, message in enumerate(conv)
+                     if message["role"] == "user"]
+        if not user_ends:
+            raise ValueError("conversation has no user message")
+        item = []
+        for message_index in user_ends:
+            prefix = conv[: message_index + 1]
+            enc = lm.tokenizer.apply_chat_template(
+                prefix,
+                add_generation_prompt=False,
+                return_dict=True,
+                return_tensors="pt",
+            )
+            enc = {key: value.to(lm.device) for key, value in enc.items()}
+            result = lm.model(**enc, output_hidden_states=True)
+            item.append(np.stack([
+                hidden[0, -1, :].float().cpu().numpy()
+                for hidden in result.hidden_states
+            ]))
+        out.append(np.stack(item))
     return out

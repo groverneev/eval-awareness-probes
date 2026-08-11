@@ -11,6 +11,7 @@ from vnaa.cross_model_suite import (
     analysis_path,
     cache_path,
     extract,
+    frozen_revision,
     load_contrasts,
     load_manifest,
     model_slug,
@@ -23,7 +24,8 @@ from vnaa.cross_model_suite import (
 def test_frozen_suite_and_real_datasets_validate():
     manifest = load_manifest(DEFAULT_MANIFEST)
     fingerprints = validate_suite(manifest, load_contrasts())
-    assert manifest["status"] == "frozen_before_cross_model_activation_extraction"
+    assert manifest["status"] == "frozen_before_qwen3_activation_extraction"
+    assert manifest["amends_suite_id"] == "cross_model_confirmatory_v1"
     assert set(fingerprints) == {"eval_shared", "coherent_pairs"}
     assert all(len(value) == 64 for value in fingerprints.values())
 
@@ -40,11 +42,19 @@ def test_primary_panel_is_fixed_and_cross_family():
     manifest = load_manifest(DEFAULT_MANIFEST)
     models = manifest["primary_replication_models"]
     assert [model["repository"] for model in models] == [
-        "Qwen/Qwen2.5-7B-Instruct",
-        "google/gemma-2-9b-it",
+        "Qwen/Qwen3-8B",
+        "google/gemma-3-12b-it",
+        "mistralai/Ministral-3-8B-Instruct-2512-BF16",
     ]
     assert len({model["family"] for model in models}) == len(models)
     assert "Do not choose" in manifest["stopping_rule"]
+    assert all(frozen_revision(manifest, model["repository"])
+               for model in models)
+
+
+def test_unplanned_model_is_refused():
+    with pytest.raises(ValueError, match="not in the frozen suite panel"):
+        frozen_revision(load_manifest(DEFAULT_MANIFEST), "Qwen/Qwen2.5-7B-Instruct")
 
 
 def test_content_change_breaks_frozen_fingerprint():
@@ -55,8 +65,8 @@ def test_content_change_breaks_frozen_fingerprint():
 
 
 def test_model_artifacts_cannot_collide(tmp_path):
-    qwen = "Qwen/Qwen2.5-7B-Instruct"
-    gemma = "google/gemma-2-9b-it"
+    qwen = "Qwen/Qwen3-8B"
+    gemma = "google/gemma-3-12b-it"
     assert model_slug(qwen) != model_slug(gemma)
     assert cache_path(qwen, "eval_shared", "positive", results=tmp_path) != cache_path(
         gemma, "eval_shared", "positive", results=tmp_path
@@ -120,11 +130,11 @@ def test_extract_writes_four_isolated_provenance_checked_caches(tmp_path, monkey
                 for conv in conversations]
 
     monkeypatch.setattr("vnaa.extract.load_model", lambda *args, **kwargs: StubModel())
-    monkeypatch.setattr("vnaa.extract.extract_trajectories", fake_extract)
+    monkeypatch.setattr("vnaa.extract.extract_trajectories_prefixwise", fake_extract)
     args = argparse.Namespace(
         manifest=DEFAULT_MANIFEST,
         results=tmp_path,
-        model="Qwen/Qwen2.5-7B-Instruct",
+        model="Qwen/Qwen3-8B",
         device=None,
         device_map="auto",
         dtype="bfloat16",
@@ -142,9 +152,15 @@ def test_extract_writes_four_isolated_provenance_checked_caches(tmp_path, monkey
             with np.load(path, allow_pickle=False) as cached:
                 provenance = json.loads(str(cached["provenance"].item()))
                 assert provenance["model_repository"] == args.model
+                assert provenance["model_revision"] == frozen_revision(
+                    load_manifest(DEFAULT_MANIFEST), args.model
+                )
                 assert provenance["contrast"] == contrast
                 assert provenance["condition"] == condition
                 assert provenance["sample"] == "smoke_n2"
+                assert provenance["extraction_method"] == (
+                    "independent_causal_prefix_per_user_turn"
+                )
 
     # A resume verifies provenance and skips completed work.
     extract(args)

@@ -1,0 +1,103 @@
+{
+  "suite_id": "cross_model_confirmatory_v2",
+  "amends_suite_id": "cross_model_confirmatory_v1",
+  "amends_manifest_sha256": "488dfec9c7789b9e6b77f94d0f83dc5d282e9ac039d268e96afd846901e9e7f3",
+  "frozen_on": "2026-08-11",
+  "status": "frozen_before_qwen3_activation_extraction",
+  "amendment_reason": "Before any new-model activation extraction, the model-selection criterion was narrowed to current open-weight instruction models in the 5-12B range. Qwen2.5-7B and Gemma-2-9B were replaced rather than selected after seeing replication results.",
+  "purpose": "Test whether the valid paired Slice-3 findings replicate across current, similarly sized model families without rerunning failed exploratory constructions.",
+  "reference_model": "meta-llama/Llama-3.1-8B-Instruct",
+  "primary_replication_models": [
+    {
+      "repository": "Qwen/Qwen3-8B",
+      "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+      "family": "qwen3",
+      "parameter_billions": 8.2,
+      "role": "primary_cross_family_replication_1"
+    },
+    {
+      "repository": "google/gemma-3-12b-it",
+      "revision": "96b6f1eccf38110c56df3a15bffe176da04bfd80",
+      "family": "gemma3",
+      "parameter_billions": 12.0,
+      "role": "primary_cross_family_replication_2",
+      "loader_note": "Multimodal wrapper requires a validated text-only hidden-state adapter before extraction."
+    },
+    {
+      "repository": "mistralai/Ministral-3-8B-Instruct-2512-BF16",
+      "revision": "f6fae9795746f63c9be8344932f01275f3c63734",
+      "family": "ministral3",
+      "parameter_billions": 9.0,
+      "role": "primary_cross_family_replication_3",
+      "loader_note": "Vision-capable wrapper requires a validated text-only hidden-state adapter before extraction."
+    }
+  ],
+  "precision": "bfloat16_unquantized",
+  "n_pairs_per_contrast": 250,
+  "contrasts": {
+    "eval_shared": {
+      "positive_sources": [
+        "datasets/slice3/eval_shared.json"
+      ],
+      "negative_sources": [
+        "datasets/slice3/batches/out_00.json",
+        "datasets/slice3/batches/out_01.json",
+        "datasets/slice3/batches/out_02.json",
+        "datasets/slice3/batches/out_03.json",
+        "datasets/slice3/batches/out_04.json"
+      ],
+      "expected_content_sha256": "aa212de5af6db03d1ef6e4ab8cbf5133a0991f54b503030a7c3be015cae95659",
+      "temporal_control": true
+    },
+    "coherent_pairs": {
+      "positive_sources": [
+        "datasets/slice3/coherent_pairs/validated.json"
+      ],
+      "negative_sources": [
+        "datasets/slice3/coherent_pairs/validated.json"
+      ],
+      "expected_content_sha256": "5e53e3ff88bd7dfa7175928a9a64d63f8ef569d0590f4d4d9bd89d9dc3479305",
+      "temporal_control": true
+    }
+  },
+  "primary_read_point": "last_user_token",
+  "analysis": {
+    "outer_folds": 5,
+    "split_seed": 0,
+    "bootstrap_resamples": 2000,
+    "permutation_draws": 2000,
+    "grouping_unit": "matched_scenario",
+    "layer_selection": "training_data_only",
+    "surface_view": "differing_final_user_message_only",
+    "text_baselines": [
+      "word_unigram_counts",
+      "word_1_2gram_tfidf",
+      "character_3_5gram_tfidf",
+      "format_features",
+      "character_length"
+    ]
+  },
+  "mandatory_core": [
+    "paired_dataset_and_hash_validation",
+    "pre_final_identical_prefix_numerical_check",
+    "within_contrast_grouped_probe_and_strong_text_baselines",
+    "bidirectional_cross_contrast_transfer",
+    "paired_bootstrap_confidence_intervals",
+    "paired_prediction_randomization_tests"
+  ],
+  "secondary_after_core": [
+    "silence_filter_generation_and_blinded_judging",
+    "steering_manipulation_check_and_self_report"
+  ],
+  "explicitly_excluded": [
+    "slice1_confounded_benchmark_vs_user",
+    "slice2b_failed_surface_gate_cells",
+    "slice3_invalid_eval_disguised_realism_claim",
+    "rejected_eval_coherent_dataset",
+    "authorship_factorial_v2_failed_coherence_gate",
+    "slice5_provenance_decomposition",
+    "models_outside_5_12b_for_primary_replication"
+  ],
+  "reporting_rule": "Report every primary model and endpoint regardless of direction. A probe-specific result requires the paired bootstrap interval for probe minus the strongest text baseline to exclude zero; raw probe AUROC alone is not sufficient.",
+  "stopping_rule": "Run all three primary replication models. Do not choose later models based on an earlier replication result."
+}
