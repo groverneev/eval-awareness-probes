@@ -233,6 +233,37 @@ def test_real_ministral3_template_if_cached():
     assert decoded[2] == "[INST]three[/INST]"
 
 
+def test_real_gemma3_template_if_cached():
+    """Gemma's native turn markers must define exact causal prefixes."""
+    transformers = pytest.importorskip("transformers")
+    revision = "96b6f1eccf38110c56df3a15bffe176da04bfd80"
+    try:
+        tokenizer = transformers.AutoTokenizer.from_pretrained(
+            "google/gemma-3-12b-it",
+            revision=revision,
+            local_files_only=True,
+        )
+    except Exception:
+        pytest.skip("Gemma 3 tokenizer not cached locally or access not granted")
+    conv = [
+        {"role": "user", "content": "one"},
+        {"role": "assistant", "content": "two"},
+        {"role": "user", "content": "three"},
+    ]
+    ids = template_ids(tokenizer, conv)
+    spans = turn_spans(tokenizer, conv)
+    assert spans == [(0, 7), (7, 13), (13, 19)]
+    decoded = [
+        tokenizer.decode(ids[start:end], skip_special_tokens=False)
+        for start, end in spans
+    ]
+    assert decoded == [
+        "<bos><start_of_turn>user\none<end_of_turn>\n",
+        "<start_of_turn>model\ntwo<end_of_turn>\n",
+        "<start_of_turn>user\nthree<end_of_turn>\n",
+    ]
+
+
 def test_every_declared_read_point_is_implemented():
     spans = turn_spans(StubTokenizer(), CONV)
     for rp in READ_POINTS + ASSISTANT_READ_POINTS:
