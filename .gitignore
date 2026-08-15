@@ -18,8 +18,19 @@ datasets/slice3/hydrated/
 # Paper Proposal
 VNAA-Proposal.pdf
 
-# Working paper source is synced manually with Overleaf.
-/paper/
+# Paper source is versioned here and synced manually with Overleaf.
+# Ignore only local LaTeX build products and redundant rendered previews.
+/paper/*.aux
+/paper/*.bbl
+/paper/*.blg
+/paper/*.fdb_latexmk
+/paper/*.fls
+/paper/*.log
+/paper/*.out
+/paper/*.synctex.gz
+/paper/*.toc
+/paper/*.pdf
+/paper/figures/*.png
 
 # Temporary
 /tmp/
