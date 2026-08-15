@@ -1,0 +1,26 @@
+{
+  "latex-workshop.latex.recipe.default": "first",
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "Build VNAA paper",
+      "tools": [
+        "vnaa-build-script"
+      ]
+    }
+  ],
+  "latex-workshop.latex.tools": [
+    {
+      "name": "vnaa-build-script",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "%DIR%/build.ps1",
+        "-NoOpen"
+      ]
+    }
+  ],
+  "latex-workshop.view.pdf.viewer": "tab"
+}
