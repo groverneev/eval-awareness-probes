@@ -9,6 +9,11 @@ linearly decodable activation differences across four model families. However,
 strong text baselines and model heterogeneity prevent interpreting this as a
 universal, content-independent evaluation-awareness variable.
 
+A frozen contextual text audit further narrows the result: an explicit
+prefix--ending E5 interaction reaches AUROC 0.95325 on matched coherence versus
+0.9468 for the reference activation probe, statistically tying it, and reaches
+0.99554 on the shared-prefix control versus 0.9878 for the probe.
+
 ## Contributions
 1. We show that near-perfect evaluation-awareness probes can largely reflect
    format and lexical differences.
@@ -37,7 +42,11 @@ universal, content-independent evaluation-awareness variable.
    difference +0.03488, 95% CI [+0.01875, +0.05330].
 5. Matched coherence: probe 0.94682 versus character TF-IDF 0.94474,
    difference +0.00208, not significant.
-6. Llama, Qwen, Gemma, and Ministral all show temporal decodability, but
+6. Frozen contextual interaction: matched coherence 0.95325 versus probe
+   0.94682, probe-minus-baseline -0.00643, 95% CI [-0.0185, +0.0059];
+   shared-prefix 0.99554 versus probe 0.98781, difference -0.00773,
+   95% CI [-0.0146, -0.0020].
+7. Llama, Qwen, Gemma, and Ministral all show temporal decodability, but
    strength is heterogeneous.
-7. Steering changes the independent readout and explicit self-report, but
+8. Steering changes the independent readout and explicit self-report, but
    not safety refusals.

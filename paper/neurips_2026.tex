@@ -53,6 +53,7 @@
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
 \usepackage{hyperref}       % hyperlinks
+\hypersetup{hidelinks}
 \usepackage{url}            % simple URL typesetting
 \usepackage{booktabs}       % professional-quality tables
 \usepackage{amsfonts}       % blackboard math symbols
@@ -119,9 +120,9 @@ paired multi-turn controls whose histories are byte-identical until the
 class-defining final user turn; activations remain at chance throughout the
 shared history and become highly decodable only at the final turn. This temporal
 localization replicates across Llama, Qwen, Gemma, and Ministral models, but an
-advantage over word- and character-TF--IDF baselines does not: it appears for a
-topic-shifted shared-prefix control in three models, disappears under matched
-coherence, and reverses for Gemma. A prespecified intervention moves an
+activation-specific advantage does not: sparse n-grams tie the probe under
+matched coherence, and a frozen prefix--ending interaction baseline ties or
+exceeds it in both paired controls. A prespecified intervention moves an
 independent activation readout and explicit evaluation self-reports, but not
 safety refusals. These results identify cross-family decodable eval/deploy
 distinctions that are causally accessible in the reference model, while showing
@@ -286,15 +287,15 @@ noise.
 
 \subsection{Surface baselines}
 
-We compare activation probes with increasingly expressive text-only baselines:
-character and word length; logistic regression on 13 structural features;
-unigram counts; word 1--2-gram TF--IDF; and character-within-word 3--5-gram
-TF--IDF. Vocabularies and inverse-document-frequency weights are fitted on
-training or source data only. For identical-prefix pairs, text baselines see
-only the differing final message. The shared prefix occurs once under each
-label and contains no population-level label signal for an additive text
-classifier; including it would add finite-sample estimation noise rather than
-constitute a stronger causal baseline.
+We compare activation probes with length, 13 structural features, unigram
+counts, word 1--2-gram TF--IDF, and character-within-word 3--5-gram TF--IDF.
+For identical-prefix pairs these additive baselines see only the differing
+final message: the shared prefix occurs once under each label and has no
+population-level additive signal. We separately freeze a contextual audit
+using E5-base-v2 embeddings \citep{wang2022e5}. Fixed logistic classifiers see
+the ending alone, the full visible conversation, or concatenated prefix and
+ending embeddings with their absolute difference and elementwise product. All
+text fitting remains training-fold only and uses the same grouped folds.
 
 For the primary paired analyses, uncertainty is obtained by resampling matched
 scenarios. We use 2,000-draw pair-cluster bootstrap intervals for the
@@ -481,13 +482,21 @@ tested text hierarchy, but it occurs in the control whose final benchmark
 question can introduce a topic and speech-act discontinuity.
 
 Under matched coherence, the probe obtains $0.9468$ while character TF--IDF
-obtains $0.9447$. Their difference is only $+0.0021$ (95\% interval
-$[-0.0134,+0.0168]$, $p=0.438$). Nor does an activation-specific advantage
-emerge under cross-control transfer: shared-prefix $\rightarrow$ coherence
-gives probe/text AUROC $0.8450/0.8661$, and coherence $\rightarrow$
-shared-prefix gives $0.7187/0.8485$. Hence the activation directions and text
-classifiers both encode a transferable distinction, but character n-grams
-match or exceed the activation probe once topic and coherence are controlled.
+obtains $0.9447$, a difference of $+0.0021$ (95\% interval
+$[-0.0134,+0.0168]$, $p=0.438$). A post-hoc contextual audit, frozen before its
+execution, strengthens this boundary. Its prespecified full-conversation
+embedding reaches $0.8909$, ending-only E5 reaches $0.9416$, and an explicit
+prefix--ending interaction reaches $0.9532$. The probe-minus-interaction
+difference is $-0.0064$ ($[-0.0185,+0.0059]$). On shared-prefix, the interaction
+baseline reaches $0.9955$ versus probe $0.9878$, a difference of $-0.0077$
+($[-0.0146,-0.0020]$). Thus merely pooling the conversation is weak, but a
+context-sensitive text representation ties or exceeds activation.
+
+Nor does an activation-specific advantage emerge under cross-control transfer:
+shared-prefix $\rightarrow$ coherence gives probe/character-TF--IDF AUROC
+$0.8450/0.8661$, and coherence $\rightarrow$ shared-prefix gives
+$0.7187/0.8485$. Both modalities encode transferable distinctions, but neither
+matched coherence nor transfer identifies activation-specific information.
 
 The same boundary holds after conditioning on observed silence. Among 192
 matched-coherence pairs whose two generated replies both terminated and
@@ -566,9 +575,9 @@ decoded direction. Chance-level separation throughout byte-identical histories
 shows that it is not a stable property of the conversation before the final
 message. Its sharp onset at that message is consistent with a representation
 of evaluation status, but also with benchmark genre, question type, topic
-transition, or other properties of the ending. The strong character baselines
-under matched coherence make these alternatives empirically consequential, not
-merely philosophical. Conversely, text-level explainability does not mean that
+transition, or contextualized speech act. Sparse and frozen contextual
+baselines make these alternatives empirically consequential, not merely
+philosophical. Conversely, text-level explainability does not mean that
 the activation difference is spurious: any representation of the final message
 must be caused by that message. It means that the present contrasts do not
 identify which abstraction the model uses.
@@ -591,9 +600,10 @@ For evaluation auditing, raw probe AUROC should be treated as the beginning of
 a validity analysis rather than its endpoint. A useful audit should compare
 activations with text views matched to what the model has observed, test whether
 the signal predates the purported cause, and preserve pairing in both data
-splits and uncertainty estimates. Character n-grams are an especially important
-baseline: in our experiments they overturn conclusions supported by unigram
-counts alone. Replication across models should likewise report effect sizes
+splits and uncertainty estimates. Character n-grams and explicit
+prefix--ending interactions are important escalation steps: each overturns a
+conclusion supported by a weaker comparator. Replication across models should
+likewise report effect sizes
 relative to the same baseline instead of only asking whether each probe exceeds
 chance.
 

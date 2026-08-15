@@ -23,6 +23,11 @@ never be written to committed files.
 - `src/vnaa/run_strong_baseline_audit.py`: grouped outer-fold word and character
   TF-IDF, source-only transfer selection, pair-cluster bootstrap intervals, and
   direct probe-versus-baseline randomization tests.
+- `datasets/contextual_text_baseline/prespec.md` and
+  `src/vnaa/run_contextual_text_baseline.py`: revision-pinned frozen E5
+  ending/full-context/prefix--ending interaction audit with grouped predictions
+  and paired probe comparisons. Local output is
+  `results/contextual_text_baseline/contextual_text_baseline.json`.
 - `src/vnaa/estimators.py`: honest direction-of-means and logistic estimators,
   training-only cross-validation, permutations, shuffled directions, and random-
   direction diagnostics.

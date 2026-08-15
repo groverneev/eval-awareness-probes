@@ -70,6 +70,12 @@ classifiers. For byte-identical-prefix pairs, additive text baselines see only
 the differing causal message; the shared prefix contains no population-level
 label information and otherwise adds finite-sample noise.
 
+A later frozen-before-execution contextual audit uses revision-pinned
+`intfloat/e5-base-v2` embeddings with fixed grouped-fold logistic regression.
+It reports ending-only and full-conversation embeddings plus an explicit
+prefix-ending interaction. This is a post-hoc robustness audit, not part of the
+original confirmatory experiment.
+
 The grouped strong-baseline audit keeps both members of each matched pair in the
 same fold. It uses pair-cluster bootstrap intervals and paired prediction
 randomization to compare probe and text AUROCs directly. Full-pipeline label
@@ -164,6 +170,21 @@ The later grouped strong-text audit is the authoritative comparison:
 Thus, `eval_shared` retains an activation advantage despite its topic/speech-act
 discontinuity. Matched coherence is tied by character n-grams, and cross-control
 activation transfer does not beat stronger text classifiers.
+
+The contextual audit further narrows the activation-specific interpretation:
+
+| Control | Probe | Full context (primary) | Ending only | Prefix-ending interaction |
+|---|---:|---:|---:|---:|
+| `eval_shared` | 0.98781 | 0.82104 | 0.98206 | 0.99554 |
+| `coherent_pairs` | 0.94682 | 0.89088 | 0.94165 | 0.95325 |
+
+On matched coherence, probe minus interaction is `-0.00643`, 95% pair-cluster
+bootstrap CI `[-0.01850,+0.00588]`; the two are statistically tied. On
+`eval_shared`, probe minus interaction is `-0.00773`, CI
+`[-0.01462,-0.00203]`. The frozen full-conversation embedding was the
+prespecified primary representation and is weaker, showing that simply pooling
+context is not sufficient. The fixed secondary interaction representation is
+the stronger causal-view comparator and ties or exceeds the probe.
 
 ### 5. Separation conditional on observed silence
 
@@ -292,16 +313,18 @@ attached:
 5. `eval_shared` beats the strongest tested text baseline on Llama, Qwen, and
    Ministral; matched coherence does not reliably beat character n-grams.
 6. Cross-control activation transfer does not beat character n-grams.
-7. High raw separation remains among terminated replies with no detected
+7. A frozen prefix-ending contextual text interaction ties or exceeds the
+   reference-model activation probe on both paired controls.
+8. High raw separation remains among terminated replies with no detected
    awareness disclosure, although matched-coherence activation and lexical
    baselines tie.
-8. Genuine and reconstructed replies are separable across WildChat and LMSYS,
+9. Genuine and reconstructed replies are separable across WildChat and LMSYS,
    but controls rule out a narrow self-authorship interpretation.
-9. Main activation effects survive a second estimator and full-pipeline
+10. Main activation effects survive a second estimator and full-pipeline
    permutation tests.
-10. Steering moves an independent activation readout and explicit self-report,
+11. Steering moves an independent activation readout and explicit self-report,
     but not safety refusals.
-11. Four model families show exact temporal localization, with substantially
+12. Four model families show exact temporal localization, with substantially
     heterogeneous final-turn strength.
 
 ## Unsupported or overstated claims
