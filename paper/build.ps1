@@ -9,6 +9,8 @@ Set-StrictMode -Version Latest
 $paperDirectory = $PSScriptRoot
 $documentName = 'neurips_2026'
 $sourceFile = "$documentName.tex"
+$buildDirectory = Join-Path $paperDirectory '.build'
+$buildPdf = Join-Path $buildDirectory "$documentName.pdf"
 $outputPdf = Join-Path $paperDirectory "$documentName.pdf"
 
 function Resolve-MiKTeXTool {
@@ -88,6 +90,9 @@ function Open-PdfInVSCode {
 $pdfLaTeX = Resolve-MiKTeXTool -Name 'pdflatex'
 $bibTeX = Resolve-MiKTeXTool -Name 'bibtex'
 
+New-Item -ItemType Directory -Force -Path $buildDirectory | Out-Null
+Copy-Item -LiteralPath (Join-Path $paperDirectory 'references.bib') -Destination $buildDirectory -Force
+
 Push-Location $paperDirectory
 try {
     $pdfLaTeXArguments = @(
@@ -95,11 +100,18 @@ try {
         '-interaction=nonstopmode',
         '-file-line-error',
         '-halt-on-error',
+        "-output-directory=$buildDirectory",
         $sourceFile
     )
 
     Invoke-TeXCommand -Executable $pdfLaTeX -Arguments $pdfLaTeXArguments -Description 'Initial LaTeX pass'
-    Invoke-TeXCommand -Executable $bibTeX -Arguments @($documentName) -Description 'Bibliography pass'
+    Push-Location $buildDirectory
+    try {
+        Invoke-TeXCommand -Executable $bibTeX -Arguments @($documentName) -Description 'Bibliography pass'
+    }
+    finally {
+        Pop-Location
+    }
     Invoke-TeXCommand -Executable $pdfLaTeX -Arguments $pdfLaTeXArguments -Description 'Second LaTeX pass'
     Invoke-TeXCommand -Executable $pdfLaTeX -Arguments $pdfLaTeXArguments -Description 'Third LaTeX pass'
     Invoke-TeXCommand -Executable $pdfLaTeX -Arguments $pdfLaTeXArguments -Description 'Final stabilization pass'
@@ -108,9 +120,11 @@ finally {
     Pop-Location
 }
 
-if (-not (Test-Path -LiteralPath $outputPdf)) {
-    throw "The build completed without creating $outputPdf."
+if (-not (Test-Path -LiteralPath $buildPdf)) {
+    throw "The build completed without creating $buildPdf."
 }
+
+Copy-Item -LiteralPath $buildPdf -Destination $outputPdf -Force
 
 Write-Host "`nPaper built successfully: $outputPdf" -ForegroundColor Green
 
