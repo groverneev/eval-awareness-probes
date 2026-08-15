@@ -2,15 +2,21 @@
   "latex-workshop.latex.recipe.default": "first",
   "latex-workshop.latex.recipes": [
     {
-      "name": "Build VNAA paper",
+      "name": "Build VNAA paper (Windows)",
       "tools": [
-        "vnaa-build-script"
+        "vnaa-build-windows"
+      ]
+    },
+    {
+      "name": "Build VNAA paper (macOS/Linux)",
+      "tools": [
+        "vnaa-build-unix"
       ]
     }
   ],
   "latex-workshop.latex.tools": [
     {
-      "name": "vnaa-build-script",
+      "name": "vnaa-build-windows",
       "command": "powershell.exe",
       "args": [
         "-NoProfile",
@@ -19,6 +25,14 @@
         "-File",
         "%DIR%/build.ps1",
         "-NoOpen"
+      ]
+    },
+    {
+      "name": "vnaa-build-unix",
+      "command": "/bin/bash",
+      "args": [
+        "%DIR%/build.sh",
+        "--no-open"
       ]
     }
   ],

@@ -15,6 +15,24 @@
       "options": {
         "cwd": "${workspaceFolder}\\paper"
       },
+      "osx": {
+        "command": "/bin/bash",
+        "args": [
+          "${workspaceFolder}/paper/build.sh"
+        ],
+        "options": {
+          "cwd": "${workspaceFolder}/paper"
+        }
+      },
+      "linux": {
+        "command": "/bin/bash",
+        "args": [
+          "${workspaceFolder}/paper/build.sh"
+        ],
+        "options": {
+          "cwd": "${workspaceFolder}/paper"
+        }
+      },
       "group": {
         "kind": "build",
         "isDefault": true

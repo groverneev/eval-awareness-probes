@@ -56,6 +56,35 @@ function Invoke-TeXCommand {
     }
 }
 
+function Open-PdfInVSCode {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$PdfPath
+    )
+
+    $codeCommand = Get-Command 'code.cmd' -ErrorAction SilentlyContinue
+    if ($null -eq $codeCommand) {
+        $codeCommand = Get-Command 'code' -ErrorAction SilentlyContinue
+    }
+
+    $codeExecutable = if ($null -ne $codeCommand) {
+        $codeCommand.Source
+    }
+    else {
+        Join-Path $env:LOCALAPPDATA 'Programs\Microsoft VS Code\bin\code.cmd'
+    }
+
+    if (-not (Test-Path -LiteralPath $codeExecutable)) {
+        Write-Warning 'VS Code could not be found. Open the generated PDF from the VS Code Explorer.'
+        return
+    }
+
+    & $codeExecutable --reuse-window $PdfPath
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning 'VS Code did not open the PDF. Install the recommended LaTeX Workshop extension.'
+    }
+}
+
 $pdfLaTeX = Resolve-MiKTeXTool -Name 'pdflatex'
 $bibTeX = Resolve-MiKTeXTool -Name 'bibtex'
 
@@ -86,5 +115,5 @@ if (-not (Test-Path -LiteralPath $outputPdf)) {
 Write-Host "`nPaper built successfully: $outputPdf" -ForegroundColor Green
 
 if (-not $NoOpen) {
-    Start-Process -FilePath $outputPdf
+    Open-PdfInVSCode -PdfPath $outputPdf
 }
