@@ -367,10 +367,10 @@ trends.
 Table~\ref{tab:evidence} summarizes the evidential progression. The central
 pattern is not that every probe beats text. Rather, increasingly restrictive
 controls preserve temporal decodability while narrowing what the direction can
-be claimed to represent. Figure~\ref{fig:anchor} presents the two results that
+be claimed to represent. Figure~\ref{fig:anchor} presents the three results that
 anchor this conclusion: separation emerges only at the differing final turn,
-but an advantage over strong text baselines depends on both the control and the
-model.
+strong surface-text comparators already reach most of the probe's accuracy, and
+an advantage over those baselines depends on both the control and the model.
 
 \begin{figure}[t]
   \centering
@@ -378,10 +378,15 @@ model.
   \caption{Temporal localization is consistent, but a beyond-text advantage
   is not. \textbf{(a)} Reference-model direction-of-means probe AUROC before
   and after the class-defining final user turn (mean $\mathbin{\pm}$ standard
-  deviation over five train/test splits). \textbf{(b)} Grouped five-fold
-  out-of-fold probe AUROC minus the strongest word- or character-TF--IDF
-  baseline across four models. Error bars are 95\% pair-bootstrap intervals;
-  filled markers denote intervals entirely above zero.}
+  deviation over five train/test splits); the two read points are separate
+  conditions, not samples of a trajectory. \textbf{(b)} Reference-model probe
+  against every surface-text comparator on the same pairs, ordered by
+  strength; text comparators are shown muted and the probe at full
+  saturation. \textbf{(c)} Grouped five-fold out-of-fold probe AUROC minus the
+  strongest word- or character-TF--IDF baseline across four models, on a
+  broken axis so that the near-zero margins remain legible alongside
+  Gemma-3-12B. Error bars are 95\% pair-bootstrap intervals; filled markers
+  denote intervals entirely above zero.}
   \label{fig:anchor}
 \end{figure}
 
