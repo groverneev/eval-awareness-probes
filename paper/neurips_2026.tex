@@ -67,8 +67,8 @@
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
 % Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote. 
-\title{What Do Evaluation-Awareness Probes Measure?
-Confounds, Temporal Controls, and Cross-Model Evidence}
+\title{Probe Accuracy Is Not Evidence of Evaluation Awareness:
+What Temporal Controls and Text Baselines Reveal}
 \workshoptitle{TAE (Trust-AI-Eval): Can We Trust AI Evaluation?}
 
 % The \author macro works with any number of authors. There are two commands
@@ -119,10 +119,11 @@ but structural and lexical classifiers are also strong. We then construct two
 paired multi-turn controls whose histories are byte-identical until the
 class-defining final user turn; activations remain at chance throughout the
 shared history and become highly decodable only at the final turn. This temporal
-localization replicates across Llama, Qwen, Gemma, and Ministral models, but an
-activation-specific advantage does not: sparse n-grams tie the probe under
-matched coherence, and a frozen prefix--ending interaction baseline ties or
-exceeds it in both paired controls. A prespecified intervention moves an
+localization replicates across Llama, Qwen, Gemma, and Ministral models, but a
+probe advantage over text does not: it holds in three of four models on a
+topic-shifted control, reverses for Gemma, and disappears once topic and
+coherence are matched, where a context-sensitive text baseline ties or exceeds
+the probe. A prespecified intervention moves an
 independent activation readout and explicit evaluation self-reports, but not
 safety refusals. These results identify cross-family decodable eval/deploy
 distinctions that are causally accessible in the reference model, while showing
@@ -132,7 +133,7 @@ evaluation-awareness variable.
 
 \section{Introduction}
 
-Safety evaluations are informative only insofar as behavior under test predicts
+AI evaluations are informative only insofar as behavior under test predicts
 behavior in deployment. A model that distinguishes these settings could instead
 condition its behavior on being measured, making apparent safety or capability
 an unreliable guide to ordinary use. Language models already perform above
@@ -197,20 +198,39 @@ behavior under observation, as illustrated by alignment-faking settings
 finds that verbalized awareness often has only limited effects
 \citep{knecht2026limited}, and a broad open-model study argues that detection,
 behavioral response, and controllability are weakly coupled
-\citep{nayan2026notone}. We therefore treat decodability, verbalization, and
-behavioral control as separate empirical claims. Our focus is complementary:
-we test the construct validity of the internal direction using paired
-conversation histories and direct activation-versus-text inference.
+\citep{nayan2026notone}. A factor-controlled benchmark on frontier models
+separates the recognizability of an evaluation from a model's propensity to
+act on that recognition, and finds that recognition rarely changes behavior
+and that safety-relevant framings are noticed more readily than
+capability-relevant ones \citep{li2026decomposing}. A concurrent industry
+study similarly finds that evaluations built from de-identified production
+traffic show lower signs of evaluation awareness than benchmark-style ones,
+using a related but distinct design: the conversation prefix is held fixed
+and the assistant's next turn is regenerated to predict post-deployment
+misbehavior \citep{williams2026simulating}. Our shared-prefix control instead
+holds the prefix fixed and replaces the final \emph{user} turn, testing
+activation-probe validity rather than behavioral misbehavior rates. We
+therefore treat decodability, verbalization, and behavioral control as
+separate empirical claims. Our focus is complementary: we test the construct validity of the
+internal direction using paired conversation histories and direct
+activation-versus-text inference.
 
 \paragraph{Internal detection and intervention.}
 White-box work trains linear directions that distinguish evaluation from
 deployment activations and applies them to test whether safety prompts appear
 evaluation-like \citep{nguyen2025probing}. Related model-organism experiments
 use activation steering to suppress an induced evaluation-conditioned policy
-\citep{hua2025steering}. Our study instead centers the construct validity of the
-direction itself: we ask when separation enters a conversation, whether it adds
-predictive information beyond the visible text, and whether the same conclusion
-holds across naturally instruction-tuned model families.
+\citep{hua2025steering}. Two recent white-box studies trace how probe
+separability itself changes with model scale: one reports a power-law increase
+in separability across model size \citep{chaudhary2025scaling}, and another
+finds that the most informative layer for decoding evaluation awareness moves
+earlier as models grow \citep{manek2026depth}. Both treat raw separability as
+the target quantity. Our study instead centers the construct validity of the
+direction: we ask when separation enters a conversation, whether it adds
+predictive information beyond the visible text, and whether an activation
+advantage--not merely decodability--holds across naturally instruction-tuned
+model families. Our four-family suite shows it does not hold uniformly, which
+complicates reading separability alone as a scale-indexed quantity.
 
 \paragraph{Probe validity and surface controls.}
 Diagnostic classifiers establish that information is linearly accessible, but
@@ -413,9 +433,10 @@ $0.9918\mathbin{\pm}0.0085$. This number is impressive in isolation, but a
 classifier using only 13 structural features reaches $0.9675$ on the original
 held-out split, and unigram counts reach $0.9517$. The activation probe's
 strength margin over the best of these simple baselines is only $0.0269$ on
-that split. Thus, the standard contrast establishes that benchmark and user
-inputs occupy different activation regions, not that the difference encodes
-evaluation status independently of their readily visible form.
+that split -- small enough to undercut the headline number. The standard
+contrast shows that benchmark and user inputs occupy different activation
+regions; it does not show that the difference encodes evaluation status
+independently of their readily visible form.
 
 Attempts to construct surface-matched single-turn cells did not remove this
 problem. Length was successfully matched, but structural and lexical gates
@@ -443,10 +464,10 @@ $0.0475\mathbin{\pm}0.0154$, remains positive in all five seeds. Transfer is
 also asymmetric: directions trained on our realistic cells transfer strongly
 to the original benchmark-versus-user contrast (AUROC $0.946$--$0.981$),
 whereas the original direction transfers poorly to representative new cells
-(e.g., $0.574$ in the reverse of a $0.952$ transfer). This suggests that the
-standard direction contains narrower benchmark-format information, while the
-new constructions share a broader, though still not uniquely semantic,
-direction.
+(e.g., $0.574$ in the reverse of a $0.952$ transfer). The pattern points to a
+narrower, benchmark-format-bound direction in the original contrast and a
+broader -- though still not uniquely semantic -- direction in the new
+constructions.
 
 \subsection{Temporal localization in multi-turn conversations}
 
@@ -489,8 +510,9 @@ embedding reaches $0.8909$, ending-only E5 reaches $0.9416$, and an explicit
 prefix--ending interaction reaches $0.9532$. The probe-minus-interaction
 difference is $-0.0064$ ($[-0.0185,+0.0059]$). On shared-prefix, the interaction
 baseline reaches $0.9955$ versus probe $0.9878$, a difference of $-0.0077$
-($[-0.0146,-0.0020]$). Thus merely pooling the conversation is weak, but a
-context-sensitive text representation ties or exceeds activation.
+($[-0.0146,-0.0020]$). Simply pooling the conversation is a weak baseline; a
+context-sensitive text representation is not, and it ties or exceeds
+activation on both controls.
 
 Nor does an activation-specific advantage emerge under cross-control transfer:
 shared-prefix $\rightarrow$ coherence gives probe/character-TF--IDF AUROC
@@ -502,9 +524,10 @@ The same boundary holds after conditioning on observed silence. Among 192
 matched-coherence pairs whose two generated replies both terminated and
 contained no detected explicit or implicit awareness language, probe and
 unigram AUROC are $0.9369$ and $0.9354$. On the 227-pair, 512-token
-shared-prefix sensitivity run, they are $0.9908$ and $0.9460$. Overt disclosure
-is therefore unnecessary for high decodability, but its absence does not imply
-unverbalized awareness, and the coherent result remains lexically explained.
+shared-prefix sensitivity run, they are $0.9908$ and $0.9460$. High
+decodability, then, does not require overt disclosure -- but that absence is
+not evidence of unverbalized awareness, and on matched coherence the result
+remains lexically explained regardless.
 
 \subsection{Cross-model replication}
 
@@ -541,10 +564,10 @@ shared-prefix endpoint, with paired differences $+0.0406$ and $+0.0277$.
 Gemma is substantially weaker than text ($-0.2263$). No replication model
 establishes a positive activation advantage on matched coherence, and neither
 transfer direction reliably beats character TF--IDF for any replication
-model. The frozen panel therefore establishes cross-family temporal
-decodability, while providing direct counterevidence to architecture-invariant
-strength or a generally activation-specific signal beyond textual task
-structure.
+model. Cross-family temporal decodability is well supported by the frozen
+panel; architecture-invariant strength, or a generally activation-specific
+signal beyond textual task structure, is not -- the panel argues directly
+against both.
 
 \subsection{Causal intervention and behavioral effects}
 
@@ -553,17 +576,17 @@ layer, the independent readout trained on the other paired control moves
 monotonically with intervention strength (Spearman $\rho=1.00$). Excluding the
 two coefficients that violate the frozen output-degeneracy rule, explicit
 evaluation self-reports rise from $0.139$ at coefficient $-2$ to $0.889$ at
-$+2$ (Spearman $\rho=0.991$). Thus, the direction is not merely readable by a
-post-hoc classifier; changing it causally changes the model's answer when
+$+2$ (Spearman $\rho=0.991$). The direction is therefore not merely readable
+by a post-hoc classifier: changing it changes the model's own answer when
 asked whether the situation is an evaluation or real use.
 
 The predicted broader behavioral effect does not appear. Safety-refusal rates
 range only from $0.062$ to $0.125$ across nondegenerate coefficients and trend
 slightly opposite to the preregistered prediction. With 48 prompts and a
 baseline refusal rate of $0.125$, the experiment has approximately 80\% power
-only against an increase to about $0.37$. We therefore rule out a large
-refusal effect, not smaller policy changes. Steering establishes causal access
-for explicit self-report, but does not show that the direction governs general
+only against an increase to about $0.37$, so a large refusal effect is ruled
+out but smaller policy changes are not. Steering grants causal access to
+explicit self-report without showing that the direction governs general
 safety behavior.
 
 \section{Discussion}
@@ -615,7 +638,12 @@ the distribution where the monitor will run. Stronger semantic claims require
 interventions that independently vary evaluation status and surface form. In
 practice, failed controls are informative: the repeated difficulty of creating
 natural, indistinguishable endings reveals that evaluation status is tightly
-entangled with how current evaluations are written.
+entangled with how current evaluations are written. A separate risk compounds
+this one: models can learn to actively evade activation-based monitors once
+those monitors become a target of optimization \citep{mcguinness2025chameleons}.
+Our confounds arise from how evaluations are currently written, without any
+adversarial pressure on the model; a monitor built on an unvalidated direction
+would be vulnerable to both problems at once.
 
 \subsection{Limitations}
 
