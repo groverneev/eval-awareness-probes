@@ -39,8 +39,11 @@ was run, what results were obtained, or the paper's current claims.
 ## Practical notes
 
 - Use `.venv\Scripts\python`, not the system Python.
-- Run `paper/build.ps1` to build the manuscript on Windows.
+- Run `paper/build_figures.ps1` to regenerate all paper figure PDFs and preview
+  PNGs. Figure generation is separate from the manuscript build so routine
+  LaTeX rebuilds stay fast.
+- Run `paper/build.ps1` to build the manuscript on Windows using the existing
+  figure PDFs.
 - Run `.venv\Scripts\python -m pytest` for the project test suite when code
   changes warrant it.
-- After completing and verifying requested file changes, automatically commit
-  the task-related files and push to GitHub main. Preserve unrelated user changes.
+- Do not commit files without explicit permission

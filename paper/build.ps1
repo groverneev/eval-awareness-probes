@@ -87,28 +87,8 @@ function Open-PdfInVSCode {
     }
 }
 
-function Update-Figures {
-    $python = Join-Path (Split-Path $paperDirectory -Parent) '.venv\Scripts\python.exe'
-    if (-not (Test-Path -LiteralPath $python)) {
-        Write-Warning 'No .venv found; building with the committed figure PDFs.'
-        return
-    }
-
-    $scripts = Get-ChildItem -LiteralPath $paperDirectory -Filter 'make_fig*.py' |
-        Sort-Object Name
-    foreach ($script in $scripts) {
-        Write-Host "`n==> Regenerating $($script.Name)" -ForegroundColor Cyan
-        & $python $script.FullName
-        if ($LASTEXITCODE -ne 0) {
-            throw "$($script.Name) failed with exit code $LASTEXITCODE."
-        }
-    }
-}
-
 $pdfLaTeX = Resolve-MiKTeXTool -Name 'pdflatex'
 $bibTeX = Resolve-MiKTeXTool -Name 'bibtex'
-
-Update-Figures
 
 New-Item -ItemType Directory -Force -Path $buildDirectory | Out-Null
 Copy-Item -LiteralPath (Join-Path $paperDirectory 'references.bib') -Destination $buildDirectory -Force

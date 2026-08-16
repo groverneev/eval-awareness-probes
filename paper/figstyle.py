@@ -32,6 +32,7 @@ HALF_WIDTH_IN = 2.66
 BLUE = "#0072B2"
 ORANGE = "#D55E00"
 GREEN = "#009E73"
+PURPLE = "#CC79A7"
 NEUTRAL = "#555555"
 GRID = "#D9D9D9"
 MUTED = "#9E9E9E"
@@ -80,6 +81,88 @@ def despine(axis, keep_left: bool = True, keep_bottom: bool = True) -> None:
     axis.spines["right"].set_visible(False)
     axis.spines["left"].set_visible(keep_left)
     axis.spines["bottom"].set_visible(keep_bottom)
+
+
+TURN_WIDTH = 1.0
+TURN_HEIGHT = 0.52
+TURN_GAP = 0.16
+
+USER_FILL = "#E8E8E8"
+MODEL_FILL = "#F6F6F6"
+
+
+def turn_box(
+    axis,
+    x,
+    y,
+    label,
+    fill,
+    edge=MUTED,
+    text_color="black",
+    width=TURN_WIDTH,
+    height=TURN_HEIGHT,
+    fontsize=6.6,
+) -> None:
+    """One conversation turn, drawn as a rounded box."""
+    from matplotlib.patches import FancyBboxPatch
+
+    axis.add_patch(
+        FancyBboxPatch(
+            (x, y - height / 2),
+            width,
+            height,
+            boxstyle="round,pad=0,rounding_size=0.07",
+            facecolor=fill,
+            edgecolor=edge,
+            linewidth=0.7,
+        )
+    )
+    axis.text(
+        x + width / 2,
+        y,
+        label,
+        ha="center",
+        va="center",
+        fontsize=fontsize,
+        color=text_color,
+        linespacing=1.25,
+    )
+
+
+def read_marker(axis, x, y, label) -> None:
+    """Mark a read point with a caret below the turn it reads from."""
+    axis.plot(
+        [x], [y], marker="^", markersize=4.0, color=NEUTRAL, clip_on=False, zorder=4
+    )
+    axis.text(
+        x,
+        y - 0.16,
+        label,
+        ha="center",
+        va="top",
+        fontsize=6.0,
+        color=NEUTRAL,
+        linespacing=1.25,
+    )
+
+
+def span_bracket(axis, x_start, x_end, y, label) -> None:
+    axis.plot(
+        [x_start, x_start, x_end, x_end],
+        [y - 0.09, y, y, y - 0.09],
+        color=NEUTRAL,
+        linewidth=0.7,
+        clip_on=False,
+    )
+    axis.text(
+        (x_start + x_end) / 2,
+        y + 0.06,
+        label,
+        ha="center",
+        va="bottom",
+        fontsize=6.2,
+        color=NEUTRAL,
+    )
 
 
 def save(fig, name: str) -> None:

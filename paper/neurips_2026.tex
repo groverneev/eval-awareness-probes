@@ -167,7 +167,7 @@ constructed contrasts and introduce paired multi-turn controls whose histories
 are byte-identical until the class-defining final user turn. A second paired
 control additionally matches the topic and conversational coherence of the two
 endings. At every stage, we compare activation probes with length, structural,
-word-, and character-based text classifiers using paired inference. Finally, we
+word-based, and character-based text classifiers using paired inference. Finally, we
 repeat the paired controls across four open-weight model families and intervene
 on a learned direction using a prespecified steering experiment.
 
@@ -344,6 +344,20 @@ controls, the pre-final hidden states must match exactly within every pair,
 while the final-turn comparison tests whether separation appears when the
 class-defining content becomes available.
 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/paired_controls.pdf}
+  \caption{The two paired temporal controls. Both hold the conversation
+  history fixed within a pair and vary only the final user turn, so the
+  pre-final read point sees byte-identical context under either label.
+  \textbf{(a)} The shared-prefix control keeps a real WildChat history and
+  replaces only the final user message, which localizes the difference sharply
+  but may also shift topic and speech act. \textbf{(b)} The matched-coherence
+  control builds the history and both candidate endings together, trading
+  real-world provenance for endings matched on topic, register, and length.}
+  \label{fig:controls}
+\end{figure}
+
 \subsection{Cross-model replication and causal intervention}
 
 The two paired controls and full text-baseline hierarchy are frozen across all
@@ -384,7 +398,7 @@ an advantage over those baselines depends on both the control and the model.
   against every surface-text comparator on the same pairs, ordered by
   strength; text comparators are shown muted and the probe at full
   saturation. \textbf{(c)} Grouped five-fold out-of-fold probe AUROC minus the
-  strongest word- or character-TF--IDF baseline across four models, on a
+  strongest word-based or character-TF--IDF baseline across four models, on a
   broken axis so that the near-zero margins remain legible alongside
   Gemma-3-12B matched coherence. Error bars are 95\% pair-bootstrap intervals; filled markers
   denote intervals entirely above zero.}
@@ -473,7 +487,22 @@ whereas the original direction transfers poorly to representative new cells
 (e.g., $0.574$ in the reverse of a $0.952$ transfer). The pattern points to a
 narrower, benchmark-format-bound direction in the original contrast and a
 broader -- though still not uniquely semantic -- direction in the new
-constructions.
+constructions. Figure~\ref{fig:transfer} shows the full grid.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/disjoint_transfer.pdf}
+  \caption{Cross-construction transfer, probe against unigram counts, on the
+  math-free grid. Separation strength is the distance of an AUROC from chance.
+  \textbf{(a)} Seed-averaged probe-minus-unigram margin for every ordered
+  transfer; the diagonal is undefined and hatched cells are transfers whose
+  source and target share a constituent dataset cell. The row-versus-column
+  asymmetry is visible directly. \textbf{(b)} Mean strength by subset, with the
+  number of transfers in parentheses and the paired margin (mean
+  $\mathbin{\pm}$ SD over five split seeds) above each pair. The 20 completely
+  disjoint transfers are the cleanest summary.}
+  \label{fig:transfer}
+\end{figure}
 
 \subsection{Temporal localization in multi-turn conversations}
 
@@ -603,6 +632,21 @@ only against an increase to about $0.37$, so a large refusal effect is ruled
 out but smaller policy changes are not. Steering grants causal access to
 explicit self-report without showing that the direction governs general
 safety behavior.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/steering_effects.pdf}
+  \caption{The intervention moves the direction and the model's own report of
+  it, but not its refusal behavior. \textbf{(a)} At the selected layer, the
+  readout trained on the other paired control moves monotonically with
+  intervention strength; dashed lines mark the unsteered evaluation and
+  deployment means. \textbf{(b)} Explicit evaluation self-report rate.
+  \textbf{(c)} Safety-refusal rate on the fixed harmful-request set. Shaded
+  columns are the two coefficients whose generations violate the frozen
+  output-degeneracy rule; they are excluded from behavioral trends and drawn
+  as hollow markers. The coefficient axis is ordinal, not to scale.}
+  \label{fig:steering}
+\end{figure}
 
 \section{Discussion}
 
@@ -851,6 +895,21 @@ AUROC $0.9846$, but its probe is already at $0.9492$ after the first user turn,
 before the benchmark question appears. Its synthetic histories therefore leak
 the label and cannot support temporal localization. We retain the result only
 as the failure that motivated the shared-prefix recombination.
+Figure~\ref{fig:leak} contrasts the two constructions.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{figures/failed_temporal_control.pdf}
+  \caption{The rejected leaking construction against the repaired control.
+  \textbf{(a)} In the written cells the whole history is authored per label, so
+  the class is present before the final turn; the shared-prefix recombination
+  makes the history byte-identical across labels. \textbf{(b)} Reference-model
+  probe AUROC at each read point (mean $\mathbin{\pm}$ standard deviation over
+  five train/test splits). Both rejected cells are already near ceiling at the
+  pre-final read, which is what disqualifies them; only the shared-prefix
+  control sits at chance there.}
+  \label{fig:leak}
+\end{figure}
 
 \paragraph{Rejected coherence attempt.}
 An initial attempt appended unrelated benchmark items to frozen deployment

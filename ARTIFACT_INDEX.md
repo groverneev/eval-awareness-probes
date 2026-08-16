@@ -126,6 +126,16 @@ never be written to committed files.
 - `results/cross_model/v2/{Qwen,google-gemma,mistralai-Ministral}*/full`: full
   activation caches, analyses, extraction logs, and per-model SHA-256 manifests.
 
+## Paper figures
+
+- `paper/make_fig1.py` through `paper/make_fig5.py`: source for the paired-
+  control schematic, anchor results, disjoint transfer, steering effects, and
+  failed-control figures, respectively.
+- `paper/build_figures.ps1`: regenerate all figure PDFs and ignored preview
+  PNGs independently of the LaTeX build.
+- `paper/build.ps1`: build the manuscript from the current figure PDFs without
+  rerunning the figure scripts.
+
 ## Verification expectations
 
 Run `.venv\Scripts\python -m pytest` when code changes warrant it. The current
