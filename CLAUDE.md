@@ -43,7 +43,4 @@ was run, what results were obtained, or the paper's current claims.
 - Run `.venv\Scripts\python -m pytest` for the project test suite when code
   changes warrant it.
 - After completing and verifying requested file changes, automatically commit
-  the task-related files and push the current branch to its configured remote.
-  Preserve unrelated user changes, never commit secrets or ignored local
-  artifacts, and report any verification, commit, or push failure instead of
-  concealing it.
+  the task-related files and push to GitHub main. Preserve unrelated user changes.
