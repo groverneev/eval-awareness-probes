@@ -448,6 +448,12 @@ def analyze(args: argparse.Namespace) -> None:
         "inference": {
             "folds": args.folds,
             "seed": args.seed,
+            "layer_selection": {
+                "within_contrast": "nested_pair_grouped_cv_auroc",
+                "inner_folds": args.folds,
+                "inner_seed_rule": "outer_seed_plus_fold_index",
+                "transfer": "grouped_source_cv_auroc",
+            },
             "n_boot": args.n_boot,
             "n_permutations": args.n_permutations,
         },

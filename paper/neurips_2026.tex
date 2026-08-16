@@ -121,9 +121,9 @@ class-defining final user turn; activations remain at chance throughout the
 shared history and become highly decodable only at the final turn. This temporal
 localization replicates across Llama, Qwen, Gemma, and Ministral models, but a
 probe advantage over text does not: it holds in three of four models on a
-topic-shifted control, reverses for Gemma, and disappears once topic and
-coherence are matched, where a context-sensitive text baseline ties or exceeds
-the probe. A prespecified intervention moves an
+topic-shifted control and disappears once topic and coherence are matched,
+where a context-sensitive text baseline ties or exceeds the probe. A
+prespecified intervention moves an
 independent activation readout and explicit evaluation self-reports, but not
 safety refusals. These results identify cross-family decodable eval/deploy
 distinctions that are causally accessible in the reference model, while showing
@@ -177,9 +177,9 @@ both paired controls localize the activation difference to the changed final
 turn. Second, temporal decodability is consistent across model families, but a
 probe advantage over strong text baselines is not: it survives for the
 shared-prefix control in three models, disappears under matched coherence, and
-reverses in one model family. Third, steering changes an independent readout and
-explicit evaluation self-report, but does not produce a detectable broad change
-in safety refusals. Together, these results support a temporally localized
+is not significant in the fourth. Third, steering changes an independent
+readout and explicit evaluation self-report, but does not produce a detectable
+broad change in safety refusals. Together, these results support a temporally localized
 eval/deploy distinction, with causal access in the reference model, while
 arguing against interpreting probe AUROC as evidence for a universal,
 content-independent awareness variable.
@@ -298,7 +298,8 @@ the evaluation and deployment training means. For activation $x$, its score is
 Layers are selected using training data only. Repeated-holdout estimates use
 five paired 70/30 splits. Direct probe--text comparisons and cross-model
 analyses use grouped five-fold out-of-fold predictions, keeping both endings of
-a scenario in the same fold. We report signed AUROC when orientation matters.
+a scenario in the same fold; layer selection is itself grouped cross-validation
+nested inside each outer training fold. We report signed AUROC when orientation matters.
 For transfer analyses, where a direction may reverse under distribution shift,
 we additionally report separation strength $|\mathrm{AUROC}-0.5|$. A
 standardized L2-logistic probe and full-pipeline label permutations test whether
@@ -385,7 +386,7 @@ an advantage over those baselines depends on both the control and the model.
   saturation. \textbf{(c)} Grouped five-fold out-of-fold probe AUROC minus the
   strongest word- or character-TF--IDF baseline across four models, on a
   broken axis so that the near-zero margins remain legible alongside
-  Gemma-3-12B. Error bars are 95\% pair-bootstrap intervals; filled markers
+  Gemma-3-12B matched coherence. Error bars are 95\% pair-bootstrap intervals; filled markers
   denote intervals entirely above zero.}
   \label{fig:anchor}
 \end{figure}
@@ -502,8 +503,8 @@ the pairs, but not information in the differing final text.
 Grouped five-fold inference makes that remaining qualification decisive. On
 the shared-prefix control, the reference-model probe obtains AUROC $0.9878$
 versus $0.9529$ for word TF--IDF. The paired difference is $+0.0349$, with a
-95\% pair-bootstrap interval $[+0.0187,+0.0533]$ and one-sided paired
-randomization $p=0.0045$. This is a reliable activation advantage over the
+95\% pair-bootstrap interval $[+0.0183,+0.0540]$ and one-sided paired
+randomization $p=0.0015$. This is a reliable activation advantage over the
 tested text hierarchy, but it occurs in the control whose final benchmark
 question can introduce a topic and speech-act discontinuity.
 
@@ -515,7 +516,7 @@ embedding reaches $0.8909$, ending-only E5 reaches $0.9416$, and an explicit
 prefix--ending interaction reaches $0.9532$. The probe-minus-interaction
 difference is $-0.0064$ ($[-0.0185,+0.0059]$). On shared-prefix, the interaction
 baseline reaches $0.9955$ versus probe $0.9878$, a difference of $-0.0077$
-($[-0.0146,-0.0020]$). Simply pooling the conversation is a weak baseline; a
+($[-0.0156,-0.0015]$). Simply pooling the conversation is a weak baseline; a
 context-sensitive text representation is not, and it ties or exceeds
 activation on both controls.
 
@@ -543,6 +544,14 @@ also all show above-chance final-turn decodability on both controls. The
 magnitude and activation-versus-text comparison, however, are heterogeneous
 (Table~\ref{tab:crossmodel}).
 
+A post-result audit found that the original grouped runner selected layers by
+in-sample training AUROC. Although this never consulted an outer test fold, it
+was unstable when high-dimensional training AUROCs saturated. We therefore
+reran every model and endpoint with the nested grouped selector described above.
+This leaves the reference, Qwen, and Ministral conclusions nearly unchanged but
+corrects the Gemma within-control estimates; transfer already used grouped
+source-only cross-validation and is unchanged.
+
 \begin{table}[t]
   \caption{Grouped five-fold final-turn AUROC across model families. Each text
   entry is the strongest word or character TF--IDF baseline. Differences use
@@ -557,22 +566,23 @@ magnitude and activation-versus-text comparison, however, are heterogeneous
     Model & Probe & Text & $\Delta$ & Probe & Text & $\Delta$ \\
     \midrule
     Llama-3.1-8B & 0.9878 & 0.9529 & $\mathbf{+0.0349}$ & 0.9468 & 0.9447 & $+0.0021$ \\
-    Qwen3-8B & 0.9936 & 0.9529 & $\mathbf{+0.0406}$ & 0.9465 & 0.9447 & $+0.0018$ \\
-    Gemma-3-12B & 0.7267 & 0.9529 & $-0.2263$ & 0.6474 & 0.9447 & $-0.2973$ \\
-    Ministral-3-8B & 0.9806 & 0.9529 & $\mathbf{+0.0277}$ & 0.9279 & 0.9447 & $-0.0169$ \\
+    Qwen3-8B & 0.9919 & 0.9529 & $\mathbf{+0.0390}$ & 0.9450 & 0.9447 & $+0.0003$ \\
+    Gemma-3-12B & 0.9730 & 0.9529 & $+0.0200$ & 0.8590 & 0.9447 & $-0.0857$ \\
+    Ministral-3-8B & 0.9831 & 0.9529 & $\mathbf{+0.0302}$ & 0.9279 & 0.9447 & $-0.0168$ \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 Qwen and Ministral join the Llama reference in beating text on the
-shared-prefix endpoint, with paired differences $+0.0406$ and $+0.0277$.
-Gemma is substantially weaker than text ($-0.2263$). No replication model
-establishes a positive activation advantage on matched coherence, and neither
-transfer direction reliably beats character TF--IDF for any replication
-model. Cross-family temporal decodability is well supported by the frozen
-panel; architecture-invariant strength, or a generally activation-specific
-signal beyond textual task structure, is not -- the panel argues directly
-against both.
+shared-prefix endpoint, with paired differences $+0.0390$ and $+0.0302$.
+Gemma's difference is positive but inconclusive ($+0.0200$,
+$[-0.0002,+0.0404]$); on matched coherence it remains substantially weaker
+than text ($-0.0857$). No replication model establishes a positive activation
+advantage on matched coherence, and neither transfer direction reliably beats
+character TF--IDF for any replication model. Cross-family temporal
+decodability is well supported by the frozen panel; architecture-invariant
+strength, or a generally activation-specific signal beyond textual task
+structure, is not.
 
 \subsection{Causal intervention and behavioral effects}
 
@@ -782,7 +792,7 @@ pre-final null does not depend on choosing only one boundary.
     Analysis & Probe & Text & Difference (95\% interval) & $p$ \\
     \midrule
     Shared prefix, within
-      & 0.9878 & 0.9529 & $+0.0349$ $[+0.0187,+0.0533]$ & 0.0045 \\
+      & 0.9878 & 0.9529 & $+0.0349$ $[+0.0183,+0.0540]$ & 0.0015 \\
     Matched coherence, within
       & 0.9468 & 0.9447 & $+0.0021$ $[-0.0134,+0.0168]$ & 0.4378 \\
     Shared $\rightarrow$ coherence

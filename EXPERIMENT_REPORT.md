@@ -36,7 +36,9 @@ that can be identified uniquely as evaluation awareness. Benchmark-versus-user
 contrasts and several constructed controls remain highly distinguishable from
 text alone. Character n-grams tie the activation probe on the strongest matched-
 coherence control and outperform activation transfer between the two multi-turn
-controls. Gemma is substantially weaker than text on both paired controls.
+controls. Gemma ties text on the topic-shifted control after corrected nested
+layer selection, but remains substantially weaker on matched coherence and
+cross-control transfer.
 
 On the Llama reference model, separation remains among terminated reply pairs
 without detected awareness disclosure. A pre-specified residual intervention
@@ -61,8 +63,10 @@ assistant reply.
 The primary probe is the normalized difference between the evaluation-class and
 deployment-class mean activations. A held-out activation is scored by projection
 onto that direction, and AUROC measures ranking performance. Layer selection is
-performed using training data only. Most reference-model results use five
-deterministic 70/30 splits and report mean plus population SD across seeds.
+performed using training data only. For grouped probe--text and cross-model
+within-control comparisons, it uses pair-grouped cross-validation nested inside
+each outer training fold. Most reference-model results use five deterministic
+70/30 splits and report mean plus population SD across seeds.
 
 Surface comparisons include length, 13 structural features, unigram counts, and
 where noted word 1--2-gram and character-within-word 3--5-gram TF-IDF logistic
@@ -162,7 +166,7 @@ The later grouped strong-text audit is the authoritative comparison:
 
 | Analysis | Probe | Strongest text | Difference (95% CI) | One-sided p |
 |---|---:|---:|---:|---:|
-| `eval_shared`, within | 0.98781 | word TF-IDF 0.95293 | `+0.03488` `[+0.01875, +0.05330]` | 0.00450 |
+| `eval_shared`, within | 0.98779 | word TF-IDF 0.95293 | `+0.03486` `[+0.01833, +0.05395]` | 0.00150 |
 | `coherent_pairs`, within | 0.94682 | character TF-IDF 0.94474 | `+0.00208` `[-0.01341, +0.01675]` | 0.43778 |
 | `eval_shared` → coherent | 0.84496 | character TF-IDF 0.86614 | `-0.02118` `[-0.04887, +0.00811]` | 0.87856 |
 | coherent → `eval_shared` | 0.71874 | character TF-IDF 0.84854 | `-0.12981` `[-0.16654, -0.09081]` | 1.00000 |
@@ -175,13 +179,13 @@ The contextual audit further narrows the activation-specific interpretation:
 
 | Control | Probe | Full context (primary) | Ending only | Prefix-ending interaction |
 |---|---:|---:|---:|---:|
-| `eval_shared` | 0.98781 | 0.82104 | 0.98206 | 0.99554 |
+| `eval_shared` | 0.98779 | 0.82104 | 0.98206 | 0.99554 |
 | `coherent_pairs` | 0.94682 | 0.89088 | 0.94165 | 0.95325 |
 
 On matched coherence, probe minus interaction is `-0.00643`, 95% pair-cluster
-bootstrap CI `[-0.01850,+0.00588]`; the two are statistically tied. On
-`eval_shared`, probe minus interaction is `-0.00773`, CI
-`[-0.01462,-0.00203]`. The frozen full-conversation embedding was the
+bootstrap CI `[-0.01850,+0.00590]`; the two are statistically tied. On
+`eval_shared`, probe minus interaction is `-0.00774`, CI
+`[-0.01557,-0.00150]`. The frozen full-conversation embedding was the
 prespecified primary representation and is weaker, showing that simply pooling
 context is not sufficient. The fixed secondary interaction representation is
 the stronger causal-view comparator and ties or exceeds the probe.
@@ -278,20 +282,31 @@ exactly comparable shared-prefix states. Every model had maximum positive/
 negative activation difference `0.0` at byte-identical pre-final boundaries and
 nonzero final-turn differences.
 
+A post-result audit found that the original grouped within-control runner chose
+the direction-of-means layer by in-sample training AUROC. This did not consult
+the outer test fold, but high-dimensional training AUROCs saturated and made
+Gemma's choice unstable. The corrected analysis applies five-fold pair-grouped
+layer selection inside every outer training fold, uniformly across all models
+and endpoints. Transfer already selected layers by grouped source-only CV and
+is unchanged.
+
 Grouped strong-baseline within-control results were:
 
 | Model | `eval_shared`: probe vs text | Matched coherence: probe vs text |
 |---|---:|---:|
-| Llama-3.1-8B | 0.98781 vs 0.95293 | 0.94682 vs 0.94474 |
-| Qwen3-8B | 0.99357 vs 0.95293 | 0.94653 vs 0.94474 |
-| Gemma-3-12B-IT | 0.72667 vs 0.95293 | 0.64744 vs 0.94474 |
-| Ministral-3-8B | 0.98062 vs 0.95293 | 0.92789 vs 0.94474 |
+| Llama-3.1-8B | 0.98779 vs 0.95293 | 0.94682 vs 0.94474 |
+| Qwen3-8B | 0.99192 vs 0.95293 | 0.94504 vs 0.94474 |
+| Gemma-3-12B-IT | 0.97296 vs 0.95293 | 0.85902 vs 0.94474 |
+| Ministral-3-8B | 0.98309 vs 0.95293 | 0.92790 vs 0.94474 |
 
-Qwen's `eval_shared` difference was `+0.04064`, 95% CI
-`[+0.02364,+0.05982]`, `p=0.0050`. Ministral's was `+0.02770`, CI
-`[+0.01017,+0.04720]`, `p=0.0155`. Neither model beat text on matched coherence.
-Gemma was substantially weaker than text on both controls. No replication model
-beat character TF-IDF in either cross-control transfer direction.
+Qwen's `eval_shared` difference is `+0.03899`, 95% CI
+`[+0.02182,+0.05823]`, `p=0.0025`. Ministral's is `+0.03016`, CI
+`[+0.01282,+0.04904]`, `p=0.0060`. Gemma's corrected value is `+0.02003`,
+CI `[-0.00021,+0.04043]`, `p=0.0885`; all five outer folds select final layer
+48. On matched coherence, all five select layer 9 and the probe remains weaker
+than text by `-0.08571`, CI `[-0.11331,-0.05891]`. No replication model beats
+character TF-IDF on matched coherence or in either cross-control transfer
+direction.
 
 Together with Llama, this establishes cross-family temporal decodability, but
 not architecture-invariant strength or a generally activation-specific signal
@@ -310,8 +325,10 @@ attached:
    tested unigram baseline by `0.04754 ± 0.01538`.
 4. In two paired multi-turn controls, separation is at chance throughout the
    byte-identical prefix and emerges only after the differing final turn.
-5. `eval_shared` beats the strongest tested text baseline on Llama, Qwen, and
-   Ministral; matched coherence does not reliably beat character n-grams.
+5. `eval_shared` establishes a positive paired advantage over the strongest
+   tested text baseline on Llama, Qwen, and Ministral; Gemma's positive margin
+   is inconclusive, and matched coherence does not reliably beat character
+   n-grams for any model.
 6. Cross-control activation transfer does not beat character n-grams.
 7. A frozen prefix-ending contextual text interaction ties or exceeds the
    reference-model activation probe on both paired controls.
@@ -348,8 +365,9 @@ The repository does not support the following:
 
 ## Audit rules for paper work
 
-1. Use train-only layer selection; do not revive historical held-out layer
-   selection.
+1. Use nested pair-grouped, train-only layer selection for grouped
+   within-control comparisons; do not use the superseded in-sample training
+   AUROC selector or revive historical held-out layer selection.
 2. Report the completely disjoint Slice 2b transfer subset as primary or show it
    separately from shared-cell and all-off-diagonal averages.
 3. Keep failed gates visible. Later controls respond to those failures; they do

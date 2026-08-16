@@ -9,7 +9,11 @@ from vnaa.baselines import (
     paired_prediction_permutation_test,
     text_logistic_scores,
 )
-from vnaa.run_strong_baseline_audit import pair_folds
+from vnaa.run_strong_baseline_audit import (
+    fit_selected_dom_grouped_cv,
+    grouped_dom_layer_scores,
+    pair_folds,
+)
 from vnaa.prep_authorship_factorial import select_two_turn_items
 
 
@@ -79,6 +83,34 @@ def test_pair_folds_cover_each_pair_once_without_leakage():
         assert sorted(np.r_[train, test].tolist()) == list(range(23))
         held.extend(test.tolist())
     assert sorted(held) == list(range(23))
+
+
+def test_grouped_dom_layer_selection_recovers_held_out_signal():
+    rng = np.random.default_rng(12)
+    n_pairs, n_layers, hidden = 60, 4, 128
+    positive = rng.normal(size=(n_pairs, n_layers, hidden))
+    negative = rng.normal(size=(n_pairs, n_layers, hidden))
+    # Only layer 2 has a population-level direction. High-dimensional noise can
+    # look excellent in-sample, so selection must use held-out inner folds.
+    positive[:, 2, 0] += 1.5
+    negative[:, 2, 0] -= 1.5
+
+    aurocs = grouped_dom_layer_scores(positive, negative, n_folds=5, seed=3)
+    probe, layer, selected_curve = fit_selected_dom_grouped_cv(
+        positive, negative, n_folds=5, seed=3
+    )
+
+    assert layer == 2
+    assert aurocs[2] > 0.9
+    np.testing.assert_array_equal(selected_curve, aurocs)
+    assert probe.direction.shape == (hidden,)
+
+
+def test_grouped_dom_layer_selection_rejects_unpaired_shapes():
+    with pytest.raises(ValueError, match="paired activations"):
+        grouped_dom_layer_scores(
+            np.zeros((5, 2, 3)), np.zeros((4, 2, 3)), n_folds=2, seed=0
+        )
 
 
 def test_authorship_pilot_selection_uses_only_id_hash_and_turn_count():

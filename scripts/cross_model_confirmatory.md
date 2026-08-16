@@ -35,7 +35,8 @@ differences at an otherwise byte-identical earlier prefix.
 The CPU analysis then runs:
 
 - a numerical identical-prefix check before the differing final user turn;
-- grouped five-fold, train-only layer selection;
+- grouped five-fold predictions with pair-grouped layer selection nested inside
+  every outer training fold;
 - word-count, word TF-IDF, character TF-IDF, format, and length baselines;
 - paired bootstrap intervals and paired prediction-randomization tests; and
 - transfer in both directions between the two controls.
@@ -142,12 +143,13 @@ will receive separate model-aware adapters and cost checks before execution.
 
 The full local Qwen3-8B run completed on 2026-08-11 at the frozen revision.
 All four 250-pair caches passed provenance checks and both temporal controls had
-exactly zero pre-final difference. The primary grouped results are:
+exactly zero pre-final difference. The table reports the uniform nested
+layer-selection analysis completed after the audit described below:
 
 | Test | Probe AUROC | Strongest text AUROC | Difference (95% CI) | p |
 |---|---:|---:|---:|---:|
-| `eval_shared` within | 0.99357 | 0.95293 | +0.04064 [+0.02364, +0.05982] | 0.0050 |
-| `coherent_pairs` within | 0.94653 | 0.94474 | +0.00179 [-0.01495, +0.01798] | 0.4448 |
+| `eval_shared` within | 0.99192 | 0.95293 | +0.03899 [+0.02182, +0.05823] | 0.0025 |
+| `coherent_pairs` within | 0.94504 | 0.94474 | +0.00030 [-0.01628, +0.01643] | 0.4918 |
 | eval-shared -> coherent | 0.88195 | 0.86614 | +0.01581 [-0.01079, +0.04309] | 0.0795 |
 | coherent -> eval-shared | 0.82446 | 0.84854 | -0.02408 [-0.06007, +0.01192] | 0.8486 |
 
@@ -156,15 +158,31 @@ endpoints. All eight additional caches passed provenance and temporal checks.
 
 | Model | Test | Probe | Strongest text | Difference (95% CI) | p |
 |---|---|---:|---:|---:|---:|
-| Gemma | `eval_shared` within | 0.72667 | 0.95293 | -0.22626 [-0.24987, -0.19998] | 1.0000 |
-| Gemma | `coherent_pairs` within | 0.64744 | 0.94474 | -0.29730 [-0.31696, -0.27304] | 1.0000 |
+| Gemma | `eval_shared` within | 0.97296 | 0.95293 | +0.02003 [-0.00021, +0.04043] | 0.0885 |
+| Gemma | `coherent_pairs` within | 0.85902 | 0.94474 | -0.08571 [-0.11331, -0.05891] | 1.0000 |
 | Gemma | eval-shared -> coherent | 0.72642 | 0.86614 | -0.13973 [-0.17575, -0.10417] | 1.0000 |
 | Gemma | coherent -> eval-shared | 0.65408 | 0.84854 | -0.19446 [-0.23496, -0.15188] | 1.0000 |
-| Ministral | `eval_shared` within | 0.98062 | 0.95293 | +0.02770 [+0.01017, +0.04720] | 0.0155 |
-| Ministral | `coherent_pairs` within | 0.92789 | 0.94474 | -0.01685 [-0.03509, +0.00127] | 0.8736 |
+| Ministral | `eval_shared` within | 0.98309 | 0.95293 | +0.03016 [+0.01281, +0.04904] | 0.0060 |
+| Ministral | `coherent_pairs` within | 0.92790 | 0.94474 | -0.01683 [-0.03563, +0.00282] | 0.8531 |
 | Ministral | eval-shared -> coherent | 0.84232 | 0.86614 | -0.02382 [-0.05075, +0.00519] | 0.9030 |
 | Ministral | coherent -> eval-shared | 0.87557 | 0.84854 | +0.02702 [-0.00619, +0.06111] | 0.0660 |
 
 The stopping rule is satisfied. The panel supports cross-family temporal
-decodability but not architecture-invariant effect size: Gemma is much weaker,
-and no replication model beats character TF-IDF on coherent or transfer tests.
+decodability but not architecture-invariant effect size. Llama, Qwen, and
+Ministral establish positive paired advantages on `eval_shared`; Gemma's
+positive margin is inconclusive. No replication model beats character TF-IDF
+on coherent or transfer tests.
+
+### Post-result layer-selection audit
+
+The first completed analysis selected the direction-of-means layer by
+in-sample outer-training AUROC. This respected the outer holdout but proved
+unstable when Gemma's high-dimensional training curves saturated: its reported
+within-control AUROCs were initially 0.72667 and 0.64744. After the anomaly was
+observed, the runner was corrected to select layers by pair-grouped CV nested
+inside each outer training fold and was rerun uniformly for Llama, Qwen, Gemma,
+and Ministral. Gemma then selected layer 48 in all five `eval_shared` folds and
+layer 9 in all five coherent-pair folds, producing the corrected table above.
+Transfer already used grouped source-only CV and did not change. This is a
+transparent post-result method correction, not part of the original frozen
+analysis.

@@ -21,8 +21,9 @@ never be written to committed files.
 - `src/vnaa/baselines.py`: splits, structural features, length/format/bag-of-
   words baselines, separation strength, and bootstrap intervals.
 - `src/vnaa/run_strong_baseline_audit.py`: grouped outer-fold word and character
-  TF-IDF, source-only transfer selection, pair-cluster bootstrap intervals, and
-  direct probe-versus-baseline randomization tests.
+  TF-IDF, nested pair-grouped within-control layer selection, source-only
+  transfer selection, pair-cluster bootstrap intervals, and direct
+  probe-versus-baseline randomization tests.
 - `datasets/contextual_text_baseline/prespec.md` and
   `src/vnaa/run_contextual_text_baseline.py`: revision-pinned frozen E5
   ending/full-context/prefix--ending interaction audit with grouped predictions
@@ -128,7 +129,8 @@ never be written to committed files.
 ## Verification expectations
 
 Run `.venv\Scripts\python -m pytest` when code changes warrant it. The current
-suite covers probe splitting, stronger text baselines, pair-grouped folds,
+suite covers probe splitting, stronger text baselines, nested pair-grouped
+layer selection, pair-grouped folds,
 paired margin inference, deterministic authorship selection and gating,
 cross-model fingerprints and revision pinning, model-specific chat boundaries,
 causal-prefix extraction, cross-platform manifest hashing, read-point indexing,

@@ -38,15 +38,17 @@ prefix--ending E5 interaction reaches AUROC 0.95325 on matched coherence versus
    +0.04754 ± 0.01538 across five splits.
 3. Both paired controls are at chance throughout byte-identical prefixes and
    separate only after the differing final turn.
-4. Llama eval_shared: probe 0.98781 versus word TF-IDF 0.95293,
-   difference +0.03488, 95% CI [+0.01875, +0.05330].
+4. Llama eval_shared: probe 0.98779 versus word TF-IDF 0.95293,
+   difference +0.03486, 95% CI [+0.01833, +0.05395].
 5. Matched coherence: probe 0.94682 versus character TF-IDF 0.94474,
    difference +0.00208, not significant.
 6. Frozen contextual interaction: matched coherence 0.95325 versus probe
    0.94682, probe-minus-baseline -0.00643, 95% CI [-0.0185, +0.0059];
-   shared-prefix 0.99554 versus probe 0.98781, difference -0.00773,
-   95% CI [-0.0146, -0.0020].
-7. Llama, Qwen, Gemma, and Ministral all show temporal decodability, but
-   strength is heterogeneous.
+   shared-prefix 0.99554 versus probe 0.98779, difference -0.00774,
+   95% CI [-0.0156, -0.0015].
+7. Llama, Qwen, Gemma, and Ministral all show temporal decodability. After a
+   uniform nested layer-selection correction, Llama/Qwen/Ministral establish
+   positive shared-prefix margins; Gemma ties there but remains weaker than
+   text on matched coherence and transfer.
 8. Steering changes the independent readout and explicit self-report, but
    not safety refusals.

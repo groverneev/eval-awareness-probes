@@ -4,7 +4,9 @@ This CPU-only audit targets the two decisive, byte-identical-prefix Slice-3
 controls.  It improves on the historical five repeated holdouts in two ways:
 
 1. grouped outer-fold predictions cover every matched scenario exactly once;
-2. uncertainty and approximate-randomization tests directly compare the probe
+2. probe layers are selected by grouped cross-validation nested inside each
+   outer training fold; and
+3. uncertainty and approximate-randomization tests directly compare the probe
    with the strongest text-only baseline on the same predictions.
 
 The shared prefix is excluded from additive text baselines by construction, as
@@ -51,13 +53,47 @@ def pair_folds(n_pairs: int, n_folds: int, seed: int) -> list[tuple[np.ndarray, 
     ]
 
 
-def _fit_selected_dom(x_train: np.ndarray, y_train: np.ndarray):
-    """Select a direction-of-means layer using training data only."""
-    directions = dom_directions(x_train, y_train)
-    train_scores = np.einsum("nld,ld->nl", x_train, directions)
-    train_aurocs = auroc_columns(y_train, train_scores)
-    layer = int(np.argmax(train_aurocs))
-    return fit_layer(x_train[:, layer], y_train), layer
+def grouped_dom_layer_scores(
+    acts_pos: np.ndarray,
+    acts_neg: np.ndarray,
+    n_folds: int,
+    seed: int,
+) -> np.ndarray:
+    """Grouped out-of-fold direction-of-means AUROC for every layer.
+
+    Each matched scenario stays intact.  The returned curve is suitable for
+    layer selection inside an outer training fold; no score is obtained from a
+    direction fitted on the row it scores.
+    """
+    if acts_pos.shape != acts_neg.shape or acts_pos.ndim != 3:
+        raise ValueError(
+            "paired activations must have matching (pair, layer, dim) shapes"
+        )
+    n_pairs = len(acts_pos)
+    labels = np.r_[np.ones(n_pairs), np.zeros(n_pairs)]
+    held_scores = np.empty((2 * n_pairs, acts_pos.shape[1]), dtype=np.float64)
+    for train_pairs, test_pairs in pair_folds(n_pairs, n_folds, seed):
+        x_train = np.r_[acts_pos[train_pairs], acts_neg[train_pairs]]
+        y_train = labels[np.r_[train_pairs, n_pairs + train_pairs]]
+        directions = dom_directions(x_train, y_train)
+        x_test = np.r_[acts_pos[test_pairs], acts_neg[test_pairs]]
+        test_idx = np.r_[test_pairs, n_pairs + test_pairs]
+        held_scores[test_idx] = np.einsum("nld,ld->nl", x_test, directions)
+    return auroc_columns(labels, held_scores)
+
+
+def fit_selected_dom_grouped_cv(
+    acts_pos: np.ndarray,
+    acts_neg: np.ndarray,
+    n_folds: int,
+    seed: int,
+):
+    """Fit a probe after pair-grouped, training-only layer selection."""
+    cv_aurocs = grouped_dom_layer_scores(acts_pos, acts_neg, n_folds, seed)
+    layer = int(np.argmax(cv_aurocs))
+    x_train = np.r_[acts_pos, acts_neg]
+    labels = np.r_[np.ones(len(acts_pos)), np.zeros(len(acts_neg))]
+    return fit_layer(x_train[:, layer], labels), layer, cv_aurocs
 
 
 def _text_scores(all_texts, labels, train_idx, test_idx, seed):
@@ -89,16 +125,21 @@ def grouped_oof_predictions(pair, n_folds: int, seed: int) -> dict:
     predictions = {name: np.empty(2 * n, dtype=float)
                    for name in ("probe", *BASELINES)}
     selected_layers = []
+    selected_layer_aurocs = []
 
     for fold, (train_pairs, test_pairs) in enumerate(pair_folds(n, n_folds, seed)):
         train_idx = np.r_[train_pairs, n + train_pairs]
         test_idx = np.r_[test_pairs, n + test_pairs]
-        x_train = np.r_[acts_pos[train_pairs], acts_neg[train_pairs]]
-        y_train = labels[train_idx]
         x_test = np.r_[acts_pos[test_pairs], acts_neg[test_pairs]]
-        probe, layer = _fit_selected_dom(x_train, y_train)
+        probe, layer, inner_aurocs = fit_selected_dom_grouped_cv(
+            acts_pos[train_pairs],
+            acts_neg[train_pairs],
+            n_folds,
+            seed + fold,
+        )
         predictions["probe"][test_idx] = probe.project(x_test[:, layer])
         selected_layers.append(layer)
+        selected_layer_aurocs.append(float(inner_aurocs[layer]))
 
         for name, scores in _text_scores(
             texts, labels, train_idx, test_idx, seed + fold
@@ -110,22 +151,18 @@ def grouped_oof_predictions(pair, n_folds: int, seed: int) -> dict:
         "cluster_ids": np.r_[np.arange(n), np.arange(n)],
         "predictions": predictions,
         "selected_layers": selected_layers,
+        "layer_selection": {
+            "method": "nested_pair_grouped_cv_auroc",
+            "inner_folds": n_folds,
+            "inner_seed_rule": "outer_seed_plus_fold_index",
+            "selected_layer_inner_aurocs": selected_layer_aurocs,
+        },
     }
 
 
 def _source_cv_layer(acts_pos, acts_neg, n_folds: int, seed: int):
     """Choose layer and orientation using grouped source-only CV."""
-    n = len(acts_pos)
-    labels = np.r_[np.ones(n), np.zeros(n)]
-    held_scores = np.empty((2 * n, acts_pos.shape[1]), dtype=np.float64)
-    for train_pairs, test_pairs in pair_folds(n, n_folds, seed):
-        x_train = np.r_[acts_pos[train_pairs], acts_neg[train_pairs]]
-        y_train = labels[np.r_[train_pairs, n + train_pairs]]
-        directions = dom_directions(x_train, y_train)
-        x_test = np.r_[acts_pos[test_pairs], acts_neg[test_pairs]]
-        test_idx = np.r_[test_pairs, n + test_pairs]
-        held_scores[test_idx] = np.einsum("nld,ld->nl", x_test, directions)
-    aurocs = auroc_columns(labels, held_scores)
+    aurocs = grouped_dom_layer_scores(acts_pos, acts_neg, n_folds, seed)
     layer = int(np.argmax(np.abs(aurocs - 0.5)))
     sign = 1 if aurocs[layer] >= 0.5 else -1
     return layer, sign, aurocs
@@ -201,6 +238,8 @@ def summarize_predictions(run: dict, n_boot: int, n_permutations: int, seed: int
     if "source_cv_auroc" in run:
         result["source_cv_auroc"] = run["source_cv_auroc"]
         result["source_orientation"] = run["source_orientation"]
+    if "layer_selection" in run:
+        result["layer_selection"] = run["layer_selection"]
     return result
 
 
@@ -236,6 +275,11 @@ def main() -> None:
         "inference_unit": "matched_scenario_pair",
         "folds": args.folds,
         "seed": args.seed,
+        "layer_selection": {
+            "method": "nested_pair_grouped_cv_auroc",
+            "inner_folds": args.folds,
+            "inner_seed_rule": "outer_seed_plus_fold_index",
+        },
         "n_boot": args.n_boot,
         "n_permutations": args.n_permutations,
         "baselines": {

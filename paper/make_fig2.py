@@ -131,8 +131,8 @@ def panel_hierarchy(axis, within: dict) -> None:
 def panel_cross_model(axis_outlier, axis_main, models: dict) -> None:
     """Paired probe-minus-strongest-text margins, on a broken axis.
 
-    One model's margin is an order of magnitude from the rest; a single linear
-    axis compresses every other interval to the point of illegibility.
+    Gemma's matched-coherence margin remains separated from the near-zero
+    margins, so the break keeps those intervals legible.
     """
     names = list(models.keys())
     y = np.arange(len(names))
@@ -176,12 +176,12 @@ def panel_cross_model(axis_outlier, axis_main, models: dict) -> None:
     axis_outlier.xaxis.set_major_formatter(formatter)
     axis_main.xaxis.set_major_formatter(formatter)
 
-    axis_outlier.set_xlim(-0.325, -0.195)
-    axis_outlier.set_xticks([-0.30, -0.25])
+    axis_outlier.set_xlim(-0.125, -0.045)
+    axis_outlier.set_xticks([-0.10, -0.05])
     axis_outlier.set_yticks(y, names)
     axis_outlier.spines["right"].set_visible(False)
 
-    axis_main.set_xlim(-0.055, 0.075)
+    axis_main.set_xlim(-0.042, 0.075)
     axis_main.set_xticks([0.0, 0.05])
     axis_main.set_yticks(y, [])
     axis_main.spines["left"].set_visible(False)

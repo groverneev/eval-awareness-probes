@@ -33,14 +33,14 @@ all.  It lands between the two (~0.11) for the same geometric reason.
 
 Layer selection
 ---------------
-The difference-of-means runner picks its layer by train-split AUROC.  That is
-sound for a fixed one-dimensional projection, which has almost no capacity to
-memorize a training split.  It is *not* sound for logistic regression on 4096
-dimensions with a few hundred training rows: LR separates the training split
-perfectly at essentially every layer, so train AUROC is ~1.0 everywhere and
-argmax over it selects noise.  ``select_layer_cv`` therefore picks the LR layer
-by cross-validated AUROC computed inside the training split only.  The test
-split is never consulted for layer choice by any estimator here.
+The historical repeated-holdout direction-of-means runner picked its layer by
+train-split AUROC.  A later cross-model audit showed that even this estimator
+can saturate in high dimensions and make the argmax unstable.  Current grouped
+comparisons therefore select direction-of-means layers by pair-grouped CV
+nested inside each outer training fold.  Logistic regression also separates a
+training split perfectly at essentially every layer, so ``select_layer_cv``
+picks its layer by cross-validated AUROC inside the training split.  No outer
+test split is consulted for layer choice.
 """
 
 from __future__ import annotations

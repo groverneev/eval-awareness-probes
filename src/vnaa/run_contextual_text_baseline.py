@@ -26,7 +26,10 @@ from vnaa.baselines import (
     paired_prediction_permutation_test,
 )
 from vnaa.cross_model_suite import PairedContrast, load_contrasts
-from vnaa.run_strong_baseline_audit import _fit_selected_dom, pair_folds
+from vnaa.run_strong_baseline_audit import (
+    fit_selected_dom_grouped_cv,
+    pair_folds,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -162,20 +165,37 @@ def grouped_embedding_predictions(
     return predictions
 
 
-def probe_predictions(pair, n_folds: int, seed: int) -> np.ndarray:
+def probe_predictions(pair, n_folds: int, seed: int) -> dict:
     """Recreate the reference probe's grouped OOF prediction vector."""
     positive, negative, acts_positive, acts_negative = pair
     n_pairs = len(positive)
-    labels = np.r_[np.ones(n_pairs), np.zeros(n_pairs)]
     predictions = np.empty(2 * n_pairs, dtype=float)
-    for train_pairs, test_pairs in pair_folds(n_pairs, n_folds, seed):
-        train_idx = np.r_[train_pairs, n_pairs + train_pairs]
+    selected_layers = []
+    selected_layer_aurocs = []
+    for fold, (train_pairs, test_pairs) in enumerate(
+        pair_folds(n_pairs, n_folds, seed)
+    ):
         test_idx = np.r_[test_pairs, n_pairs + test_pairs]
-        x_train = np.r_[acts_positive[train_pairs], acts_negative[train_pairs]]
         x_test = np.r_[acts_positive[test_pairs], acts_negative[test_pairs]]
-        probe, layer = _fit_selected_dom(x_train, labels[train_idx])
+        probe, layer, inner_aurocs = fit_selected_dom_grouped_cv(
+            acts_positive[train_pairs],
+            acts_negative[train_pairs],
+            n_folds,
+            seed + fold,
+        )
         predictions[test_idx] = probe.project(x_test[:, layer])
-    return predictions
+        selected_layers.append(layer)
+        selected_layer_aurocs.append(float(inner_aurocs[layer]))
+    return {
+        "predictions": predictions,
+        "selected_layers": selected_layers,
+        "layer_selection": {
+            "method": "nested_pair_grouped_cv_auroc",
+            "inner_folds": n_folds,
+            "inner_seed_rule": "outer_seed_plus_fold_index",
+            "selected_layer_inner_aurocs": selected_layer_aurocs,
+        },
+    }
 
 
 def _fingerprint(contrasts: dict[str, PairedContrast]) -> str:
@@ -261,9 +281,12 @@ def main() -> None:
             n_pairs = len(pair[0])
             labels = np.r_[np.ones(n_pairs), np.zeros(n_pairs)]
             clusters = np.r_[np.arange(n_pairs), np.arange(n_pairs)]
-            activation_predictions = probe_predictions(pair, args.folds, args.seed)
+            probe_run = probe_predictions(pair, args.folds, args.seed)
+            activation_predictions = probe_run["predictions"]
             result = {
                 "probe_auroc": float(roc_auc_score(labels, activation_predictions)),
+                "selected_layers": probe_run["selected_layers"],
+                "layer_selection": probe_run["layer_selection"],
                 "comparisons": {},
             }
             for representation in REPRESENTATIONS:
