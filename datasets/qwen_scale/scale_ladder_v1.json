@@ -1,0 +1,155 @@
+{
+  "suite_id": "qwen3_scale_ladder_v1",
+  "extends_suite_id": "cross_model_confirmatory_v2",
+  "frozen_on": "2026-08-16",
+  "status": "frozen_before_new_scale_activation_extraction",
+  "purpose": "Test whether activation advantage over text changes monotonically with parameter count inside the original dense Qwen3 family, using the exact paired controls and analysis pipeline from the completed cross-family suite.",
+  "reference_model": "Qwen/Qwen3-8B",
+  "reference_revision": "b968826d9c46dd6066d109eabc6255188de91218",
+  "reference_model_spec": {
+    "repository": "Qwen/Qwen3-8B",
+    "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "family": "qwen3_dense",
+    "parameter_count": 8190735360,
+    "parameter_billions": 8.1907,
+    "role": "uniform_hardware_reference_rerun"
+  },
+  "primary_replication_models": [
+    {
+      "repository": "Qwen/Qwen3-0.6B",
+      "revision": "c1899de289a04d12100db370d81485cdf75e47ca",
+      "family": "qwen3_dense",
+      "parameter_count": 751632384,
+      "parameter_billions": 0.7516,
+      "role": "scale_checkpoint"
+    },
+    {
+      "repository": "Qwen/Qwen3-1.7B",
+      "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+      "family": "qwen3_dense",
+      "parameter_count": 2031739904,
+      "parameter_billions": 2.0317,
+      "role": "scale_checkpoint"
+    },
+    {
+      "repository": "Qwen/Qwen3-4B",
+      "revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+      "family": "qwen3_dense",
+      "parameter_count": 4022468096,
+      "parameter_billions": 4.0225,
+      "role": "scale_checkpoint"
+    },
+    {
+      "repository": "Qwen/Qwen3-14B",
+      "revision": "40c069824f4251a91eefaf281ebe4c544efd3e18",
+      "family": "qwen3_dense",
+      "parameter_count": 14768307200,
+      "parameter_billions": 14.7683,
+      "role": "scale_checkpoint"
+    },
+    {
+      "repository": "Qwen/Qwen3-32B",
+      "revision": "9216db5781bf21249d130ec9da846c4624c16137",
+      "family": "qwen3_dense",
+      "parameter_count": 32762123264,
+      "parameter_billions": 32.7621,
+      "role": "scale_checkpoint"
+    }
+  ],
+  "scale_order": [
+    "Qwen/Qwen3-0.6B",
+    "Qwen/Qwen3-1.7B",
+    "Qwen/Qwen3-4B",
+    "Qwen/Qwen3-8B",
+    "Qwen/Qwen3-14B",
+    "Qwen/Qwen3-32B"
+  ],
+  "selection_rule": "All six original dense Qwen3 checkpoints are included. Sparse MoE checkpoints and later Qwen generations are excluded. Every listed checkpoint must be reported regardless of direction.",
+  "precision": "bfloat16_unquantized",
+  "n_pairs_per_contrast": 250,
+  "contrasts": {
+    "eval_shared": {
+      "positive_sources": [
+        "datasets/slice3/eval_shared.json"
+      ],
+      "negative_sources": [
+        "datasets/slice3/batches/out_00.json",
+        "datasets/slice3/batches/out_01.json",
+        "datasets/slice3/batches/out_02.json",
+        "datasets/slice3/batches/out_03.json",
+        "datasets/slice3/batches/out_04.json"
+      ],
+      "expected_content_sha256": "aa212de5af6db03d1ef6e4ab8cbf5133a0991f54b503030a7c3be015cae95659",
+      "temporal_control": true
+    },
+    "coherent_pairs": {
+      "positive_sources": [
+        "datasets/slice3/coherent_pairs/validated.json"
+      ],
+      "negative_sources": [
+        "datasets/slice3/coherent_pairs/validated.json"
+      ],
+      "expected_content_sha256": "5e53e3ff88bd7dfa7175928a9a64d63f8ef569d0590f4d4d9bd89d9dc3479305",
+      "temporal_control": true
+    }
+  },
+  "primary_read_point": "last_user_token",
+  "analysis": {
+    "outer_folds": 5,
+    "split_seed": 0,
+    "bootstrap_resamples": 2000,
+    "permutation_draws": 2000,
+    "grouping_unit": "matched_scenario",
+    "layer_selection": "pair_grouped_cv_nested_inside_each_outer_training_fold",
+    "surface_view": "differing_final_user_message_only",
+    "text_baselines": [
+      "word_unigram_counts",
+      "word_1_2gram_tfidf",
+      "character_3_5gram_tfidf",
+      "format_features",
+      "character_length"
+    ],
+    "scale_predictor": "log10_exact_parameter_count",
+    "primary_scale_endpoints": [
+      "eval_shared_within_probe_minus_strongest_text",
+      "coherent_pairs_within_probe_minus_strongest_text"
+    ],
+    "secondary_scale_endpoints": [
+      "eval_shared_to_coherent_pairs_probe_minus_strongest_text",
+      "coherent_pairs_to_eval_shared_probe_minus_strongest_text",
+      "normalized_selected_layer_depth",
+      "nonlinear_rbf_minus_fixed_contextual_e5"
+    ],
+    "trend_inference": "paired_scenario_cluster_bootstrap_of_ols_slope",
+    "trend_bootstrap_resamples": 5000,
+    "trend_seed": 0,
+    "trend_reporting_rule": "A consistent within-family scale trend requires the paired-bootstrap slope interval to exclude zero in the same direction for both primary within-control margins. Otherwise report the pattern as control-dependent, flat, or non-monotonic. Six checkpoints do not establish a universal scaling law."
+  },
+  "hardware_rule": "Extract every full checkpoint on the same single 80GB GPU pod and software environment. Do not quantize. The existing local Qwen3-8B cache is not reused as the scale-study cache.",
+  "reference_reproducibility_rule": "Compare the uniform-hardware Qwen3-8B rerun with the completed cross-family Qwen3-8B analysis. An absolute AUROC discrepancy above 0.01 on any primary endpoint triggers an implementation audit; neither run is silently replaced.",
+  "mandatory_core": [
+    "paired_dataset_and_hash_validation",
+    "pre_final_identical_prefix_numerical_check",
+    "within_contrast_grouped_probe_and_strong_text_baselines",
+    "bidirectional_cross_contrast_transfer",
+    "paired_bootstrap_confidence_intervals",
+    "paired_prediction_randomization_tests",
+    "paired_bootstrap_scale_slope",
+    "uniform_hardware_qwen3_8b_reproducibility_check"
+  ],
+  "secondary_after_core": [
+    "nonlinear_rbf_capacity_and_contextual_e5_comparison",
+    "five_fold_seed_stability",
+    "nonlinear_source_only_cross_control_transfer"
+  ],
+  "explicitly_excluded": [
+    "Qwen3_sparse_MoE_checkpoints",
+    "Qwen3.8-27B_cross_generation_architecture",
+    "later_Qwen_generations",
+    "quantized_weights",
+    "new_prompt_constructions",
+    "post_result_checkpoint_selection"
+  ],
+  "reporting_rule": "Report every checkpoint and endpoint regardless of direction. Compare activation probes with the same text predictions on the same held-out pairs. Raw probe AUROC is not sufficient for a probe-specific or scale-specific claim.",
+  "stopping_rule": "Run all six dense Qwen3 checkpoints. Do not stop early, omit a checkpoint, change precision, or choose the reported endpoints based on intermediate results."
+}

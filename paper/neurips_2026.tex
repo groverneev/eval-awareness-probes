@@ -125,6 +125,8 @@ on a topic-shifted control and disappears once topic and coherence are matched.
 A post-result nonlinear audit, however, raises matched-coherence AUROC to
 $0.981$--$0.988$ in every model and beats a capacity-matched contextual E5 RBF
 baseline, showing that decoder geometry materially changes the comparison. A
+six-checkpoint dense Qwen3 ladder from 0.75B to 32.76B parameters does not meet
+our prespecified two-control criterion for a consistent scale trend. A
 prespecified intervention moves an
 independent activation readout and explicit evaluation self-reports, but not
 safety refusals. These results identify cross-family decodable eval/deploy
@@ -171,7 +173,9 @@ control additionally matches the topic and conversational coherence of the two
 endings. At every stage, we compare activation probes with length, structural,
 word-based, and character-based text classifiers using paired inference. Finally, we
 repeat the paired controls across four open-weight model families and intervene
-on a learned direction using a prespecified steering experiment.
+on a learned direction using a prespecified steering experiment. We also rerun
+the complete pipeline across all six original dense Qwen3 sizes on uniform
+hardware.
 
 Three findings define the paper's contribution. First, near-perfect separation
 on the standard contrast is largely compatible with surface detection, whereas
@@ -180,7 +184,9 @@ turn. Second, temporal decodability is consistent across model families, but
 its apparent strength depends on probe capacity: the primary linear advantage
 is heterogeneous and disappears under matched coherence, whereas a conservative
 RBF sensitivity audit recovers a cross-family advantage over nonlinear text on
-that matched control. The nonlinear gains do not improve cross-control transfer.
+that matched control. The nonlinear gains do not improve cross-control transfer,
+and the six-size Qwen3 ladder shows no consistent primary scale trend across
+both controls.
 Third, steering changes an independent
 readout and explicit evaluation self-report, but does not produce a detectable
 broad change in safety refusals. Together, these results support a temporally localized
@@ -289,6 +295,15 @@ token closing each user turn. For the cross-model suite, every causal prefix is
 processed in an independent forward pass; this guarantees that two
 byte-identical prefixes cannot differ numerically because their later suffixes
 have different lengths.
+
+A separately frozen within-family audit includes every original dense Qwen3
+checkpoint: 0.6B, 1.7B, 4B, 8B, 14B, and 32B (0.75B--32.76B exact
+parameters). All six are re-extracted in unquantized bfloat16 on one A100
+environment; the historical 8B cache is not reused. The scale predictor is
+$\log_{10}$ exact parameter count. For each endpoint, 5,000 paired bootstrap
+draws resample the same scenario IDs at all sizes and refit the OLS slope of
+probe-minus-strongest-text AUROC. We call a scale trend consistent only if the
+slope interval excludes zero in the same direction on both primary controls.
 
 At each layer, the primary linear probe is the normalized difference between
 the evaluation and deployment training means. For activation $x$, its score is
@@ -651,6 +666,27 @@ decoder geometry rather than absent final-token information, but neither high
 within-control accuracy nor nonlinear transfer identifies the decoded property
 as evaluation awareness. Appendix~\ref{app:nonlinear-probe} gives full results.
 
+\subsection{Within-family Qwen3 scale audit}
+
+The six prespecified dense Qwen3 checkpoints all reproduce exact pre-final
+identity and final-turn decodability. Their primary activation-minus-text
+margins are non-monotonic, including a near-zero shared-prefix margin at 14B
+between positive 8B and 32B margins. The paired scale slope is $+0.0054$ AUROC
+per parameter decade on shared prefix (95\% interval
+$[-0.0017,+0.0129]$) and $+0.0068$ on matched coherence
+($[+0.0013,+0.0132]$). Because only the latter excludes zero, the frozen
+same-direction criterion is not met. Secondary transfer is likewise
+control-dependent: shared-to-coherent declines with size, while the reverse
+direction is flat. The uniform-hardware 8B rerun stays within 0.0016 AUROC of
+the historical result, below the 0.01 audit threshold.
+
+The nonlinear sensitivity result is also nearly flat across size. Over five
+fold seeds, activation RBF minus fixed contextual E5 ranges from $-0.0024$ to
+$+0.0036$ on shared prefix and from $+0.0358$ to $+0.0383$ on matched
+coherence. Thus model size does not remove the control dependence introduced by
+probe capacity. Appendix~\ref{app:qwen-scale} reports all checkpoints and the
+paired slope intervals.
+
 \subsection{Causal intervention and behavioral effects}
 
 The prespecified intervention passes its manipulation check: at the selected
@@ -710,7 +746,10 @@ brings all four close to ceiling within each control. Yet the same RBFs do not
 improve cross-control transfer, and Gemma still trails contextual text on the
 shared-prefix control. Together with the readout audit, this pattern argues that
 representational geometry depends on architecture and construction rather than
-supporting a shared scalar variable of invariant accessibility. Steering establishes that the
+supporting a shared scalar variable of invariant accessibility. The Qwen3
+ladder reinforces that conclusion within one family: scale slopes do not meet
+the same-direction criterion across controls, and one transfer direction
+decreases with size while the other remains flat. Steering establishes that the
 Llama direction is causally accessible and can influence explicit
 classification of the setting. The absence of a corresponding large refusal
 effect shows that access to this direction is not equivalent to control over a
@@ -750,9 +789,11 @@ would be vulnerable to both problems at once.
 
 \subsection{Limitations}
 
-Our evidence is limited to four instruction-tuned open-weight models in the
-8B--12B range and does not establish a scaling law or apply directly to
-frontier proprietary systems. The primary paired datasets contain 250 examples
+Our cross-family evidence is limited to four instruction-tuned open-weight
+models in the 8B--12B range, while the within-family audit covers six dense
+Qwen3 checkpoints from 0.75B to 32.76B. Six checkpoints from one family do not
+establish a universal scaling law or apply directly to frontier proprietary
+systems. The primary paired datasets contain 250 examples
 per condition and ordinary multi-turn chat, not tool-using agents or long-horizon
 tasks. Although the controls remove history-level differences and the
 matched-coherence construction reduces topic shift, the final messages are not
@@ -778,7 +819,8 @@ Evaluation-like and deployment-like interactions induce temporally localized,
 linearly and nonlinearly decodable activation differences across four
 language-model families. Nonlinear capacity recovers a consistent advantage
 over tested text baselines on matched coherence, while shared-prefix margins
-and cross-control transfer remain heterogeneous. Yet high decodability does not by itself reveal
+and cross-control transfer remain heterogeneous. A six-size Qwen3 ladder does
+not show a consistent primary scale trend across both controls. Yet high decodability does not by itself reveal
 what the difference represents, and evidence for a universal
 evaluation-awareness variable is not established. Probe-based auditing remains promising, but
 trustworthy use requires paired temporal controls, competitive textual
@@ -829,6 +871,14 @@ The prespecified primary readout is the residual-stream state at the token
 closing the user turn. For layer selection, the embedding output is indexed as
 layer zero.
 
+The scale-ladder revisions are Qwen/Qwen3-0.6B at
+\texttt{c1899de289a0}, 1.7B at \texttt{70d244cc86cc}, 4B at
+\texttt{1cfa9a720891}, 8B at \texttt{b968826d9c46}, 14B at
+\texttt{40c069824f42}, and 32B at \texttt{9216db5781bf}. They are all original
+dense Qwen3 checkpoints and are run on the same single A100-SXM4-80GB
+environment. Sparse MoE checkpoints, later Qwen generations, and quantized
+weights are excluded before execution.
+
 For the replication suite, each user-turn boundary is rendered and processed
 as an independent causal prefix. This was frozen after a full-sequence smoke
 test exposed suffix-length-dependent bfloat16 differences at otherwise
@@ -870,6 +920,55 @@ The full shared-prefix trajectory is $0.9917$ at the final turn and $0.4975$,
 $0.5003$, and $0.5003$ at one, two, and three user turns before the end. The
 corresponding numbers of available pairs are 250, 250, 145, and 61. Thus, the
 pre-final null does not depend on choosing only one boundary.
+
+\subsection{Within-family Qwen3 scale ladder}
+\label{app:qwen-scale}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{figures/qwen_scale_ladder.pdf}
+  \caption{All six frozen dense Qwen3 checkpoints. \textbf{(a)} Primary linear
+  activation-minus-strongest-text margins with 95\% pair-bootstrap intervals;
+  lines are OLS fits against log10 exact parameter count and annotations give
+  paired-bootstrap slope intervals. Filled markers have individually positive
+  margin intervals. \textbf{(b)} Post-result activation-RBF-minus-fixed-E5
+  margins, shown as mean $\mathbin{\pm}$ SD over five grouped-fold seeds. This
+  panel is descriptive, not a second confirmatory slope test.}
+  \label{fig:qwen-scale}
+\end{figure}
+
+\begin{table}[h]
+  \caption{Qwen3 scale ladder. Linear entries are primary grouped-OOF
+  activation-minus-strongest-text AUROC; nonlinear entries are activation RBF
+  minus fixed contextual E5, mean over five fold seeds.}
+  \label{tab:qwen-scale}
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3.4pt}
+  \begin{tabular}{lrrrr}
+    \toprule
+      & \multicolumn{2}{c}{Primary linear $\Delta$} &
+        \multicolumn{2}{c}{Nonlinear mean $\Delta$} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-5}
+    Exact size & Shared & Coherent & Shared & Coherent \\
+    \midrule
+    0.75B & $+0.0144$ & $-0.0035$ & $-0.0024$ & $+0.0380$ \\
+    2.03B & $+0.0355$ & $-0.0061$ & $+0.0024$ & $+0.0378$ \\
+    4.02B & $+0.0341$ & $-0.0046$ & $+0.0017$ & $+0.0358$ \\
+    8.19B & $+0.0391$ & $+0.0019$ & $+0.0035$ & $+0.0362$ \\
+    14.77B & $-0.0003$ & $+0.0092$ & $+0.0036$ & $+0.0383$ \\
+    32.76B & $+0.0436$ & $+0.0019$ & $+0.0027$ & $+0.0358$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The primary paired-bootstrap slopes are $+0.0054$
+$[-0.0017,+0.0129]$ (shared prefix) and $+0.0068$
+$[+0.0013,+0.0132]$ (matched coherence). They fail the frozen criterion because
+only one interval excludes zero. For secondary transfer, shared-to-coherent has
+slope $-0.0529$ $[-0.0664,-0.0389]$, whereas coherent-to-shared has slope
+$-0.0002$ $[-0.0156,+0.0149]$. These six checkpoints test an internal-family
+pattern for this pipeline, not a universal scaling law.
 
 \subsection{Cross-model readout sensitivity}
 \label{app:readout-sensitivity}

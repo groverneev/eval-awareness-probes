@@ -88,6 +88,37 @@ def frozen_revision(manifest: dict, repository: str) -> str | None:
     raise ValueError(f"{repository}: model is not in the frozen suite panel")
 
 
+def panel_model_specs(manifest: dict) -> list[dict]:
+    """Return reportable model specifications in their frozen panel order.
+
+    The completed cross-family manifest treats its historical Llama result as
+    an external reference, so only ``primary_replication_models`` are planned.
+    A within-family scale study can instead declare a rerun reference via
+    ``reference_model_spec`` and an explicit ``scale_order``. Supporting both
+    schemas preserves the completed suite while preventing a scale endpoint
+    from being omitted merely because it is also the reference checkpoint.
+    """
+    specs = [dict(model) for model in manifest["primary_replication_models"]]
+    reference = manifest.get("reference_model_spec")
+    if reference is not None:
+        reference = dict(reference)
+        if reference.get("repository") != manifest.get("reference_model"):
+            raise ValueError("reference_model_spec repository mismatch")
+        if reference.get("revision") != manifest.get("reference_revision"):
+            raise ValueError("reference_model_spec revision mismatch")
+        specs.append(reference)
+
+    order = manifest.get("scale_order")
+    if order is None:
+        return specs
+    by_repository = {model["repository"]: model for model in specs}
+    if len(by_repository) != len(specs):
+        raise ValueError("duplicate repository in frozen model panel")
+    if set(order) != set(by_repository) or len(order) != len(by_repository):
+        raise ValueError("scale_order must list every frozen model exactly once")
+    return [by_repository[repository] for repository in order]
+
+
 def model_slug(repository: str) -> str:
     """Readable collision-resistant artifact tag for a full model ID."""
     readable = re.sub(r"[^A-Za-z0-9._-]+", "-", repository).strip("-")
@@ -216,6 +247,7 @@ def validate_suite(
         raise ValueError("model artifact slugs collide")
     if manifest["precision"] != "bfloat16_unquantized":
         raise ValueError("confirmatory precision must remain unquantized bfloat16")
+    panel_model_specs(manifest)
     for repository in repositories[1:]:
         frozen_revision(manifest, repository)
     return fingerprints
@@ -512,7 +544,7 @@ def plan(args: argparse.Namespace) -> None:
             "full_forward_passes": forward_passes,
             "artifact_root": str(run_root(model["repository"], results=args.results)),
         }
-        for model in manifest["primary_replication_models"]
+        for model in panel_model_specs(manifest)
     ]
     print(json.dumps({"suite_id": manifest["suite_id"], "models": rows}, indent=2))
 

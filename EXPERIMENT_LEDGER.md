@@ -1052,6 +1052,42 @@ decoder misses, especially for Gemma, but the resulting boundary is not more
 construction-invariant. This closes the “only linear probes” objection while
 strengthening, rather than weakening, the paper's construct-validity warning.
 
+## 3.12 Frozen dense-Qwen3 scale ladder
+
+The scale audit was frozen before new activation extraction and includes all six
+original dense Qwen3 checkpoints: 0.6B, 1.7B, 4B, 8B, 14B, and 32B
+(0.75B--32.76B exact parameters). Every checkpoint used the same A100-SXM4-80GB
+pod, unquantized bfloat16 weights, causal-prefix extraction, 250 pairs per
+control, grouped folds, and strongest-text comparisons. The 8B checkpoint was
+re-extracted rather than borrowed from the cross-family panel. Its probe AUROC
+differences from the historical run were +0.00011 and +0.00158 on the two
+primary controls, below the frozen 0.01 audit threshold.
+
+| Exact size | Shared prefix (95% CI) | Matched coherence (95% CI) |
+|---|---:|---:|
+| 0.75B | +0.0144 [-0.0056,+0.0352] | -0.0035 [-0.0222,+0.0144] |
+| 2.03B | +0.0355 [+0.0171,+0.0554] | -0.0061 [-0.0251,+0.0117] |
+| 4.02B | +0.0341 [+0.0169,+0.0544] | -0.0046 [-0.0214,+0.0113] |
+| 8.19B | +0.0391 [+0.0219,+0.0583] | +0.0019 [-0.0149,+0.0181] |
+| 14.77B | -0.0003 [-0.0205,+0.0209] | +0.0092 [-0.0050,+0.0240] |
+| 32.76B | +0.0436 [+0.0266,+0.0634] | +0.0019 [-0.0169,+0.0200] |
+
+The 5,000-draw paired-scenario bootstrap resamples the same scenario IDs at
+every size and refits the OLS slope against log10 exact parameter count. The
+shared-prefix slope is +0.0054 [-0.0017,+0.0129]; the matched-coherence slope is
++0.0068 [+0.0013,+0.0132]. Only the latter excludes zero, so the prespecified
+same-direction criterion finds no consistent primary scale trend. Secondary
+transfer is also asymmetric: shared-to-coherent declines with size
+(-0.0529 [-0.0664,-0.0389]), while coherent-to-shared is flat
+(-0.0002 [-0.0156,+0.0149]).
+
+The five-seed nonlinear audit remains nearly flat across size. Activation RBF
+minus fixed contextual E5 spans -0.0024 to +0.0036 on shared prefix and +0.0358
+to +0.0383 on matched coherence. This strengthens the claim that the
+activation-versus-text result is control- and decoder-dependent rather than
+consistently scale-predictable. Six checkpoints within one family do not
+establish a universal scaling law.
+
 ## 4. Final evidential chain
 
 The experiments should be understood as a sequence of increasingly restrictive tests, not as interchangeable AUROC values:
@@ -1072,6 +1108,7 @@ The experiments should be understood as a sequence of increasingly restrictive t
 | Authorship pilot, pre-activation gate | Cross final-turn status with three generated history authors | 150/150 histories terminate, but only 36/50 scenarios survive the combined coherence gate | v2 fails before activation extraction; authorship effects remain untested |
 | Cross-model confirmatory suite | Freeze two valid controls across three current model families | All models pass exact temporal controls; Llama/Qwen/Ministral establish positive `eval_shared` margins, Gemma ties there and is weaker on matched coherence | Temporal decodability crosses four families, but strength is model-dependent and activation-specific generalization remains unestablished |
 | Nonlinear-capacity audit | Fit nested RBF decoders at the primary-selected layer; add frozen-E5 RBF, five fold seeds, and source-only transfer | All four activation RBFs beat E5 RBF on matched coherence in every seed; shared margins remain heterogeneous and nonlinear transfer does not beat text | Decodable information is consistently present but strongly decoder- and construction-dependent; semantic identity remains unestablished |
+| Dense-Qwen3 scale ladder | Rerun the same pipeline on all six original dense sizes under uniform hardware | One primary slope interval excludes zero and the other does not; nonlinear margins are nearly flat across size | The frozen two-control criterion finds no consistent within-family scale trend; no universal scaling law is established |
 
 ## 5. What the paper can and cannot claim
 
@@ -1095,6 +1132,10 @@ all five fold seeds. Shared-prefix nonlinear margins remain heterogeneous, and
 source-only nonlinear activation transfer does not beat text. This closes the
 linear-capacity objection for within-control separability without establishing
 construction-invariant transfer or semantic identification.
+12. Across all six original dense Qwen3 checkpoints from 0.75B to 32.76B exact
+parameters, the prespecified primary scale criterion is not met: the
+`eval_shared` slope interval includes zero while the matched-coherence interval
+is positive. Nonlinear activation-over-E5 margins are nearly flat across size.
 
 ### Claims the repository does not support
 
@@ -1111,7 +1152,7 @@ The following would overstate what was done:
 - “Slice 5 demonstrates self-recognition.” The signal survives a different generator and strengthens under context ablation.
 - “Steering the direction improves safety behavior.” It changed self-report, but the refusal test showed no predicted increase.
 - “The effect is invariant to who generated the preceding conversation.” The v2 authorship-factorial pilot failed its coherence gate before activation extraction, so this remains untested.
-- “The effect has architecture-invariant strength or a demonstrated scale trend.” Temporal decodability appears in all four tested families, but matched-coherence and transfer strength vary substantially and the 5--12B panel was not designed to estimate scaling.
+- “The effect has architecture-invariant strength or follows a universal scaling law.” Temporal decodability appears in all four tested families, but matched-coherence and transfer strength vary substantially. A uniform six-size Qwen3 audit also fails its prespecified requirement that both primary within-control slope intervals exclude zero in the same direction.
 - “The project measured agentic tool-use behavior or positive spontaneous verbalization cases.” There is no completed per-class tool-use dataset, and no real positive-disclosure classifier could be estimated because the judged matched-coherence outputs contained zero positives.
 
 ## 6. Reproducibility and audit notes that should survive into the paper
@@ -1128,6 +1169,7 @@ The following would overstate what was done:
 10. **Keep steering endpoints out of behavioral trends.** Alpha ±4 violated the frozen degeneracy rule.
 11. **Do not invent judge provenance.** The artifacts support “Claude Code subagents with blinded rows,” but not a specific distinct judge-model version.
 12. **Normalize manifest line endings when validating across operating systems.** The RunPod archive used CRLF and therefore recorded the legacy raw manifest hash `e54a...`, while the local LF checkout hashes to `a9c1...`. Parsed JSON is identical, dataset-content hashes match, and the validator now canonicalizes line endings while accepting only this legacy EOL variant.
+13. **Keep the scale decision rule frozen.** The primary ladder conclusion uses exact parameter counts, the six original dense Qwen3 checkpoints, paired scenario bootstraps shared across sizes, and the prespecified requirement that both within-control slope intervals exclude zero in the same direction. The positive matched-coherence slope alone is not a consistent scale trend.
 
 ## 7. Code and artifact map
 
@@ -1214,14 +1256,28 @@ This map lists the paper-relevant implementation rather than every operational f
   five-seed combined analyses, and per-model nonlinear transfer outputs;
   ignored with other reproducible result artifacts.
 
+### Dense-Qwen3 scale audit
+
+- `datasets/qwen_scale/scale_ladder_v1.json`: frozen six-checkpoint manifest,
+  immutable revisions, exact parameter counts, hardware requirement, and decision rule.
+- `src/vnaa/run_qwen_scale_analysis.py`: uniform artifact validation, paired
+  scenario bootstrap, log-parameter slope inference, and 8B reproducibility audit.
+- `scripts/run_qwen_scale_pod.sh`, `scripts/launch_qwen_scale_pod.sh`:
+  resumable rented-GPU extraction and launch workflow.
+- `results/qwen_scale/v1/`: six full activation caches, predictions, logs,
+  SHA-256 inventories, and combined primary scale analysis; ignored with other
+  reproducible result artifacts.
+- `results/qwen_scale/nonlinear_followup_v1/`: five-seed contextual-E5 RBF
+  comparisons for all six sizes; ignored with other reproducible result artifacts.
+
 ### Verification
 
-The current test suite contains 149 passing tests covering probes, estimator splitting, nested pair-grouped layer selection, stronger text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, cross-model dataset fingerprints, revision pinning, artifact isolation, native Qwen/Gemma/Ministral chat boundaries, causal-prefix extraction, cross-platform manifest hashing, alternate-readout audit validation, nonlinear grouped-capacity validation, contextual-E5 RBF selection, source-only nonlinear transfer, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved reference-model activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
+The current test suite contains 153 passing tests covering probes, estimator splitting, nested pair-grouped layer selection, stronger text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, cross-model dataset fingerprints, revision pinning, artifact isolation, native Qwen/Gemma/Ministral chat boundaries, causal-prefix extraction, cross-platform manifest hashing, alternate-readout audit validation, nonlinear grouped-capacity validation, contextual-E5 RBF selection, source-only nonlinear transfer, dense-Qwen3 scale-ladder validation and inference, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved reference-model activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
 
 ## 8. Recommended paper-level summary
 
 A concise and accurate paper summary, updated after the completed primary model panel, would be:
 
-> We progressively tested whether hidden states distinguish evaluation-like from deployment-like interactions after accounting for surface cues. Initial Llama-3.1-8B-Instruct benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences, so we evaluated cross-construction transfer; on completely disjoint math-free transfers, activation-probe separation exceeded unigram counts by `0.0475 ± 0.0154` across five splits. In two multi-turn paired controls, activations were indistinguishable throughout byte-identical prefixes and separated only after the differing final turn. Three prespecified replications—Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B—reproduced this exact temporal localization and above-chance final-turn decodability. The primary linear comparison is heterogeneous, but a post-result nested RBF audit reaches `0.9811`--`0.9879` on matched coherence in every model and beats a capacity-matched contextual E5 RBF with positive paired intervals in every one of five fold seeds. The same nonlinear probes do not beat text under cross-control transfer. On Llama, raw separation also remains among terminated pairs without detected awareness disclosure, and a pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports but did not increase safety refusals. These results identify cross-family, behaviorally accessible and nonlinearly decodable differences associated with the studied constructions while showing that current evidence does not isolate an architecture-invariant evaluation-awareness variable from textual task structure.
+> We progressively tested whether hidden states distinguish evaluation-like from deployment-like interactions after accounting for surface cues. Initial Llama-3.1-8B-Instruct benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences, so we evaluated cross-construction transfer; on completely disjoint math-free transfers, activation-probe separation exceeded unigram counts by `0.0475 ± 0.0154` across five splits. In two multi-turn paired controls, activations were indistinguishable throughout byte-identical prefixes and separated only after the differing final turn. Three prespecified replications—Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B—reproduced this exact temporal localization and above-chance final-turn decodability. The primary linear comparison is heterogeneous, but a post-result nested RBF audit reaches `0.9811`--`0.9879` on matched coherence in every model and beats a capacity-matched contextual E5 RBF with positive paired intervals in every one of five fold seeds. The same nonlinear probes do not beat text under cross-control transfer. A uniform ladder over all six original dense Qwen3 checkpoints from 0.75B to 32.76B does not meet the prespecified two-control criterion for a consistent primary scale trend, while nonlinear margins are nearly flat across size. On Llama, raw separation also remains among terminated pairs without detected awareness disclosure, and a pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports but did not increase safety refusals. These results identify cross-family, behaviorally accessible and nonlinearly decodable differences associated with the studied constructions while showing that current evidence does not isolate an architecture-invariant evaluation-awareness variable from textual task structure.
 
 That language reflects what the repository demonstrates without turning unsuccessful matching, conditional silence, provenance detection, or a self-report steering effect into stronger claims than the experiments justify.

@@ -11,6 +11,10 @@ sensitivity audit recovers a consistent matched-coherence advantage over a
 capacity-matched contextual E5 RBF. Shared-prefix margins remain heterogeneous,
 and nonlinear cross-control transfer does not beat text. These results still do not identify a
 universal, content-independent evaluation-awareness variable.
+Across six dense Qwen3 checkpoints from 0.75B to 32.76B exact parameters, the
+paired scale-slope interval excludes zero on matched coherence but not shared
+prefix, so the frozen same-direction criterion finds no consistent within-
+family scale trend.
 
 A frozen contextual text audit further narrows the result: an explicit
 prefix--ending E5 interaction reaches AUROC 0.95325 on matched coherence versus
@@ -25,6 +29,9 @@ prefix--ending E5 interaction reaches AUROC 0.95325 on matched coherence versus
 3. We evaluate stronger text baselines, cross-model replication, and causal
    steering, establishing both the signal's robustness and its interpretive
    limits.
+4. We test every original dense Qwen3 size under uniform hardware and find that
+   activation advantage over text is control-dependent rather than consistently
+   scale-predictable.
 
 ## Explicit non-claims
 - We do not establish that models possess a universal concept meaning
@@ -65,5 +72,10 @@ prefix--ending E5 interaction reaches AUROC 0.95325 on matched coherence versus
    source-selected nonlinear text pipeline or the stronger linear character
    TF--IDF comparator. Shared-prefix nonlinear margins also remain
    heterogeneous, with Gemma numerically below E5.
-10. Steering changes the independent readout and explicit self-report, but
+10. The six-size Qwen3 ladder has paired-bootstrap slopes +0.0054
+    [-0.0017,+0.0129] on shared prefix and +0.0068 [+0.0013,+0.0132] on matched
+    coherence. Because only one excludes zero, it does not meet the frozen
+    criterion for a consistent trend. Five-seed nonlinear margins are nearly
+    flat across size.
+11. Steering changes the independent readout and explicit self-report, but
    not safety refusals.

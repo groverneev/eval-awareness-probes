@@ -118,6 +118,18 @@ never be written to committed files.
 - `datasets/cross_model/confirmatory_suite_v1.json`,
   `datasets/cross_model/confirmatory_suite_v2.json`: preserved original panel
   and current revision-pinned 5--12B amendment.
+- `datasets/qwen_scale/scale_ladder_v1.json`: pre-result, revision-pinned
+  six-checkpoint dense Qwen3 scale ladder. It freezes exact parameter counts,
+  uniform-hardware extraction, paired scale-trend inference, and the rule that
+  all checkpoints and endpoints are reported regardless of direction.
+- `scripts/qwen_scale_ladder.md`: local validation and uniform 80GB-pod
+  execution runbook for the frozen scale ladder.
+- `scripts/run_qwen_scale_pod.sh`, `scripts/launch_qwen_scale_pod.sh`: resumable
+  uniform-pod runner and detached launch wrapper used for the six checkpoints.
+- `src/vnaa/run_qwen_scale_analysis.py`: reconstructs and validates the paired
+  out-of-fold predictions from each scale cache, performs the prespecified
+  paired-scenario bootstrap of the slope against log10 exact parameter count,
+  and checks the uniform-hardware 8B rerun against the historical 8B result.
 - `src/vnaa/cross_model_suite.py`: content-hash validation, model-isolated
   activation caches, provenance checks, temporal diagnostics, grouped strong-
   baseline analysis, and bidirectional transfer.
@@ -141,12 +153,17 @@ never be written to committed files.
 - `results/nonlinear_followup/`: cached E5 features, fixed-interaction
   inference, source-only nonlinear transfer, and five-seed per-model/combined
   outputs; ignored with the other reproducible result artifacts.
+- `results/qwen_scale/v1/`: all six full trajectory caches, primary analyses,
+  validated paired predictions, SHA-256 inventories, and the 5,000-draw scale
+  analysis; ignored because it contains large reproducible arrays.
+- `results/qwen_scale/nonlinear_followup_v1/`: five-seed nonlinear RBF versus
+  fixed contextual-E5 results for every scale checkpoint; ignored.
 
 ## Paper figures
 
-- `paper/make_fig1.py` through `paper/make_fig5.py`: source for the paired-
+- `paper/make_fig1.py` through `paper/make_fig6.py`: source for the paired-
   control schematic, anchor results, disjoint transfer, steering effects, and
-  failed-control figures, respectively.
+  failed-control figures, plus the Qwen3 scale ladder.
 - `paper/build_figures.ps1`: regenerate all figure PDFs and ignored preview
   PNGs independently of the LaTeX build.
 - `paper/build.ps1`: build the manuscript from the current figure PDFs without
