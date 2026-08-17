@@ -7,8 +7,9 @@ Do language-model activations encode an evaluation/deployment distinction that s
 Evaluation-like and deployment-like situations create temporally localized,
 linearly and nonlinearly decodable activation differences across four model
 families. The primary linear comparison is heterogeneous, but a nested RBF
-sensitivity audit recovers a consistent within-control advantage over
-capacity-matched nonlinear text. These results still do not identify a
+sensitivity audit recovers a consistent matched-coherence advantage over a
+capacity-matched contextual E5 RBF. Shared-prefix margins remain heterogeneous,
+and nonlinear cross-control transfer does not beat text. These results still do not identify a
 universal, content-independent evaluation-awareness variable.
 
 A frozen contextual text audit further narrows the result: an explicit
@@ -28,8 +29,8 @@ prefix--ending E5 interaction reaches AUROC 0.95325 on matched coherence versus
 ## Explicit non-claims
 - We do not establish that models possess a universal concept meaning
   "I am being evaluated."
-- We do not establish nonlinear cross-control transfer or identify the
-  within-control nonlinear signal as evaluation awareness.
+- We do not establish an activation-specific nonlinear cross-control advantage
+  or identify the within-control nonlinear signal as evaluation awareness.
 - We do not show that steering improves safety behavior.
 - We do not study tool-using or autonomous agents.
 
@@ -56,8 +57,13 @@ prefix--ending E5 interaction reaches AUROC 0.95325 on matched coherence versus
    embedding average; transformer-only means preserve strong architecture-by-
    readout heterogeneity.
 8. At each primary-selected layer, a nested RBF probe reaches 0.98112--0.98786
-   on matched coherence across all models and beats nested nonlinear TF-IDF at
-   0.94661 with positive paired intervals. Gemma reaches 0.98112, showing that
-   its weak primary result is decoder-geometry dependent.
-9. Steering changes the independent readout and explicit self-report, but
+   on matched coherence across all models and beats a nested RBF over the
+   strongest contextual E5 interaction (0.95659) with positive paired intervals.
+   The advantage is positive in every one of five fold seeds. Gemma reaches
+   0.98112, showing that its weak primary result is decoder-geometry dependent.
+9. Nonlinear cross-control activation transfer does not beat either the
+   source-selected nonlinear text pipeline or the stronger linear character
+   TF--IDF comparator. Shared-prefix nonlinear margins also remain
+   heterogeneous, with Gemma numerically below E5.
+10. Steering changes the independent readout and explicit self-report, but
    not safety refusals.

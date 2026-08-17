@@ -36,18 +36,21 @@ that can be identified uniquely as evaluation awareness. Benchmark-versus-user
 contrasts and several constructed controls remain highly distinguishable from
 text alone. Character n-grams tie the activation probe on the strongest matched-
 coherence control and outperform activation transfer between the two multi-turn
-controls. Gemma ties text on the topic-shifted control after corrected nested
-layer selection, but remains substantially weaker on matched coherence and
-cross-control transfer. A uniform readout audit does not support a simple
+controls. Under the primary linear probe, Gemma ties text on the topic-shifted
+control after corrected nested layer selection, but remains substantially
+weaker on matched coherence and cross-control transfer. A uniform readout audit does not support a simple
 extraction-failure explanation: unrestricted final-user-turn mean pooling makes
 Gemma appear aligned only by selecting the input-embedding average, while
 excluding that layer restores strong architecture-by-readout heterogeneity.
 A uniform nonlinear-capacity audit changes the estimator-side diagnosis. At
 each outer fold's primary-selected layer, a nested RBF probe reaches
 `0.98112`--`0.98786` on matched coherence across all four models and beats a
-capacity-matched nonlinear TF-IDF comparator (`0.94661`) with positive paired
-intervals. Gemma's weak linear result is therefore not an absence of decodable
-final-token information; it is strongly probe-geometry dependent.
+capacity-matched RBF over the strongest contextual E5 interaction (`0.95659`)
+with positive paired intervals. This advantage remains positive for every model
+in each of five fold seeds. Gemma's weak linear result is therefore not an
+absence of decodable final-token information; it is strongly probe-geometry
+dependent. The shared-prefix nonlinear margin remains heterogeneous, and
+source-only nonlinear activation transfer does not beat text.
 
 On the Llama reference model, separation remains among terminated reply pairs
 without detected awareness disclosure. A pre-specified residual intervention
@@ -82,10 +85,14 @@ each outer training fold. Most reference-model results use five deterministic
 
 A post-result nonlinear audit holds each outer fold's primary-selected layer
 fixed and fits `StandardScaler + RBF SVC`. Its `C` and dimension-normalized
-kernel width are selected in pair-grouped inner folds. A capacity-matched text
-comparator similarly selects word versus character TF-IDF and RBF
-hyperparameters inside each outer training fold. This audit changes decoder
-capacity without jointly searching layers for nonlinear separability.
+kernel width are selected in pair-grouped inner folds. Capacity-matched text
+comparators include word/character TF-IDF RBF and frozen E5-view RBF models;
+family, representation, and hyperparameters are selected within training folds.
+The exact previously strongest E5 prefix-ending interaction is also audited
+with nested RBF hyperparameters. The full analysis is repeated over fold seeds
+0--4. Transfer selects activation layer, orientation, kernel settings, and text
+settings on the source control only. This audit changes decoder capacity without
+jointly searching layers for nonlinear separability.
 
 Surface comparisons include length, 13 structural features, unigram counts, and
 where noted word 1--2-gram and character-within-word 3--5-gram TF-IDF logistic
@@ -338,7 +345,7 @@ alignment depends on a lexical average of input embeddings rather than a
 transformer-computed state. The paper retains the prespecified closing-token
 readout rather than selecting a post-result readout for visual alignment.
 
-The uniform nonlinear-capacity audit was:
+The initial sparse-text nonlinear-capacity audit was:
 
 | Model | Shared: linear / RBF / RBF-minus-text | Coherent: linear / RBF / RBF-minus-text |
 |---|---:|---:|
@@ -347,14 +354,41 @@ The uniform nonlinear-capacity audit was:
 | Gemma-3-12B-IT | 0.97296 / 0.98986 / +0.03693 | 0.85902 / 0.98112 / +0.03451 |
 | Ministral-3-8B | 0.98309 / 0.99877 / +0.04584 | 0.92790 / 0.98712 / +0.04051 |
 
-The strongest text comparator is linear word TF-IDF at `0.95293` for
-`eval_shared` and nested nonlinear TF-IDF at `0.94661` for matched coherence.
-Every displayed RBF-minus-text 95% pair-bootstrap interval excludes zero. On
+This first pass used linear word TF-IDF at `0.95293` for `eval_shared` and
+nested nonlinear TF-IDF at `0.94661` for matched coherence. Every displayed
+RBF-minus-text 95% pair-bootstrap interval excludes zero. On
 matched coherence, RBF-minus-linear is `+0.04016` for Llama, `+0.04282` for
 Qwen, `+0.12210` for Gemma, and `+0.05922` for Ministral, again with all four
-intervals positive. This establishes consistent nonlinear within-control
-decodability beyond the tested capacity-matched text hierarchy. It does not
-establish nonlinear cross-control transfer, and the paired labels remain
+intervals positive.
+
+The completed follow-up strengthens the text side with the previously strongest
+frozen E5 prefix-ending interaction. With nested RBF hyperparameters, this text
+model reaches `0.99533` on shared prefix and `0.95659` on matched coherence at
+fold seed 0. The activation-minus-E5 RBF results are:
+
+| Model | Shared RBF / difference (95% CI) | Coherent RBF / difference (95% CI) |
+|---|---:|---:|
+| Llama-3.1-8B | 0.99784 / +0.00251 [-0.00134,+0.00639] | 0.98698 / +0.03038 [+0.01491,+0.04610] |
+| Qwen3-8B | 0.99920 / +0.00387 [+0.00106,+0.00741] | 0.98786 / +0.03126 [+0.01643,+0.04650] |
+| Gemma-3-12B-IT | 0.98986 / -0.00547 [-0.01322,+0.00106] | 0.98112 / +0.02453 [+0.01003,+0.03879] |
+| Ministral-3-8B | 0.99877 / +0.00344 [+0.00080,+0.00682] | 0.98712 / +0.03053 [+0.01578,+0.04591] |
+
+Thus matched coherence has a positive activation advantage in every model, but
+shared prefix remains heterogeneous: Qwen and Ministral have small positive
+intervals, Llama ties, and Gemma is numerically below E5 with an interval that
+crosses zero. Across fold seeds 0--4, matched-coherence activation RBF means are
+`0.98438`--`0.98970`, and activation-minus-E5 means are `+0.03476`--`+0.04008`;
+every model's margin is positive in every seed. Shared-prefix mean margins are
+Llama `+0.00201`, Qwen `+0.00347`, Gemma `-0.00707`, and Ministral `+0.00242`.
+
+Source-only nonlinear cross-control transfer does not improve the
+activation-specific case. Mean activation RBF AUROC over the five selection
+seeds is `0.71455`--`0.80612` for shared-to-coherent and `0.70794`--`0.84204`
+for coherent-to-shared across models. The source-selected nonlinear text
+pipeline reaches `0.82683` and `0.82990`, respectively, while the existing
+linear character TF-IDF reaches `0.86614` and `0.84854`. Near-ceiling
+within-control nonlinear decoding therefore does not establish a
+construction-invariant nonlinear signal. The paired labels also remain
 semantically confounded with their differing final messages.
 
 Qwen's `eval_shared` difference is `+0.03899`, 95% CI
@@ -367,8 +401,9 @@ replication model beats character TF-IDF with the primary linear probe on
 matched coherence or in either cross-control transfer direction.
 
 Together with Llama, this establishes cross-family temporal decodability. The
-linear effect size is not architecture-invariant; the nonlinear within-control
-advantage is consistent, but its transfer and semantic identity remain
+linear effect size is not architecture-invariant; the nonlinear
+matched-coherence advantage is consistent, but shared-prefix margins remain
+heterogeneous, transfer does not beat text, and semantic identity remains
 unestablished.
 
 ## Supported claims
@@ -389,10 +424,11 @@ attached:
    Ministral; Gemma's positive margin is inconclusive, and matched coherence
    does not reliably beat character n-grams for any model.
 6. A nested RBF sensitivity probe at the primary-selected layer beats a
-   capacity-matched nonlinear text comparator within both controls for all four
-   models; matched-coherence AUROC is 0.98112--0.98786.
-7. Cross-control linear activation transfer does not beat character n-grams;
-   nonlinear transfer has not been tested.
+   capacity-matched contextual E5 RBF on matched coherence for all four models;
+   activation AUROC is 0.98112--0.98786, and the advantage is positive in every
+   one of five fold seeds. Shared-prefix nonlinear margins remain heterogeneous.
+7. Neither linear nor nonlinear cross-control activation transfer beats the
+   strongest tested text baselines.
 8. A frozen prefix-ending contextual text interaction ties or exceeds the
    reference-model activation probe on both paired controls.
 9. High raw separation remains among terminated replies with no detected

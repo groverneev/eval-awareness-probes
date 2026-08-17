@@ -127,6 +127,9 @@ never be written to committed files.
 - `src/vnaa/run_nonlinear_probe_audit.py`: pair-grouped nested RBF-capacity
   audit at the primary-selected activation layer, plus a capacity-matched
   nonlinear TF-IDF comparator.
+- `src/vnaa/run_nonlinear_followup.py`: frozen-E5 RBF comparison, source-only
+  nonlinear cross-control transfer, and five-seed stability analysis. It caches
+  revision-pinned E5 features under the ignored results directory.
 - `scripts/cross_model_confirmatory.md`: local smoke, rented-GPU execution,
   compute envelope, and artifact-copy checklist.
 - `results/cross_model/v2/{Qwen,google-gemma,mistralai-Ministral}*/full`: full
@@ -135,6 +138,9 @@ never be written to committed files.
   four models; ignored because the activation arrays are large.
 - `results/nonlinear_probe_audit/`: completed per-model nonlinear sensitivity
   analyses; ignored with the other reproducible result artifacts.
+- `results/nonlinear_followup/`: cached E5 features, fixed-interaction
+  inference, source-only nonlinear transfer, and five-seed per-model/combined
+  outputs; ignored with the other reproducible result artifacts.
 
 ## Paper figures
 

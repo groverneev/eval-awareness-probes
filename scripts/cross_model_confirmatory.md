@@ -233,5 +233,26 @@ does not receive nonlinear capacity alone.
 Every RBF-minus-text pair-bootstrap interval excludes zero. The audit supports
 consistent nonlinear within-control decodability and explains Gemma's weak
 primary result as decoder-geometry dependent. It does not perform nonlinear
-layer search or cross-control transfer. Outputs are under
+layer search. Outputs are under
 `results/nonlinear_probe_audit/` and are intentionally ignored.
+
+### Contextual nonlinear, transfer, and stability follow-up
+
+The reviewer-facing follow-up nonlinearizes the revision-pinned E5 interaction,
+tests source-only cross-control transfer, and repeats all grouped folds over
+seeds 0--4:
+
+```powershell
+.venv\Scripts\python -m vnaa.run_nonlinear_followup --prepare-e5-only
+.venv\Scripts\python -m vnaa.run_nonlinear_followup
+.venv\Scripts\python -m vnaa.run_nonlinear_followup --contextual-only
+.venv\Scripts\python -m vnaa.run_nonlinear_followup --fixed-e5-inference-only
+```
+
+On matched coherence, the fixed prefix--ending E5 RBF reaches 0.95659 at seed 0
+and activation RBFs reach 0.98112--0.98786; all four paired intervals are
+positive. Across five fold seeds, activation-minus-E5 margins remain positive
+in every model and seed. Shared-prefix margins are small for Llama/Qwen/
+Ministral and negative for Gemma. Source-only activation RBF transfer does not
+beat nonlinear text or the existing character TF--IDF comparator. Outputs are
+under `results/nonlinear_followup/` and are intentionally ignored.
