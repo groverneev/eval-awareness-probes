@@ -124,12 +124,17 @@ never be written to committed files.
 - `src/vnaa/run_readout_audit.py`: uniform final-user-turn mean-cache
   extraction and nested grouped sensitivity analysis, including a transformer-
   only layer restriction.
+- `src/vnaa/run_nonlinear_probe_audit.py`: pair-grouped nested RBF-capacity
+  audit at the primary-selected activation layer, plus a capacity-matched
+  nonlinear TF-IDF comparator.
 - `scripts/cross_model_confirmatory.md`: local smoke, rented-GPU execution,
   compute envelope, and artifact-copy checklist.
 - `results/cross_model/v2/{Qwen,google-gemma,mistralai-Ministral}*/full`: full
   activation caches, analyses, extraction logs, and per-model SHA-256 manifests.
 - `results/readout_audit/`: post-result mean-readout caches and analyses for all
   four models; ignored because the activation arrays are large.
+- `results/nonlinear_probe_audit/`: completed per-model nonlinear sensitivity
+  analyses; ignored with the other reproducible result artifacts.
 
 ## Paper figures
 
@@ -150,7 +155,8 @@ paired margin inference, deterministic authorship selection and gating,
 cross-model fingerprints and revision pinning, model-specific chat boundaries,
 causal-prefix extraction, cross-platform manifest hashing, read-point indexing,
 alternate-readout audit validation, paired surface views, judge batches, silence
-paths, Slice 5 context handling, and steering hooks and scorers.
+paths, nonlinear grouped-capacity validation, Slice 5 context handling, and
+steering hooks and scorers.
 
 Reference-model activation arrays contain 33 layers of 4,096-dimensional
 `float32` vectors: the embedding output plus 32 transformer-block outputs.

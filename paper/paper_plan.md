@@ -5,8 +5,10 @@ Do language-model activations encode an evaluation/deployment distinction that s
 
 ## Main answer
 Evaluation-like and deployment-like situations create temporally localized,
-linearly decodable activation differences across four model families. However,
-strong text baselines and model heterogeneity prevent interpreting this as a
+linearly and nonlinearly decodable activation differences across four model
+families. The primary linear comparison is heterogeneous, but a nested RBF
+sensitivity audit recovers a consistent within-control advantage over
+capacity-matched nonlinear text. These results still do not identify a
 universal, content-independent evaluation-awareness variable.
 
 A frozen contextual text audit further narrows the result: an explicit
@@ -26,8 +28,8 @@ prefix--ending E5 interaction reaches AUROC 0.95325 on matched coherence versus
 ## Explicit non-claims
 - We do not establish that models possess a universal concept meaning
   "I am being evaluated."
-- We do not establish an activation-specific advantage on matched-coherence
-  or cross-control transfer.
+- We do not establish nonlinear cross-control transfer or identify the
+  within-control nonlinear signal as evaluation awareness.
 - We do not show that steering improves safety behavior.
 - We do not study tool-using or autonomous agents.
 
@@ -53,5 +55,9 @@ prefix--ending E5 interaction reaches AUROC 0.95325 on matched coherence versus
    shows that unrestricted mean pooling aligns Gemma only through the input-
    embedding average; transformer-only means preserve strong architecture-by-
    readout heterogeneity.
-8. Steering changes the independent readout and explicit self-report, but
+8. At each primary-selected layer, a nested RBF probe reaches 0.98112--0.98786
+   on matched coherence across all models and beats nested nonlinear TF-IDF at
+   0.94661 with positive paired intervals. Gemma reaches 0.98112, showing that
+   its weak primary result is decoder-geometry dependent.
+9. Steering changes the independent readout and explicit self-report, but
    not safety refusals.

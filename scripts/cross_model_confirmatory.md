@@ -208,3 +208,30 @@ but reduces Gemma to 0.63800. The audit therefore supports architecture-by-
 readout sensitivity, not a uniform mean-pooling improvement or a simple Gemma
 extraction fix. Outputs are under `results/readout_audit/` and are intentionally
 ignored because the mean activation caches are large.
+
+### Post-result nonlinear-capacity audit
+
+This CPU-only audit reuses the final-token caches and the primary outer folds:
+
+```powershell
+.venv\Scripts\python -m vnaa.run_nonlinear_probe_audit
+```
+
+Within each outer training fold, it retains the layer chosen by nested grouped
+direction-of-means CV, then selects a standardized RBF SVM from the fixed
+`C={0.1,1,10}` and dimension-normalized kernel-width grid. A separate nested
+RBF selects word versus character TF-IDF and its hyperparameters so activation
+does not receive nonlinear capacity alone.
+
+| Model | Shared linear / RBF / RBF-text | Coherent linear / RBF / RBF-text |
+|---|---:|---:|
+| Llama | 0.98779 / 0.99784 / +0.04491 | 0.94682 / 0.98698 / +0.04037 |
+| Qwen | 0.99192 / 0.99920 / +0.04627 | 0.94504 / 0.98786 / +0.04125 |
+| Gemma | 0.97296 / 0.98986 / +0.03693 | 0.85902 / 0.98112 / +0.03451 |
+| Ministral | 0.98309 / 0.99877 / +0.04584 | 0.92790 / 0.98712 / +0.04051 |
+
+Every RBF-minus-text pair-bootstrap interval excludes zero. The audit supports
+consistent nonlinear within-control decodability and explains Gemma's weak
+primary result as decoder-geometry dependent. It does not perform nonlinear
+layer search or cross-control transfer. Outputs are under
+`results/nonlinear_probe_audit/` and are intentionally ignored.

@@ -43,9 +43,9 @@ Slice 5 asked a different question: can the model distinguish a genuine assistan
 
 Finally, a pre-specified steering experiment added the coherent-pair activation direction during generation. The manipulation moved an independent internal readout monotonically and shifted explicit self-reports in the predicted direction at nondegenerate intervention strengths. It did not produce the predicted increase in safety refusals. The behavioral safety test was small and low-base-rate, so it rules out only a large effect, not all effects.
 
-A frozen cross-model core then reran the two valid 250-pair temporal controls on Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B. Every model had exactly zero activation difference throughout the byte-identical prefix and nonzero final-turn differences. A post-result layer-selection audit found that the original within-control runner used saturated in-sample training AUROC. Uniform nested grouped selection corrected Gemma from `0.72667` to `0.97296` on `eval_shared` and from `0.64744` to `0.85902` on matched coherence, while leaving the other models nearly unchanged. Llama, Qwen, and Ministral establish positive margins over text on `eval_shared`; Gemma's `+0.02003` margin is inconclusive. No model establishes an advantage on matched coherence, and neither transfer direction beats character TF-IDF. A second uniform audit compared the prespecified closing-token state with the mean final-user-turn state. Unrestricted mean pooling aligns Gemma on matched coherence only by selecting input-embedding layer zero; excluding embeddings makes Gemma substantially weaker while the other three models cluster. The completed panel therefore supports cross-family temporal decodability but also shows substantial model and readout heterogeneity and does not establish an architecture-invariant evaluation-awareness variable.
+A frozen cross-model core then reran the two valid 250-pair temporal controls on Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B. Every model had exactly zero activation difference throughout the byte-identical prefix and nonzero final-turn differences. A post-result layer-selection audit found that the original within-control runner used saturated in-sample training AUROC. Uniform nested grouped selection corrected Gemma from `0.72667` to `0.97296` on `eval_shared` and from `0.64744` to `0.85902` on matched coherence, while leaving the other models nearly unchanged. With the primary linear probe, Llama, Qwen, and Ministral establish positive margins over text on `eval_shared`; Gemma's `+0.02003` margin is inconclusive, no model establishes an advantage on matched coherence, and neither transfer direction beats character TF-IDF. A second uniform audit compared the prespecified closing-token state with the mean final-user-turn state. Unrestricted mean pooling aligns Gemma on matched coherence only by selecting input-embedding layer zero; excluding embeddings makes Gemma substantially weaker while the other three models cluster. A third, nonlinear-capacity audit fits nested RBF probes at the primary-selected layers. It raises matched-coherence AUROC to `0.98112`--`0.98786` in all four models and beats capacity-matched nonlinear text with positive paired intervals. The completed panel therefore supports cross-family temporal decodability, shows strong probe-geometry and readout dependence, and does not establish an architecture-invariant evaluation-awareness variable.
 
-The most defensible overall conclusion is therefore narrower than “the model knows when it is being evaluated.” The experiments show linearly decodable activation directions associated with several independently constructed eval-like versus deploy-like situations. The separation emerges at the user turn that introduces the distinction across four model families; in the Llama reference it also persists among replies without observable awareness language and causally influences explicit eval/deploy self-reports when steered. The experiments do not isolate a single, architecture-invariant semantic variable free from content, topic, speech-act, authorship, or generation-context differences, and they do not show that this direction causes a broad behavioral policy change.
+The most defensible overall conclusion is therefore narrower than “the model knows when it is being evaluated.” The experiments show linearly and nonlinearly decodable activation differences associated with several independently constructed eval-like versus deploy-like situations. The separation emerges at the user turn that introduces the distinction across four model families; in the Llama reference it also persists among replies without observable awareness language and causally influences explicit eval/deploy self-reports when steered. The experiments do not isolate a single, architecture-invariant semantic variable free from content, topic, speech-act, authorship, or generation-context differences, and they do not show that this direction causes a broad behavioral policy change.
 
 ## 1. Background: what was being measured
 
@@ -925,13 +925,13 @@ The corrected replication table is:
 
 Together with the reference Llama result, exact temporal localization and
 above-chance final-turn decodability occur in all four families. The stronger
-claim is heterogeneous: `eval_shared` establishes a positive paired advantage
+primary-linear claim is heterogeneous: `eval_shared` establishes a positive paired advantage
 for Llama, Qwen, and Ministral, while Gemma's positive margin is inconclusive;
 matched coherence and both transfer directions fail
 to beat the strongest text baseline in every replication model. This is
-strong evidence that the temporal signal is not Llama-specific, and equally
-strong evidence against describing its strength as architecture-invariant or
-the signal as generally activation-specific beyond textual task structure.
+strong evidence that the temporal signal is not Llama-specific and that its
+linear strength is not architecture-invariant. The later nonlinear audit below
+changes the within-control capacity conclusion but not the transfer result.
 
 ### Post-result readout audit
 
@@ -966,6 +966,46 @@ therefore retains the prespecified closing-token result and reports this audit
 as post-result sensitivity analysis rather than choosing the readout that makes
 the models visually agree.
 
+### Post-result nonlinear-capacity audit
+
+The next reviewer-facing question was whether the activation-versus-text
+conclusion was an artifact of testing only linear activation decoders. The
+uniform audit holds each outer fold's primary, train-only selected layer fixed
+and fits a standardized RBF SVM. `C` in `{0.1, 1, 10}` and kernel-width
+multipliers in `{0.25, 1, 4}` are selected by pair-grouped CV inside the outer
+training fold. This is deliberately a capacity-only comparison rather than a
+joint nonlinear search over layers. A capacity-matched text comparator selects
+word versus character TF-IDF, `C`, and RBF kernel width in the same nested
+paired design.
+
+| Model | Shared linear | Shared RBF | Shared RBF - text | Coherent linear | Coherent RBF | Coherent RBF - text |
+|---|---:|---:|---:|---:|---:|---:|
+| Llama-3.1-8B | 0.98779 | 0.99784 | +0.04491 | 0.94682 | 0.98698 | +0.04037 |
+| Qwen3-8B | 0.99192 | 0.99920 | +0.04627 | 0.94504 | 0.98786 | +0.04125 |
+| Gemma-3-12B-IT | 0.97296 | 0.98986 | +0.03693 | 0.85902 | 0.98112 | +0.03451 |
+| Ministral-3-8B | 0.98309 | 0.99877 | +0.04584 | 0.92790 | 0.98712 | +0.04051 |
+
+The strongest text comparator is linear word TF-IDF at `0.95293` on
+`eval_shared`; the nested text RBF reaches `0.94192`. On matched coherence, the
+nested text RBF is strongest at `0.94661`, slightly above linear character
+TF-IDF at `0.94474`. Every activation-RBF-minus-strongest-text interval is
+positive. The matched-coherence margins and 95% pair-bootstrap intervals are
+Llama `+0.04037 [+0.02450,+0.05850]`, Qwen
+`+0.04125 [+0.02576,+0.05864]`, Gemma
+`+0.03451 [+0.01971,+0.05131]`, and Ministral
+`+0.04051 [+0.02506,+0.05762]`.
+
+Relative to the primary linear probe, the matched-coherence RBF gains are
+Llama `+0.04016 [+0.02209,+0.05934]`, Qwen
+`+0.04282 [+0.02547,+0.06208]`, Gemma
+`+0.12210 [+0.09118,+0.15301]`, and Ministral
+`+0.05922 [+0.03426,+0.08519]`. Gemma therefore contains strong nonlinear
+final-token information at the same layer where the linear direction is weak;
+its primary anomaly is decoder-geometry dependent, not evidence that the cache
+lacks the distinction. This audit does not erase the linear result, identify
+the decoded feature semantically, jointly search for nonlinear layers, or test
+nonlinear cross-control transfer.
+
 ## 4. Final evidential chain
 
 The experiments should be understood as a sequence of increasingly restrictive tests, not as interchangeable AUROC values:
@@ -985,6 +1025,7 @@ The experiments should be understood as a sequence of increasingly restrictive t
 | Steering | Add direction during generation | Readout and self-report move; safety does not | Direction is causally accessible for self-report, not shown to govern broad policy |
 | Authorship pilot, pre-activation gate | Cross final-turn status with three generated history authors | 150/150 histories terminate, but only 36/50 scenarios survive the combined coherence gate | v2 fails before activation extraction; authorship effects remain untested |
 | Cross-model confirmatory suite | Freeze two valid controls across three current model families | All models pass exact temporal controls; Llama/Qwen/Ministral establish positive `eval_shared` margins, Gemma ties there and is weaker on matched coherence | Temporal decodability crosses four families, but strength is model-dependent and activation-specific generalization remains unestablished |
+| Nonlinear-capacity audit | Fit nested RBF decoders at the primary-selected layer and capacity-match sparse text | All four activation RBFs beat nonlinear text within both controls; Gemma coherent rises from 0.859 to 0.981 | Decodable information is consistently present but strongly decoder-geometry dependent; nonlinear transfer and semantic identity remain untested |
 
 ## 5. What the paper can and cannot claim
 
@@ -1001,7 +1042,12 @@ The repository supports the following statements, provided their qualifications 
 7. Genuine versus reconstructed assistant replies are internally separable across WildChat and LMSYS, but reply-only format baselines explain much of the effect and controls rule out a narrow self-authorship interpretation.
 8. The main activation results survive a second probe estimator and full-pipeline permutation tests.
 9. Steering along the matched-coherence direction monotonically moves an independent readout and explicit eval/deploy self-reports at nondegenerate strengths.
-10. Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B all replicate exact temporal localization and above-chance final-turn separation on the two frozen paired controls. Qwen and Ministral join the Llama reference in establishing a positive paired advantage on `eval_shared`; Gemma's positive margin is inconclusive, and no replication model beats text on matched coherence or transfer.
+10. Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B all replicate exact temporal localization and above-chance final-turn separation on the two frozen paired controls. Under the primary linear probe, Qwen and Ministral join the Llama reference in establishing a positive paired advantage on `eval_shared`; Gemma's positive margin is inconclusive, and no replication model beats text on matched coherence or transfer.
+11. A post-result nested RBF probe at the primary-selected layer beats a
+capacity-matched nonlinear TF-IDF comparator within both paired controls for
+all four models. This closes the linear-capacity objection for within-control
+separability, while leaving nonlinear transfer and semantic identification
+untested.
 
 ### Claims the repository does not support
 
@@ -1012,7 +1058,7 @@ The following would overstate what was done:
 - “The first multi-turn disguised-evaluation experiment proves temporal awareness.” Its signal was already present after the synthetic first turn.
 - “The model knows it is being evaluated.” The experiments identify a robust direction associated with these constructions, but do not uniquely identify its semantic content.
 - “No lexical information remains.” Bag-of-words is strong in several contrasts, and the coherent final-turn-mean probe selects the embedding layer.
-- “The matched-coherence activation probe meaningfully beats words in-distribution.” With the correct final-turn-only view, probe `0.95132` versus BoW `0.93337` leaves only a `0.01796` strength margin, and the silence-filtered subset is tied.
+- “The primary linear matched-coherence activation probe meaningfully beats words in-distribution.” The grouped cross-model primary analysis does not; only the post-result nonlinear sensitivity audit establishes a within-control advantage over the tested capacity-matched nonlinear text baseline.
 - “Cross-control activation transfer beats text baselines.” It beats unigram counts, but the stronger grouped audit finds character TF-IDF at `0.86614/0.84854` versus probe `0.84496/0.71874` in the two directions.
 - “The observed-silence subset proves unconscious or unverbalized awareness.” Absence of detected disclosure does not reveal the model’s full internal semantics.
 - “Slice 5 demonstrates self-recognition.” The signal survives a different generator and strengthens under context ablation.
@@ -1107,19 +1153,23 @@ This map lists the paper-relevant implementation rather than every operational f
 - `src/vnaa/run_readout_audit.py`: uniform final-user-turn mean-cache extraction,
   provenance validation, nested grouped readout comparison, and optional
   transformer-only layer restriction.
+- `src/vnaa/run_nonlinear_probe_audit.py`: nested pair-grouped RBF activation
+  audit and capacity-matched nonlinear TF-IDF comparison.
 - `scripts/cross_model_confirmatory.md`: local smoke, rented-GPU execution, compute envelope, and artifact-copy checklist.
 - `results/cross_model/v2/{Qwen,google-gemma,mistralai-Ministral}*/full`: the four full activation caches, analysis, extraction log, and per-model SHA-256 manifest for each replication.
 - `results/readout_audit/`: post-result cross-model mean-readout caches and
   paired sensitivity analyses; ignored because the activation arrays are large.
+- `results/nonlinear_probe_audit/`: completed per-model nonlinear-capacity
+  analyses; ignored with other reproducible result artifacts.
 
 ### Verification
 
-The current test suite contains 140 passing tests covering probes, estimator splitting, nested pair-grouped layer selection, stronger text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, cross-model dataset fingerprints, revision pinning, artifact isolation, native Qwen/Gemma/Ministral chat boundaries, causal-prefix extraction, cross-platform manifest hashing, alternate-readout audit validation, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved reference-model activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
+The current test suite contains 145 passing tests covering probes, estimator splitting, nested pair-grouped layer selection, stronger text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, cross-model dataset fingerprints, revision pinning, artifact isolation, native Qwen/Gemma/Ministral chat boundaries, causal-prefix extraction, cross-platform manifest hashing, alternate-readout audit validation, nonlinear grouped-capacity validation, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved reference-model activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
 
 ## 8. Recommended paper-level summary
 
 A concise and accurate paper summary, updated after the completed primary model panel, would be:
 
-> We progressively tested whether hidden states distinguish evaluation-like from deployment-like interactions after accounting for surface cues. Initial Llama-3.1-8B-Instruct benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences, so we evaluated cross-construction transfer; on completely disjoint math-free transfers, activation-probe separation exceeded unigram counts by `0.0475 ± 0.0154` across five splits. In two multi-turn paired controls, activations were indistinguishable throughout byte-identical prefixes and separated only after the differing final turn. Three prespecified replications—Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B—reproduced this exact temporal localization and above-chance final-turn decodability. After a uniform nested layer-selection correction, Llama, Qwen, and Ministral establish positive paired margins over text on the topic-shifted `eval_shared` control, while Gemma ties text there and remains weaker on matched coherence; matched coherence and cross-control transfer never reliably beat character n-grams. On Llama, raw separation also remains among terminated pairs without detected awareness disclosure, and a pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports but did not increase safety refusals. These results identify cross-family, behaviorally accessible directions associated with the studied constructions while showing that current evidence does not isolate an architecture-invariant evaluation-awareness variable from textual task structure.
+> We progressively tested whether hidden states distinguish evaluation-like from deployment-like interactions after accounting for surface cues. Initial Llama-3.1-8B-Instruct benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences, so we evaluated cross-construction transfer; on completely disjoint math-free transfers, activation-probe separation exceeded unigram counts by `0.0475 ± 0.0154` across five splits. In two multi-turn paired controls, activations were indistinguishable throughout byte-identical prefixes and separated only after the differing final turn. Three prespecified replications—Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B—reproduced this exact temporal localization and above-chance final-turn decodability. The primary linear comparison is heterogeneous, but a post-result nested RBF audit reaches `0.9811`--`0.9879` on matched coherence in every model and beats capacity-matched nonlinear text with positive paired intervals. On Llama, raw separation also remains among terminated pairs without detected awareness disclosure, and a pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports but did not increase safety refusals. These results identify cross-family, behaviorally accessible and nonlinearly decodable differences associated with the studied constructions while showing that current evidence does not isolate an architecture-invariant evaluation-awareness variable from textual task structure.
 
 That language reflects what the repository demonstrates without turning unsuccessful matching, conditional silence, provenance detection, or a self-report steering effect into stronger claims than the experiments justify.
