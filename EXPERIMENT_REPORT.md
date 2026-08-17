@@ -38,7 +38,10 @@ text alone. Character n-grams tie the activation probe on the strongest matched-
 coherence control and outperform activation transfer between the two multi-turn
 controls. Gemma ties text on the topic-shifted control after corrected nested
 layer selection, but remains substantially weaker on matched coherence and
-cross-control transfer.
+cross-control transfer. A uniform readout audit does not support a simple
+extraction-failure explanation: unrestricted final-user-turn mean pooling makes
+Gemma appear aligned only by selecting the input-embedding average, while
+excluding that layer restores strong architecture-by-readout heterogeneity.
 
 On the Llama reference model, separation remains among terminated reply pairs
 without detected awareness disclosure. A pre-specified residual intervention
@@ -58,7 +61,10 @@ Conversations are rendered with each model's native chat template. The main
 user-side readout is the hidden state at the token closing the final user turn,
 before reply generation. Identical-prefix controls also read earlier user-turn
 boundaries. Slice 5 uses the closing token and mean hidden state of the final
-assistant reply.
+assistant reply. A post-result cross-model sensitivity audit additionally tests
+the mean hidden state over the final user turn, both with and without the input-
+embedding output eligible for layer selection; it does not replace the
+prespecified closing-token analysis.
 
 The primary probe is the normalized difference between the evaluation-class and
 deployment-class mean activations. A held-out activation is scored by projection
@@ -299,6 +305,26 @@ Grouped strong-baseline within-control results were:
 | Gemma-3-12B-IT | 0.97296 vs 0.95293 | 0.85902 vs 0.94474 |
 | Ministral-3-8B | 0.98309 vs 0.95293 | 0.92790 vs 0.94474 |
 
+The uniform alternate-readout audit was:
+
+| Model | Shared: token / mean | Coherent: token / mean (all) / mean (no embedding) |
+|---|---:|---:|
+| Llama-3.1-8B | 0.98779 / 0.99158 | 0.94682 / 0.93218 / 0.93251 |
+| Qwen3-8B | 0.99192 / 0.97850 | 0.94504 / 0.94392 / 0.93323 |
+| Gemma-3-12B-IT | 0.97296 / 0.94883 | 0.85902 / 0.93877 / 0.63800 |
+| Ministral-3-8B | 0.98309 / 0.98690 | 0.92790 / 0.87750 / 0.93803 |
+
+For matched coherence, unrestricted mean pooling increases Gemma by `+0.07974`
+(95% CI `[+0.05630,+0.10372]`) but decreases Ministral by `-0.05040` (CI
+`[-0.07098,-0.02880]`). Gemma and Qwen select embedding layer zero in all five
+unrestricted-mean outer folds, Llama in three, and Ministral in one. Once layer
+zero is uniformly excluded, Llama, Qwen, and Ministral cluster at 0.93251--
+0.93803, while Gemma falls to 0.63800 with selected layers `[4,4,48,7,48]`.
+Thus mean pooling is not a uniformly stronger readout, and the apparent Gemma
+alignment depends on a lexical average of input embeddings rather than a
+transformer-computed state. The paper retains the prespecified closing-token
+readout rather than selecting a post-result readout for visual alignment.
+
 Qwen's `eval_shared` difference is `+0.03899`, 95% CI
 `[+0.02182,+0.05823]`, `p=0.0025`. Ministral's is `+0.03016`, CI
 `[+0.01282,+0.04904]`, `p=0.0060`. Gemma's corrected value is `+0.02003`,
@@ -342,7 +368,7 @@ attached:
 11. Steering moves an independent activation readout and explicit self-report,
     but not safety refusals.
 12. Four model families show exact temporal localization, with substantially
-    heterogeneous final-turn strength.
+    heterogeneous final-turn strength and architecture-by-readout sensitivity.
 
 ## Unsupported or overstated claims
 

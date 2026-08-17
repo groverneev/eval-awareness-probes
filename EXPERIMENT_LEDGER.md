@@ -43,7 +43,7 @@ Slice 5 asked a different question: can the model distinguish a genuine assistan
 
 Finally, a pre-specified steering experiment added the coherent-pair activation direction during generation. The manipulation moved an independent internal readout monotonically and shifted explicit self-reports in the predicted direction at nondegenerate intervention strengths. It did not produce the predicted increase in safety refusals. The behavioral safety test was small and low-base-rate, so it rules out only a large effect, not all effects.
 
-A frozen cross-model core then reran the two valid 250-pair temporal controls on Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B. Every model had exactly zero activation difference throughout the byte-identical prefix and nonzero final-turn differences. A post-result layer-selection audit found that the original within-control runner used saturated in-sample training AUROC. Uniform nested grouped selection corrected Gemma from `0.72667` to `0.97296` on `eval_shared` and from `0.64744` to `0.85902` on matched coherence, while leaving the other models nearly unchanged. Llama, Qwen, and Ministral establish positive margins over text on `eval_shared`; Gemma's `+0.02003` margin is inconclusive. No model establishes an advantage on matched coherence, and neither transfer direction beats character TF-IDF. The completed panel therefore supports cross-family temporal decodability but also shows substantial model heterogeneity and does not establish an architecture-invariant evaluation-awareness variable.
+A frozen cross-model core then reran the two valid 250-pair temporal controls on Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B. Every model had exactly zero activation difference throughout the byte-identical prefix and nonzero final-turn differences. A post-result layer-selection audit found that the original within-control runner used saturated in-sample training AUROC. Uniform nested grouped selection corrected Gemma from `0.72667` to `0.97296` on `eval_shared` and from `0.64744` to `0.85902` on matched coherence, while leaving the other models nearly unchanged. Llama, Qwen, and Ministral establish positive margins over text on `eval_shared`; Gemma's `+0.02003` margin is inconclusive. No model establishes an advantage on matched coherence, and neither transfer direction beats character TF-IDF. A second uniform audit compared the prespecified closing-token state with the mean final-user-turn state. Unrestricted mean pooling aligns Gemma on matched coherence only by selecting input-embedding layer zero; excluding embeddings makes Gemma substantially weaker while the other three models cluster. The completed panel therefore supports cross-family temporal decodability but also shows substantial model and readout heterogeneity and does not establish an architecture-invariant evaluation-awareness variable.
 
 The most defensible overall conclusion is therefore narrower than “the model knows when it is being evaluated.” The experiments show linearly decodable activation directions associated with several independently constructed eval-like versus deploy-like situations. The separation emerges at the user turn that introduces the distinction across four model families; in the Llama reference it also persists among replies without observable awareness language and causally influences explicit eval/deploy self-reports when steered. The experiments do not isolate a single, architecture-invariant semantic variable free from content, topic, speech-act, authorship, or generation-context differences, and they do not show that this direction causes a broad behavioral policy change.
 
@@ -933,6 +933,39 @@ strong evidence that the temporal signal is not Llama-specific, and equally
 strong evidence against describing its strength as architecture-invariant or
 the signal as generally activation-specific beyond textual task structure.
 
+### Post-result readout audit
+
+Because Gemma remained unusually weak on matched coherence, a second audit
+uniformly compared the prespecified state at the token closing the final user
+turn with the mean hidden state over that user turn. It reused the same cached
+causal prefixes, paired outer folds, nested grouped layer selection, and text
+comparators for every model. The audit was run both with every cached readout
+eligible and with the embedding output (layer zero) excluded:
+
+| Model | Shared token | Shared mean | Coherent token | Coherent mean, all layers | Coherent mean, layer >= 1 |
+|---|---:|---:|---:|---:|---:|
+| Llama-3.1-8B | 0.98779 | 0.99158 | 0.94682 | 0.93218 | 0.93251 |
+| Qwen3-8B | 0.99192 | 0.97850 | 0.94504 | 0.94392 | 0.93323 |
+| Gemma-3-12B-IT | 0.97296 | 0.94883 | 0.85902 | 0.93877 | 0.63800 |
+| Ministral-3-8B | 0.98309 | 0.98690 | 0.92790 | 0.87750 | 0.93803 |
+
+On matched coherence, the direct mean-minus-token change is `+0.07974` for
+Gemma (95% pair-bootstrap CI `[+0.05630,+0.10372]`) but `-0.05040` for
+Ministral (CI `[-0.07098,-0.02880]`). In the unrestricted mean analysis, Gemma
+and Qwen select layer zero in all five outer folds, Llama in three, and
+Ministral in one. This layer is the mean of the final-turn input token
+embeddings, not a transformer-computed hidden state. Uniformly excluding it
+leaves Llama, Qwen, and Ministral tightly grouped at 0.93251--0.93803, whereas
+Gemma falls to 0.63800 and selects layers `[4,4,48,7,48]` across outer folds.
+
+This audit does not support a simple extraction-bug explanation for the
+prespecified Gemma result. It shows instead that apparent alignment under
+unrestricted mean pooling is driven by a lexical bag-of-embeddings readout and
+that readout choice interacts sharply with architecture. The primary paper
+therefore retains the prespecified closing-token result and reports this audit
+as post-result sensitivity analysis rather than choosing the readout that makes
+the models visually agree.
+
 ## 4. Final evidential chain
 
 The experiments should be understood as a sequence of increasingly restrictive tests, not as interchangeable AUROC values:
@@ -1071,12 +1104,17 @@ This map lists the paper-relevant implementation rather than every operational f
 
 - `datasets/cross_model/confirmatory_suite_v1.json`, `datasets/cross_model/confirmatory_suite_v2.json`: preserved original panel and the current pre-result, revision-pinned 5--12B amendment.
 - `src/vnaa/cross_model_suite.py`: content-hash validation, model-isolated activation caches, provenance checking, temporal diagnostics, grouped strong-baseline analysis, and bidirectional transfer.
+- `src/vnaa/run_readout_audit.py`: uniform final-user-turn mean-cache extraction,
+  provenance validation, nested grouped readout comparison, and optional
+  transformer-only layer restriction.
 - `scripts/cross_model_confirmatory.md`: local smoke, rented-GPU execution, compute envelope, and artifact-copy checklist.
 - `results/cross_model/v2/{Qwen,google-gemma,mistralai-Ministral}*/full`: the four full activation caches, analysis, extraction log, and per-model SHA-256 manifest for each replication.
+- `results/readout_audit/`: post-result cross-model mean-readout caches and
+  paired sensitivity analyses; ignored because the activation arrays are large.
 
 ### Verification
 
-The current test suite contains 139 passing tests covering probes, estimator splitting, nested pair-grouped layer selection, stronger text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, cross-model dataset fingerprints, revision pinning, artifact isolation, native Qwen/Gemma/Ministral chat boundaries, causal-prefix extraction, cross-platform manifest hashing, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved reference-model activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
+The current test suite contains 140 passing tests covering probes, estimator splitting, nested pair-grouped layer selection, stronger text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, cross-model dataset fingerprints, revision pinning, artifact isolation, native Qwen/Gemma/Ministral chat boundaries, causal-prefix extraction, cross-platform manifest hashing, alternate-readout audit validation, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved reference-model activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
 
 ## 8. Recommended paper-level summary
 

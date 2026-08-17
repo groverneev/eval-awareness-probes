@@ -186,3 +186,25 @@ layer 9 in all five coherent-pair folds, producing the corrected table above.
 Transfer already used grouped source-only CV and did not change. This is a
 transparent post-result method correction, not part of the original frozen
 analysis.
+
+### Post-result readout audit
+
+The Gemma matched-coherence result prompted a second, uniformly applied audit
+of final-user-turn mean pooling. `src/vnaa/run_readout_audit.py` extracts or
+validates the mean caches, reuses the paired outer folds and nested grouped
+selector, and can exclude embedding layer zero from candidate layers.
+
+| Model | Shared token / mean | Coherent token / mean all / mean no embedding |
+|---|---:|---:|
+| Llama | 0.98779 / 0.99158 | 0.94682 / 0.93218 / 0.93251 |
+| Qwen | 0.99192 / 0.97850 | 0.94504 / 0.94392 / 0.93323 |
+| Gemma | 0.97296 / 0.94883 | 0.85902 / 0.93877 / 0.63800 |
+| Ministral | 0.98309 / 0.98690 | 0.92790 / 0.87750 / 0.93803 |
+
+Unrestricted coherent mean pooling selects embedding layer zero in every Gemma
+and Qwen outer fold, three Llama folds, and one Ministral fold. Excluding that
+lexical embedding average leaves Llama, Qwen, and Ministral at 0.93251--0.93803
+but reduces Gemma to 0.63800. The audit therefore supports architecture-by-
+readout sensitivity, not a uniform mean-pooling improvement or a simple Gemma
+extraction fix. Outputs are under `results/readout_audit/` and are intentionally
+ignored because the mean activation caches are large.

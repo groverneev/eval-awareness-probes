@@ -49,6 +49,9 @@ prefix--ending E5 interaction reaches AUROC 0.95325 on matched coherence versus
 7. Llama, Qwen, Gemma, and Ministral all show temporal decodability. After a
    uniform nested layer-selection correction, Llama/Qwen/Ministral establish
    positive shared-prefix margins; Gemma ties there but remains weaker than
-   text on matched coherence and transfer.
+   text on matched coherence and transfer. A uniform post-result readout audit
+   shows that unrestricted mean pooling aligns Gemma only through the input-
+   embedding average; transformer-only means preserve strong architecture-by-
+   readout heterogeneity.
 8. Steering changes the independent readout and explicit self-report, but
    not safety refusals.

@@ -397,9 +397,10 @@ an advantage over those baselines depends on both the control and the model.
   conditions, not samples of a trajectory. \textbf{(b)} Reference-model probe
   against every surface-text comparator on the same pairs, ordered by
   strength; text comparators are shown muted and the probe at full
-  saturation. \textbf{(c)} Grouped five-fold out-of-fold probe AUROC minus the
-  strongest word-based or character-TF--IDF baseline across four models, on a
-  broken axis so that the near-zero margins remain legible alongside
+  saturation. \textbf{(c)} At the prespecified last-user-token readout, grouped
+  five-fold out-of-fold probe AUROC minus the strongest word-based or
+  character-TF--IDF baseline across four models, on a broken axis so that the
+  near-zero margins remain legible alongside
   Gemma-3-12B matched coherence. Error bars are 95\% pair-bootstrap intervals; filled markers
   denote intervals entirely above zero.}
   \label{fig:anchor}
@@ -582,9 +583,10 @@ corrects the Gemma within-control estimates; transfer already used grouped
 source-only cross-validation and is unchanged.
 
 \begin{table}[t]
-  \caption{Grouped five-fold final-turn AUROC across model families. Each text
-  entry is the strongest word or character TF--IDF baseline. Differences use
-  paired predictions; bold denotes a positive 95\% pair-bootstrap interval.}
+  \caption{Grouped five-fold final-turn AUROC at the prespecified
+  last-user-token readout across model families. Each text entry is the
+  strongest word or character TF--IDF baseline. Differences use paired
+  predictions; bold denotes a positive 95\% pair-bootstrap interval.}
   \label{tab:crossmodel}
   \centering
   \small
@@ -612,6 +614,11 @@ character TF--IDF for any replication model. Cross-family temporal
 decodability is well supported by the frozen panel; architecture-invariant
 strength, or a generally activation-specific signal beyond textual task
 structure, is not.
+
+A uniform post-result audit compares this prespecified closing-token state with
+a mean over the final user turn. Appendix~\ref{app:readout-sensitivity} reports
+the complete results; the alternate readout is strongly architecture-sensitive
+rather than uniformly better.
 
 \subsection{Causal intervention and behavioral effects}
 
@@ -777,8 +784,9 @@ mistralai/Ministral-3-8B-Instruct-2512-BF16 at
 \texttt{f6fae9795746}. Full 40-character revisions, dataset hashes, manifest
 hashes, and adapter identities are embedded in each result artifact. Extraction
 uses unquantized bfloat16, batch size one, and the model-native chat template.
-The primary readout is the residual-stream state at the token closing the user
-turn; the embedding output is included as layer zero.
+The prespecified primary readout is the residual-stream state at the token
+closing the user turn. For layer selection, the embedding output is indexed as
+layer zero.
 
 For the replication suite, each user-turn boundary is rendered and processed
 as an independent causal prefix. This was frozen after a full-sequence smoke
@@ -821,6 +829,49 @@ The full shared-prefix trajectory is $0.9917$ at the final turn and $0.4975$,
 $0.5003$, and $0.5003$ at one, two, and three user turns before the end. The
 corresponding numbers of available pairs are 250, 250, 145, and 61. Thus, the
 pre-final null does not depend on choosing only one boundary.
+
+\subsection{Cross-model readout sensitivity}
+\label{app:readout-sensitivity}
+
+\begin{table}[h]
+  \caption{Uniform readout audit using the same paired folds and nested grouped
+  layer selection. Entries are probe AUROCs. ``Token'' is the prespecified state
+  at the token closing the final user turn. ``Mean (all)'' averages the final
+  user turn and permits embedding layer zero; ``Mean ($L\geq1$)'' excludes that
+  layer. The unchanged strongest-text AUROCs are 0.9529 (shared prefix) and
+  0.9447 (matched coherence).}
+  \label{tab:appendix-readout}
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{2.8pt}
+  \begin{tabular}{lrr@{\qquad}rrr}
+    \toprule
+      & \multicolumn{2}{c}{Shared prefix} & \multicolumn{3}{c}{Matched coherence} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-6}
+    Model & Token & Mean & Token & Mean (all) & Mean ($L\geq1$) \\
+    \midrule
+    Llama-3.1-8B & 0.9878 & 0.9916 & 0.9468 & 0.9322 & 0.9325 \\
+    Qwen3-8B & 0.9919 & 0.9785 & 0.9450 & 0.9439 & 0.9332 \\
+    Gemma-3-12B & 0.9730 & 0.9488 & 0.8590 & 0.9388 & 0.6380 \\
+    Ministral-3-8B & 0.9831 & 0.9869 & 0.9279 & 0.8775 & 0.9380 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Mean pooling is not uniformly better. On matched coherence, permitting every
+layer raises Gemma from 0.8590 to 0.9388 but lowers Ministral from 0.9279 to
+0.8775; the direct mean-minus-token changes are $+0.0797$
+($[+0.0563,+0.1037]$) and $-0.0504$ ($[-0.0710,-0.0288]$), respectively.
+Crucially, Gemma and Qwen select layer zero in all five unrestricted-mean outer
+folds (Llama in three; Ministral in one). Layer zero here is the mean of input
+token embeddings, not a transformer-computed state. When it is excluded,
+Llama, Qwen, and Ministral cluster at 0.9325--0.9380, whereas Gemma falls to
+0.6380 and selects layers 4, 4, 48, 7, and 48. The audit therefore does not
+support a simple extraction-failure explanation for the primary Gemma result:
+the apparent alignment under unrestricted mean pooling is carried by a lexical
+embedding average, and the broader finding is architecture-by-readout
+sensitivity. We retain the prespecified closing-token readout rather than
+selecting a post-result readout for visual alignment.
 
 \subsection{Sparse-text comparisons and transfer}
 
