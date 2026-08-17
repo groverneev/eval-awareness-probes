@@ -47,3 +47,5 @@ was run, what results were obtained, or the paper's current claims.
 - Run `.venv\Scripts\python -m pytest` for the project test suite when code
   changes warrant it.
 - Do not commit files without explicit permission
+- Whenever running long commands, always pause working to reduce token consumption.
+  Otherwise, my usage runs out very fast.
