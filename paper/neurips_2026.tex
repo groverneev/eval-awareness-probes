@@ -112,7 +112,8 @@ Language models may behave differently when they recognize that they are being
 evaluated, motivating activation probes for evaluation awareness. But
 evaluation and ordinary-use prompts differ in wording, format, and topic, so
 probe accuracy alone may not identify awareness. We test what these probes
-measure using progressively stronger text baselines, paired temporal controls,
+measure using progressively stronger text baselines, paired multi-turn conversation
+controls,
 four model families, a six-size Qwen3 ladder, and activation steering. A
 benchmark-versus-user probe is nearly perfect, but text-only classifiers are
 almost as accurate. In paired conversations whose histories are byte-identical
@@ -130,62 +131,50 @@ awareness.
 
 \section{Introduction}
 
-AI evaluations are informative only insofar as behavior under test predicts
-behavior in deployment. A model that distinguishes these settings could instead
-condition its behavior on being measured, making apparent safety or capability
-an unreliable guide to ordinary use. Language models already perform above
-chance on tests of situational awareness and on direct classification of
-evaluation versus deployment transcripts \citep{laine2024sad,needham2025know}.
-Evaluation recognition also appears in demonstrations of alignment faking,
-where a model behaves differently across contexts associated with training and
-deployment \citep{greenblatt2024alignment}. These findings motivate a practical
-question for evaluators: can evaluation awareness be detected even when it is
-not stated in model output?
+AI evaluations are informative only if behavior under test predicts behavior in
+deployment. A model that recognizes these settings could condition its behavior
+on being measured, making apparent safety or capability an unreliable guide to
+ordinary use. Language models already show behavioral evidence of situational
+awareness and evaluation recognition, while alignment-faking studies demonstrate
+context-dependent behavior
+\citep{laine2024sad,needham2025know,greenblatt2024alignment}. This motivates a
+practical question: can evaluation awareness be detected when it is not stated
+in model output?
 
-Linear probes offer one possible white-box diagnostic. Recent work reports that
-evaluation and deployment prompts are separable in residual-stream activations
-and uses the resulting directions to score safety evaluations
-\citep{nguyen2025probing}. Yet separability is not identification. Benchmark
-items and real user requests differ in format, topic, vocabulary, authorship,
-and conversational structure, all of which are available to a probe. More
-generally, the probing literature warns that high diagnostic accuracy can
-reflect the probe, dataset, or an easier correlated property rather than the
-intended construct \citep{hewitt2019controls,hewitt2021conditional}. In the
-evaluation-awareness setting, controlled rewrites have likewise shown that
-benchmark-canonical structure can dominate the measured direction
-\citep{devbunova2026format}. A near-perfect probe may therefore be accurately
-detecting that a prompt \emph{looks like a benchmark} without establishing that
-the model represents the broader fact \emph{I am being evaluated}.
+Linear probes offer one possible white-box diagnostic, and recent work finds
+that evaluation and deployment prompts are separable in residual-stream
+activations \citep{nguyen2025probing}. Yet separability is not identification.
+Benchmark items and real user requests differ in format, topic, vocabulary, and
+conversational structure---features available to both the model and the probe.
+Controlled rewrites show that benchmark-canonical structure can dominate the
+measured direction \citep{devbunova2026format}. A highly accurate probe may
+therefore identify that a prompt \emph{looks like a benchmark} without
+establishing that the model represents the broader fact \emph{I am being
+evaluated}.
 
-We study what evaluation-awareness probes measure under an escalating sequence
-of controls. We first reproduce the standard benchmark-versus-user contrast and
-audit its surface features. We then test transfer across independently
-constructed contrasts and introduce paired multi-turn controls whose histories
-are byte-identical until the class-defining final user turn. A second paired
-control additionally matches the topic and conversational coherence of the two
-endings. At every stage, we compare activation probes with length, structural,
-word-based, and character-based text classifiers using paired inference. Finally, we
-repeat the paired controls across four open-weight model families and intervene
-on a learned direction using a prespecified steering experiment. We also rerun
-the complete pipeline across all six original dense Qwen3 sizes on uniform
-hardware.
+We introduce paired multi-turn conversation controls that isolate when the
+activation difference appears. Each pair has a byte-identical history until the
+class-defining final user turn; a stronger control also matches the topic and
+conversational coherence of the two endings. We use these controls within a
+systematic construct-validity audit comparing activation probes with text
+baselines, testing generalization across independently constructed contrasts,
+repeating the analysis across model families, probe types, and model sizes, and
+finally intervening through activation steering.
 
-Three findings define the paper's contribution. First, near-perfect separation
-on the standard contrast is largely compatible with surface detection, whereas
-both paired controls localize the activation difference to the changed final
-turn. Second, temporal decodability is consistent across model families, but
-its apparent strength depends on probe capacity: the primary linear advantage
-is heterogeneous and disappears under matched coherence, whereas a conservative
-RBF sensitivity audit recovers a cross-family advantage over nonlinear text on
-that matched control. The nonlinear gains do not improve cross-control transfer,
-and the six-size Qwen3 ladder shows no consistent primary scale trend across
-both controls.
-Third, steering changes an independent
-readout and explicit evaluation self-report, but does not produce a detectable
-broad change in safety refusals. Together, these results support a temporally localized
-eval/deploy distinction, with causal access in the reference model, while
-arguing against interpreting probe AUROC as evidence for a universal,
-content-independent awareness variable.
+Four findings define the paper's contributions. First, the standard
+benchmark-versus-user contrast is nearly perfectly decodable, but text-only
+classifiers are almost as accurate. Second, under paired controls, probe
+performance remains at chance throughout the identical history and rises only
+after the final user turn differs. Third, the activation advantage over text is
+not universal. Linear results vary across controls and model families;
+nonlinear probes recover an advantage on the matched-coherence control across
+all four families but do not improve generalization across controls; and the
+advantage does not vary consistently with model size across both Qwen3
+controls. Fourth, steering changes an independent activation readout and
+explicit evaluation self-report, but not refusal rates in a 48-prompt safety
+test. Together, these results establish widespread, temporally localized
+decodability without identifying a universal, content-independent
+representation of evaluation awareness.
 
 \section{Related work}
 
@@ -215,7 +204,7 @@ holds the prefix fixed and replaces the final \emph{user} turn, testing
 activation-probe validity rather than behavioral misbehavior rates. We
 therefore treat decodability, verbalization, and behavioral control as
 separate empirical claims. Our focus is complementary: we test the construct validity of the
-internal direction using paired conversation histories and direct
+internal direction using paired multi-turn conversation controls and direct
 activation-versus-text inference.
 
 \paragraph{Internal detection and intervention.}
@@ -349,7 +338,7 @@ test that swaps probe and baseline prediction vectors within scenarios. These
 tests directly address whether the activation probe outperforms the strongest
 text comparator, rather than merely whether either method exceeds chance.
 
-\subsection{Paired temporal controls}
+\subsection{Paired multi-turn conversation controls}
 \label{sec:paired-controls}
 
 The \emph{shared-prefix} control retains a real-derived deployment
@@ -371,7 +360,7 @@ class-defining content becomes available.
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{figures/paired_controls.pdf}
-  \caption{The two paired temporal controls. Both hold the conversation
+  \caption{The two paired multi-turn conversation controls. Both hold the conversation
   history fixed within a pair and vary only the final user turn, so the
   pre-final read point sees byte-identical context under either label.
   \textbf{(a)} The shared-prefix control keeps a real WildChat history and
@@ -816,7 +805,7 @@ and cross-control transfer remain heterogeneous. A six-size Qwen3 ladder does
 not show a consistent primary scale trend across both controls. Yet high decodability does not by itself reveal
 what the difference represents, and evidence for a universal
 evaluation-awareness variable is not established. Probe-based auditing remains promising, but
-trustworthy use requires paired temporal controls, competitive textual
+trustworthy use requires paired multi-turn conversation controls, competitive textual
 comparators, and claims calibrated to what those controls actually identify.
 
 \bibliographystyle{plainnat}
