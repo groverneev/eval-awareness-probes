@@ -111,12 +111,13 @@
 Language models may behave differently when they recognize that they are being
 evaluated, motivating activation probes for evaluation awareness. But
 evaluation and ordinary-use prompts differ in wording, format, and topic, so
-probe accuracy alone may not identify awareness. We test what these probes
-measure using progressively stronger text baselines, paired multi-turn conversation
-controls,
-four model families, a six-size Qwen3 ladder, and activation steering. A
-benchmark-versus-user probe is nearly perfect, but text-only classifiers are
-almost as accurate. In paired conversations whose histories are byte-identical
+probe accuracy alone may not identify awareness. We introduce paired multi-turn
+conversation controls as the backbone of progressively stronger tests of what
+activation probes measure. We ask whether the probes add information beyond
+text, generalize across constructions and models, scale predictably, and
+causally influence behavior. A benchmark-versus-user probe is nearly perfect,
+but text-only classifiers are almost as accurate. In paired conversations whose
+histories are byte-identical
 until the final user turn, activations are indistinguishable before that turn
 and highly decodable afterward. Linear activation advantages over text are
 heterogeneous and disappear under matched coherence; nonlinear probes recover
@@ -155,11 +156,11 @@ evaluated}.
 We introduce paired multi-turn conversation controls that isolate when the
 activation difference appears. Each pair has a byte-identical history until the
 class-defining final user turn; a stronger control also matches the topic and
-conversational coherence of the two endings. We use these controls within a
-systematic construct-validity audit comparing activation probes with text
-baselines, testing generalization across independently constructed contrasts,
-repeating the analysis across model families, probe types, and model sizes, and
-finally intervening through activation steering.
+conversational coherence of the two endings. With these controls as the
+backbone, we compare activation probes with text baselines, test generalization
+across independently constructed contrasts, repeat the analysis across model
+families, probe types, and model sizes, and finally intervene through activation
+steering.
 
 Four findings define the paper's contributions. First, the standard
 benchmark-versus-user contrast is nearly perfectly decodable, but text-only
@@ -171,8 +172,8 @@ nonlinear probes recover an advantage on the matched-coherence control across
 all four families but do not improve generalization across controls; and the
 advantage does not vary consistently with model size across both Qwen3
 controls. Fourth, steering changes an independent activation readout and
-explicit evaluation self-report, but not refusal rates in a 48-prompt safety
-test. Together, these results establish widespread, temporally localized
+explicit evaluation self-report, but produces no detectable change in safety
+refusals. Together, these results establish widespread, temporally localized
 decodability without identifying a universal, content-independent
 representation of evaluation awareness.
 
