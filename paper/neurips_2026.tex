@@ -67,8 +67,7 @@
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
 % Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote. 
-\title{Probe Accuracy Is Not Evidence of Evaluation Awareness:
-What Temporal Controls and Text Baselines Reveal}
+\title{Probe Accuracy Does Not Identify Evaluation Awareness}
 \workshoptitle{TAE (Trust-AI-Eval): Can We Trust AI Evaluation?}
 
 % The \author macro works with any number of authors. There are two commands
@@ -110,29 +109,23 @@ What Temporal Controls and Text Baselines Reveal}
 
 \begin{abstract}
 Language models may behave differently when they recognize that they are being
-evaluated, motivating activation probes that distinguish evaluation from
-deployment contexts. However, benchmark prompts and real user interactions
-differ in many surface properties, so high probe accuracy need not identify
-evaluation awareness. We test what these probes measure through progressively
-stronger controls. An initial benchmark-versus-user probe is nearly perfect,
-but structural and lexical classifiers are also strong. We then construct two
-paired multi-turn controls whose histories are byte-identical until the
-class-defining final user turn; activations remain at chance throughout the
-shared history and become highly decodable only at the final turn. This temporal
-localization replicates across Llama, Qwen, Gemma, and Ministral models. With
-the primary linear probe, an advantage over text holds in three of four models
-on a topic-shifted control and disappears once topic and coherence are matched.
-A post-result nonlinear audit, however, raises matched-coherence AUROC to
-$0.981$--$0.988$ in every model and beats a capacity-matched contextual E5 RBF
-baseline, showing that decoder geometry materially changes the comparison. A
-six-checkpoint dense Qwen3 ladder from 0.75B to 32.76B parameters does not meet
-our prespecified two-control criterion for a consistent scale trend. A
-prespecified intervention moves an
-independent activation readout and explicit evaluation self-reports, but not
-safety refusals. These results identify cross-family decodable eval/deploy
-distinctions that are causally accessible in the reference model, while showing
-that current probe evidence does not isolate a universal, content-independent
-evaluation-awareness variable.
+evaluated, motivating activation probes for evaluation awareness. But
+evaluation and ordinary-use prompts differ in wording, format, and topic, so
+probe accuracy alone may not identify awareness. We test what these probes
+measure using progressively stronger text baselines, paired temporal controls,
+four model families, a six-size Qwen3 ladder, and activation steering. A
+benchmark-versus-user probe is nearly perfect, but text-only classifiers are
+almost as accurate. In paired conversations whose histories are byte-identical
+until the final user turn, activations are indistinguishable before that turn
+and highly decodable afterward. Linear activation advantages over text are
+heterogeneous and disappear under matched coherence; nonlinear probes recover
+a matched-coherence advantage across all four families but do not improve
+cross-control transfer. The Qwen3 ladder does not meet a prespecified criterion
+for a consistent scale trend. Steering changes an independent activation
+readout and explicit evaluation self-reports, but not refusal rates in a
+48-prompt safety test. These results show widespread decodability without
+establishing a universal, content-independent representation of evaluation
+awareness.
 \end{abstract}
 
 \section{Introduction}

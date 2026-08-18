@@ -49,3 +49,9 @@ was run, what results were obtained, or the paper's current claims.
 - Do not commit files without explicit permission
 - Whenever running long commands, always pause working to reduce token consumption.
   Otherwise, my usage runs out very fast.
+- When editing the paper, there is no need to always recheck your work by rebuilding
+  the paper. For example, if you are editing the abstract or some kind of text section,
+  you don't need to rebuild the paper since you're just dealing with basic text.
+  However, if you feel that you are using some complex text that you would want to
+  visually verify or are inserting images or changing layouts, you might want to
+  visually verify.
