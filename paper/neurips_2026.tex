@@ -124,8 +124,8 @@ heterogeneous and disappear under matched coherence; nonlinear probes recover
 a matched-coherence advantage across all four families but do not improve
 cross-control transfer. The Qwen3 ladder does not meet a prespecified criterion
 for a consistent scale trend. Steering changes an independent activation
-readout and explicit evaluation self-reports, but not refusal rates in a
-48-prompt safety test. These results show widespread decodability without
+readout and explicit evaluation self-reports, but produces no detectable change
+in safety refusals. These results show widespread decodability without
 establishing a universal, content-independent representation of evaluation
 awareness.
 \end{abstract}
@@ -146,7 +146,8 @@ Linear probes offer one possible white-box diagnostic, and recent work finds
 that evaluation and deployment prompts are separable in residual-stream
 activations \citep{nguyen2025probing}. Yet separability is not identification.
 Benchmark items and real user requests differ in format, topic, vocabulary, and
-conversational structure---features available to both the model and the probe.
+conversational structure, all of which are available to both the model and the
+probe.
 Controlled rewrites show that benchmark-canonical structure can dominate the
 measured direction \citep{devbunova2026format}. A highly accurate probe may
 therefore identify that a prompt \emph{looks like a benchmark} without
@@ -179,114 +180,66 @@ representation of evaluation awareness.
 
 \section{Related work}
 
-\paragraph{Behavioral evaluation awareness.}
-The Situational Awareness Dataset decomposes model knowledge of itself and its
-circumstances into behavioral tasks, including distinguishing internal
-evaluation from real-world deployment \citep{laine2024sad}. Complementary work
-asks models to classify diverse chat and agent transcripts and finds substantial
-but subhuman evaluation-recognition performance \citep{needham2025know}.
-Evaluation awareness matters because it could support strategically different
-behavior under observation, as illustrated by alignment-faking settings
-\citep{greenblatt2024alignment}. At the same time, recent behavioral evidence
-finds that verbalized awareness often has only limited effects
-\citep{knecht2026limited}, and a broad open-model study argues that detection,
-behavioral response, and controllability are weakly coupled
-\citep{nayan2026notone}. A factor-controlled benchmark on frontier models
-separates the recognizability of an evaluation from a model's propensity to
-act on that recognition, and finds that recognition rarely changes behavior
-and that safety-relevant framings are noticed more readily than
-capability-relevant ones \citep{li2026decomposing}. A concurrent industry
-study similarly finds that evaluations built from de-identified production
-traffic show lower signs of evaluation awareness than benchmark-style ones,
-using a related but distinct design: the conversation prefix is held fixed
-and the assistant's next turn is regenerated to predict post-deployment
-misbehavior \citep{williams2026simulating}. Our shared-prefix control instead
-holds the prefix fixed and replaces the final \emph{user} turn, testing
-activation-probe validity rather than behavioral misbehavior rates. We
-therefore treat decodability, verbalization, and behavioral control as
-separate empirical claims. Our focus is complementary: we test the construct validity of the
-internal direction using paired multi-turn conversation controls and direct
-activation-versus-text inference.
+\paragraph{Evaluation awareness.}
+Behavioral work finds that language models can recognize evaluation contexts
+\citep{laine2024sad,needham2025know}, motivating concern that models may behave
+differently when monitored \citep{greenblatt2024alignment}. Recent studies,
+however, suggest that recognition, verbalization, behavioral response, and
+controllability are only weakly coupled
+\citep{knecht2026limited,nayan2026notone,li2026decomposing}. White-box work
+decodes evaluation and deployment contexts from activations
+\citep{nguyen2025probing}, steers evaluation-conditioned policies in model
+organisms \citep{hua2025steering}, and reports size- and depth-dependent trends
+in probe separability \citep{chaudhary2025scaling,manek2026depth}. We therefore
+treat decodability, self-report, and behavioral control as separate claims.
+Concurrent deployment-simulation work holds a production conversation prefix
+fixed and regenerates the assistant's next turn
+\citep{williams2026simulating}; our controls instead vary the final user turn
+and test activation-probe validity.
 
-\paragraph{Internal detection and intervention.}
-White-box work trains linear directions that distinguish evaluation from
-deployment activations and applies them to test whether safety prompts appear
-evaluation-like \citep{nguyen2025probing}. Related model-organism experiments
-use activation steering to suppress an induced evaluation-conditioned policy
-\citep{hua2025steering}. Two recent white-box studies trace how probe
-separability itself changes with model scale: one reports a power-law increase
-in separability across model size \citep{chaudhary2025scaling}, and another
-finds that the most informative layer for decoding evaluation awareness moves
-earlier as models grow \citep{manek2026depth}. Both treat raw separability as
-the target quantity. Our study instead centers the construct validity of the
-direction: we ask when separation enters a conversation, whether it adds
-predictive information beyond the visible text, and whether an activation
-advantage--not merely decodability--holds across naturally instruction-tuned
-model families. Our four-family suite shows it does not hold uniformly, which
-complicates reading separability alone as a scale-indexed quantity.
-
-\paragraph{Probe validity and surface controls.}
-Diagnostic classifiers establish that information is linearly accessible, but
-their interpretation depends on appropriate controls. Control tasks expose
-probe capacity as an alternative explanation \citep{hewitt2019controls}, while
-conditional probing formalizes the question of what information a
-representation provides beyond a chosen baseline \citep{hewitt2021conditional}.
-Most directly, \citet{devbunova2026format} shows that evaluation-awareness probes
-can track prompt structure under a controlled $2\times2$ design. We extend this
-line of scrutiny with byte-identical temporal prefixes, per-pair coherent
-endings, grouped sparse-text baselines, cross-control transfer, cross-model
-replication, and causal steering.
+\paragraph{Probe validity.}
+High probe accuracy establishes that information is accessible, but not that
+the probe identifies the intended concept. Control tasks and conditional
+probing therefore motivate comparisons against appropriate baselines
+\citep{hewitt2019controls,hewitt2021conditional}. Most directly,
+\citet{devbunova2026format} shows that evaluation-awareness probes can track
+prompt structure under a controlled $2\times2$ design. We extend this scrutiny
+with paired multi-turn conversation controls, asking when separation appears,
+whether activations add information beyond text, whether the signal generalizes
+across constructions, and whether its interpretation survives changes in model
+family, probe capacity, scale, and steering.
 
 \section{Experimental framework}
 
-\subsection{Evaluation and deployment contexts}
+\subsection{Evidence hierarchy}
 
 We study whether language-model hidden states distinguish \emph{evaluation}
 inputs, constructed to measure a model, from \emph{deployment} inputs arising
-from ordinary user needs. These categories differ naturally in topic,
-vocabulary, formatting, speech act, and authorship. Consequently, high probe
-accuracy on a single benchmark-versus-user contrast does not by itself identify
-evaluation awareness. Our experiments progressively restrict these alternative
-explanations.
+from ordinary user needs. These categories naturally differ in topic,
+vocabulary, formatting, speech act, and authorship, so high accuracy on one
+benchmark-versus-user contrast does not identify evaluation awareness. We
+therefore organize the evidence in three stages of increasing control.
 
-We use three levels of evidence. First, a diagnostic single-turn contrast pairs
-200 evaluation prompts from the SAD stages-oversight task
-\citep{laine2024sad} with 200 real-user prompts sampled from WildChat
-\citep{zhao2024wildchat}. It establishes that the extraction pipeline recovers
-the expected separation, while exposing how strongly surface form predicts the
-labels. Second, we analyze six independently constructed single-turn pairs: two
-from the controlled $2\times2$ dataset of \citet{devbunova2026format} and four
-new pairs built from ARC, MMLU, GSM8K, and WildChat material
-\citep{clark2018arc,hendrycks2021mmlu,cobbe2021gsm8k,zhao2024wildchat}. The
-primary transfer summary excludes GSM8K because digit density nearly determines
-labels in one intended control, and separately reports the 20 source--target
-transfers that share no dataset cell. Third, our primary controls consist of two
-sets of 250 paired multi-turn conversations using WildChat-derived histories
-and fresh ARC and MMLU items. These pairs support a temporal test: the classes
-should be indistinguishable before the final user turn that introduces the
-evaluation/deployment distinction.
+The first stage is diagnostic: 200 SAD stages-oversight prompts
+\citep{laine2024sad} versus 200 WildChat user prompts
+\citep{zhao2024wildchat} confirm the expected separation and expose its surface
+predictability. The second is an intermediate stress test using six independent
+single-turn contrasts from controlled rewrites and ARC, MMLU, GSM8K, and
+WildChat material \citep{devbunova2026format,clark2018arc,hendrycks2021mmlu,
+cobbe2021gsm8k,zhao2024wildchat}. It asks whether a learned direction
+generalizes across constructions. The third, and our primary design, consists
+of two sets of 250 paired multi-turn conversations whose histories are
+identical until the final user turn. These controls isolate the turn that
+introduces the evaluation/deployment distinction.
 
-\subsection{Activation extraction and probing}
+\subsection{Probes and text baselines}
 
-The reference model is Llama-3.1-8B-Instruct \citep{dubey2024llama}. We also
-run a frozen replication suite on Qwen3-8B \citep{yang2025qwen3},
-Gemma-3-12B-IT \citep{gemmateam2025gemma3}, and
-Ministral-3-8B-Instruct \citep{liu2026ministral3}. Replication checkpoints are
-revision-pinned; all models are loaded in unquantized bfloat16 and rendered with
-their native chat templates. We read the residual-stream hidden state at the
-token closing each user turn. For the cross-model suite, every causal prefix is
-processed in an independent forward pass; this guarantees that two
-byte-identical prefixes cannot differ numerically because their later suffixes
-have different lengths.
-
-A separately frozen within-family audit includes every original dense Qwen3
-checkpoint: 0.6B, 1.7B, 4B, 8B, 14B, and 32B (0.75B--32.76B exact
-parameters). All six are re-extracted in unquantized bfloat16 on one A100
-environment; the historical 8B cache is not reused. The scale predictor is
-$\log_{10}$ exact parameter count. For each endpoint, 5,000 paired bootstrap
-draws resample the same scenario IDs at all sizes and refit the OLS slope of
-probe-minus-strongest-text AUROC. We call a scale trend consistent only if the
-slope interval excludes zero in the same direction on both primary controls.
+The reference model is Llama-3.1-8B-Instruct \citep{dubey2024llama}. We repeat
+the paired analyses on Qwen3-8B \citep{yang2025qwen3}, Gemma-3-12B-IT
+\citep{gemmateam2025gemma3}, and Ministral-3-8B-Instruct
+\citep{liu2026ministral3}. We read the residual-stream state at the token that
+closes each user turn. Exact checkpoints and extraction details are given in
+Appendix~\ref{app:details}.
 
 At each layer, the primary linear probe is the normalized difference between
 the evaluation and deployment training means. For activation $x$, its score is
@@ -297,99 +250,66 @@ the evaluation and deployment training means. For activation $x$, its score is
   {\lVert\mu_{\mathrm{eval}}-\mu_{\mathrm{deploy}}\rVert_2}.
 \end{equation}
 
-Layers are selected using training data only. Repeated-holdout estimates use
-five paired 70/30 splits. Direct probe--text comparisons and cross-model
-analyses use grouped five-fold out-of-fold predictions, keeping both endings of
-a scenario in the same fold; layer selection is itself grouped cross-validation
-nested inside each outer training fold. We report signed AUROC when orientation matters.
-For transfer analyses, where a direction may reverse under distribution shift,
-we additionally report separation strength $|\mathrm{AUROC}-0.5|$. A
-standardized L2-logistic probe and full-pipeline label permutations test whether
-conclusions depend on the mean-difference estimator or ordinary layer-selection
-noise. A post-result capacity audit fits a standardized RBF-kernel SVM at the
-layer selected by this primary pipeline within each outer training fold. Its
-$C\in\{0.1,1,10\}$ and dimension-normalized kernel-width grid are selected in
-pair-grouped inner folds; no nonlinear layer search is performed. We repeat the
-complete grouped analysis over fold seeds 0--4. For nonlinear transfer, the
-layer, orientation, and RBF hyperparameters are selected by grouped CV on the
-source control only before the model is fit on all source pairs and scored on
-the other control.
+Layers are selected using training data only. Primary comparisons use grouped
+five-fold out-of-fold predictions, keep both endings of a scenario in the same
+fold, and nest layer selection inside each outer training fold. Transfer also
+reports separation strength $|\mathrm{AUROC}-0.5|$ because orientation may
+reverse under distribution shift. Paired intervals and randomization tests ask
+whether the activation probe outperforms the strongest text comparator, rather
+than merely whether either exceeds chance.
 
-\subsection{Surface baselines}
-
-We compare activation probes with length, 13 structural features, unigram
-counts, word 1--2-gram TF--IDF, and character-within-word 3--5-gram TF--IDF.
-For identical-prefix pairs these additive baselines see only the differing
-final message: the shared prefix occurs once under each label and has no
-population-level additive signal. We separately freeze a contextual audit
-using E5-base-v2 embeddings \citep{wang2022e5}. Fixed logistic classifiers see
-the ending alone, the full visible conversation, or concatenated prefix and
-ending embeddings with their absolute difference and elementwise product. All
-text fitting remains training-fold only and uses the same grouped folds.
-A capacity-matched nonlinear comparator includes word and character TF--IDF
-RBF classifiers and RBF classifiers over the frozen E5 views. Model family,
-representation, and kernel hyperparameters are selected inside the same
-pair-grouped training folds. We also report an exact apples-to-apples RBF audit
-of the previously strongest E5 prefix--ending interaction.
-
-For the primary paired analyses, uncertainty is obtained by resampling matched
-scenarios. We use 2,000-draw pair-cluster bootstrap intervals for the
-probe-minus-baseline AUROC difference and a paired approximate-randomization
-test that swaps probe and baseline prediction vectors within scenarios. These
-tests directly address whether the activation probe outperforms the strongest
-text comparator, rather than merely whether either method exceeds chance.
+Text baselines progress from length and structural features to unigram counts,
+word and character TF--IDF, and frozen contextual E5 embeddings
+\citep{wang2022e5}. For identical-history pairs, additive baselines see only
+the differing final message. A post-result nonlinear sensitivity audit compares
+an RBF activation probe with capacity-matched TF--IDF and E5 RBF classifiers.
+All model selection and fitting use the same pair-grouped training folds. Full
+estimator, hyperparameter, baseline, and inference details appear in
+Appendix~\ref{app:fitting-details}.
 
 \subsection{Paired multi-turn conversation controls}
 \label{sec:paired-controls}
 
-The \emph{shared-prefix} control retains a real-derived deployment
-conversation and replaces only its final user turn with a casually rendered
-benchmark question. Every earlier message is byte-identical within a pair.
-This design sharply localizes any difference to the changed turn, but that turn
-may also introduce a topic or speech-act discontinuity.
-
-The \emph{matched-coherence} control constructs an everyday conversation and
-two alternative final user turns together. One ending is a faithful casual
-version of a benchmark item; the other is a genuine practical request on the
-same topic. The endings are designed to match the preceding conversation in
-topic, register, and length, and both classes are model-authored. This trades
-some real-world provenance for stronger coherence and topic matching. In both
-controls, the pre-final hidden states must match exactly within every pair,
-while the final-turn comparison tests whether separation appears when the
-class-defining content becomes available.
+The \emph{shared-prefix} control retains a real-derived conversation and
+replaces only its final user turn with a casually rendered benchmark question.
+It preserves real-world history but may introduce a topic or speech-act shift.
+The \emph{matched-coherence} control constructs the history and both endings
+together, pairing a casual benchmark question with a practical request on the
+same topic. It trades provenance for endings matched on topic, register, and
+length. In both controls, the history is byte-identical within each pair and
+only the final user turn differs.
 
 \begin{figure}[t]
   \centering
   \includegraphics[width=\linewidth]{figures/paired_controls.pdf}
-  \caption{The two paired multi-turn conversation controls. Both hold the conversation
-  history fixed within a pair and vary only the final user turn, so the
-  pre-final read point sees byte-identical context under either label.
-  \textbf{(a)} The shared-prefix control keeps a real WildChat history and
-  replaces only the final user message, which localizes the difference sharply
-  but may also shift topic and speech act. \textbf{(b)} The matched-coherence
-  control builds the history and both candidate endings together, trading
-  real-world provenance for endings matched on topic, register, and length.}
+  \caption{Paired multi-turn conversation controls. Both hold the history fixed
+  within a pair and vary only the final user turn. \textbf{(a)} Shared prefix
+  preserves a real-derived history but may shift topic or speech act.
+  \textbf{(b)} Matched coherence trades provenance for same-topic endings
+  matched on register and length.}
   \label{fig:controls}
 \end{figure}
 
-\subsection{Cross-model replication and causal intervention}
+\subsection{Cross-model replication, scaling, and causal intervention}
 
-The two paired controls and full text-baseline hierarchy are frozen across all
-four model families. Each replication uses its model's native template,
-grouped folds, train-only layer selection, paired inference, and bidirectional
-transfer between controls. The suite tests temporal localization separately
-from the stronger claim that activation probes outperform text or have
-architecture-invariant strength.
+The paired controls and text comparisons are frozen across all four model
+families. Each replication uses train-only layer selection, paired inference,
+and transfer between controls. This tests temporal localization separately from
+the stronger claims that activations outperform text or have invariant strength.
 
-Finally, we test whether the reference-model direction is causally accessible.
-Following a protocol fixed before behavioral generation, we add the
-matched-coherence direction to the residual stream during generation. The
-intervention layer is chosen using a monotonicity manipulation check, and an
-independent readout trained on the other paired control measures whether the
-intended internal quantity moves. We then score explicit evaluation/deployment
-self-reports and safety refusals across intervention coefficients. Coefficients
-that violate a prespecified output-degeneracy rule are excluded from behavioral
-trends.
+Within Qwen3, we repeat the full paired pipeline on all six original dense
+checkpoints from 0.6B to 32B under one environment. The prespecified scale test
+regresses the activation-minus-text margin on log parameter count and requires
+the slope interval to exclude zero in the same direction on both controls.
+Appendix~\ref{app:qwen-scale} reports every checkpoint and the full paired
+analysis.
+
+Finally, we test whether the reference-model direction is causally accessible
+by adding the matched-coherence direction to the residual stream during
+generation. An independent readout trained on the other control checks that the
+intervention moves the intended quantity. We then score explicit
+evaluation/deployment self-reports and safety refusals under a protocol fixed
+before behavioral generation.
 
 \section{Results}
 
@@ -868,6 +788,36 @@ test exposed suffix-length-dependent bfloat16 differences at otherwise
 identical earlier tokens. Rejected smoke caches are isolated from the full-run
 artifacts. Each completed model processes all 250 scenarios under both paired
 controls, and every pre-final equality check is performed before probe fitting.
+
+\subsection{Probe fitting and inference details}
+\label{app:fitting-details}
+
+Repeated-holdout estimates use five paired 70/30 splits. Direct probe--text and
+cross-model comparisons use grouped five-fold out-of-fold predictions, with
+both endings of each scenario in the same fold and grouped layer selection
+nested inside each outer training fold. We report signed AUROC when orientation
+matters and separation strength $|\mathrm{AUROC}-0.5|$ for transfer. A
+standardized L2-logistic probe and full-pipeline label permutations test
+estimator and layer-selection robustness.
+
+The post-result capacity audit fits a standardized RBF-kernel SVM at each outer
+fold's primary-selected layer. Scaling, $C\in\{0.1,1,10\}$, and a
+dimension-normalized kernel-width grid are selected in pair-grouped inner
+folds; no nonlinear layer search is performed. The full grouped analysis is
+repeated over fold seeds 0--4. For nonlinear transfer, layer, orientation, and
+RBF hyperparameters are selected on the source control only before fitting all
+source pairs and scoring the other control.
+
+Text baselines include length, 13 structural features, unigram counts, word
+1--2-gram TF--IDF, and character-within-word 3--5-gram TF--IDF. Frozen E5 views
+include the ending, full visible conversation, and concatenated prefix and
+ending embeddings with their absolute difference and elementwise product. The
+capacity-matched comparison applies RBF classifiers to sparse TF--IDF and E5
+views, including an exact comparison with the strongest E5 prefix--ending
+interaction. Pair-cluster bootstrap intervals use 2,000 draws; paired
+approximate randomization swaps prediction vectors within scenarios. The scale
+audit uses 5,000 paired draws that resample common scenario IDs across sizes and
+refit the OLS slope against $\log_{10}$ exact parameter count.
 
 \section{Complete results}
 \label{app:results}
