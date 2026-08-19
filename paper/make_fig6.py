@@ -22,8 +22,8 @@ import matplotlib.pyplot as plt
 SCALE_PATH = RESULTS_DIR / "qwen_scale/v1/scale_analysis.json"
 NONLINEAR_PATH = RESULTS_DIR / "qwen_scale/nonlinear_followup_v1/combined_analysis.json"
 CONTROLS = [
-    ("eval_shared", "Shared prefix", BLUE, "o"),
-    ("coherent_pairs", "Matched coherence", ORANGE, "s"),
+    ("eval_shared", "Retained-history", BLUE, "o"),
+    ("coherent_pairs", "Coherence-matched", ORANGE, "s"),
 ]
 
 

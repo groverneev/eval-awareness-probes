@@ -3,7 +3,7 @@
 The first written evaluation cells reach near-ceiling probe AUROC at the final
 boundary, but they are already near ceiling before the benchmark question
 appears. Their synthetic histories carry the label, so those cells cannot
-support a temporal-localization claim at all. Only the shared-prefix
+support a temporal-localization claim at all. Only the retained-history
 recombination sits at chance before the final turn.
 """
 
@@ -42,7 +42,7 @@ LEAK_FILL = "#F7D9C4"
 CELLS = [
     ("eval_disguised", "Disguised (rejected)", ORANGE, "o", True),
     ("eval_obvious", "Obvious (rejected)", ORANGE, "^", True),
-    ("eval_shared", "Shared prefix (retained)", BLUE, "s", False),
+    ("eval_shared", "Retained-history", BLUE, "s", False),
 ]
 
 

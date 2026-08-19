@@ -126,22 +126,22 @@ def main() -> None:
     draw_control(
         axes[0],
         "a",
-        "Shared-prefix control",
+        "Retained-history control",
         "byte-identical within pair",
-        ["User 1", "Model 1", "User 2", "Model 2"],
+        ["User 1", "Assistant 1", "User 2", "Assistant 2"],
         "casually rendered\nbenchmark item",
         "original final\nuser message",
-        "Real WildChat history.\nSharp localization, but the\nending can also shift topic\nand speech act.",
+        "Real WildChat history.\nThe replacement ending may\nshift topic and speech act.",
     )
     draw_control(
         axes[1],
         "b",
-        "Matched-coherence control",
+        "Coherence-matched control",
         "byte-identical within pair",
-        ["User 1", "Model 1", "User 2", "Model 2"],
+        ["User 1", "Assistant 1", "User 2", "Assistant 2"],
         "faithful casual\nbenchmark question",
         "genuine practical request,\nsame topic",
-        "Model-authored throughout.\nEndings matched on topic,\nregister and length.",
+        "History and endings\nconstructed together.\nEndings matched on topic,\nregister and length.",
     )
 
     handles = [

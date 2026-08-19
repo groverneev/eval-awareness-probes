@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 
 
 CONTROLS = [
-    ("eval_shared", "Shared prefix", BLUE, "o"),
-    ("coherent_pairs", "Matched coherence", ORANGE, "s"),
+    ("eval_shared", "Retained-history", BLUE, "o"),
+    ("coherent_pairs", "Coherence-matched", ORANGE, "s"),
 ]
 
 COMPARATORS = [
@@ -131,7 +131,7 @@ def panel_hierarchy(axis, within: dict) -> None:
 def panel_cross_model(axis_outlier, axis_main, models: dict) -> None:
     """Paired probe-minus-strongest-text margins, on a broken axis.
 
-    Gemma's matched-coherence margin remains separated from the near-zero
+    Gemma's coherence-matched margin remains separated from the near-zero
     margins, so the break keeps those intervals legible.
     """
     names = list(models.keys())
