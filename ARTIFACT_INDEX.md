@@ -90,13 +90,24 @@ never be written to committed files.
 
 ## Steering
 
-- `datasets/steering/prespec.md`: frozen protocol and dated amendment.
+- `datasets/steering/prespec.md`: original frozen protocol, pre-generation
+  amendment, and explicitly post-result Priority 8 robustness amendment.
 - `datasets/steering/behavior_prompts.json`: fixed carrier and safety prompts.
 - `src/vnaa/steering.py`: residual hook, scaling, readout, scoring, and
   degeneration metrics.
 - `src/vnaa/run_steering.py`: direction fitting, manipulation check, generation,
   and analysis.
 - `results/steer_Llama-3.1-8B-Instruct_analysis.json`: completed steering result.
+- `src/vnaa/run_steering_priority8.py`: prompt-cluster bootstrap and exact
+  paired inference, deterministic norm-matched random/orthogonal control
+  construction, resumable control readout/generation, and specificity audit.
+- `scripts/steering_priority8.md` and
+  `scripts/run_steering_priority8_pod.sh`: 24GB+ GPU handoff used for the 840
+  completed control-direction behavioral generations.
+- `results/steering_priority8/`: ignored frozen control directions, completed
+  independent-readout controls, prompt-level learned-direction analysis,
+  behavioral-control outputs, logs, SHA-256 inventory, and final specificity
+  analysis.
 
 ## Authorship-factorial pilot
 

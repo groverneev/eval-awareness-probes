@@ -16,8 +16,9 @@ Do language-model activations encode an evaluation/deployment distinction that s
 
 Text-controlled and cross-construction generalization test whether a decoded
 signal supports the evaluation-awareness interpretation. Self-report steering
-tests causal control of the report, and refusal steering is one narrow test of
-policy use. These properties may dissociate.
+with unrelated-direction controls tests direction-specific causal control of
+the report, and refusal steering is one narrow test of policy use. These
+properties may dissociate.
 
 ## Main answer
 Paired controls pass an exact pre-final leakage check, and evaluation-like and
@@ -39,6 +40,15 @@ paired scale-slope interval excludes zero on matched coherence but not shared
 prefix, so the frozen same-direction criterion finds no consistent within-
 family scale trend.
 
+On the Llama reference model, learned-direction steering specifically moves an
+independent activation readout. Its paired self-report endpoint effect is
+`+0.7500` (`[+0.5833,+0.8889]`), but five norm-matched orthogonal controls yield
+`+0.4167`, `+0.9444`, `+0.3056`, `0.0000`, and `+1.0000`; the frozen behavioral-
+specificity criterion therefore fails. Neither the learned direction nor the
+controls produces the predicted positive safety-refusal effect. The experiment
+supports causal accessibility of the decoded readout, not direction-specific
+causal control of evaluation self-report or broad policy use.
+
 A frozen contextual text audit supplies the main linear comparator: an explicit
 prefix--ending E5 interaction reaches AUROC 0.95325 on matched coherence versus
 0.9468 for the reference activation probe, statistically tying it, and 0.99554
@@ -51,8 +61,8 @@ on shared prefix versus 0.9878, significantly favoring text.
    exact pre-final equality as a deterministic leakage check, and measure
    decoding only after the first differing user message.
 3. We evaluate stronger text baselines, cross-model replication, and causal
-   steering, establishing both the signal's robustness and its interpretive
-   limits.
+   steering with norm-matched orthogonal controls, establishing both the
+   signal's robustness and its interpretive limits.
 4. We test every original dense Qwen3 size under uniform hardware and find that
    probe-minus-E5 margins are not consistently scale-predictable across both
    controls.
@@ -64,6 +74,8 @@ on shared prefix versus 0.9878, significantly favoring text.
   or identify the within-control nonlinear signal as evaluation awareness.
 - We do not establish a consistently oriented cross-construction activation
   direction that transfers better than unigram text.
+- We do not establish direction-specific causal control of evaluation
+  self-report; orthogonal controls match or exceed the learned effect.
 - We do not show that steering improves safety behavior.
 - We do not study tool-using or autonomous agents.
 
@@ -112,5 +124,7 @@ on shared prefix versus 0.9878, significantly favoring text.
     coherence. Because only one excludes zero, it does not meet the frozen
     criterion for a consistent trend. Five-seed nonlinear margins are nearly
     flat across size.
-10. Steering changes the independent readout and explicit self-report, but
-   not safety refusals.
+10. Learned-direction steering specifically moves the independent readout, but
+    its self-report effect is not direction-specific: two of five orthogonal
+    controls exceed it. Neither learned nor control directions produce the
+    predicted positive safety-refusal effect.

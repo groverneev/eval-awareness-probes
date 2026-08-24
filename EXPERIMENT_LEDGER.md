@@ -41,11 +41,11 @@ To test whether the internal separation remained when the model did not say it w
 
 Slice 5 asked a different question: can the model distinguish a genuine assistant reply from a reply resampled by a model and inserted into the same conversation? It could. However, the signal remained when a different model generated the replacement and became at least as strong when the generator saw only the final user turn. The result is therefore evidence of reply provenance/context consistency, not specifically self-recognition or evaluation awareness.
 
-Finally, a pre-specified steering experiment added the coherent-pair activation direction during generation. The manipulation moved an independent internal readout monotonically and shifted explicit self-reports in the predicted direction at nondegenerate intervention strengths. It did not produce the predicted increase in safety refusals. The behavioral safety test was small and low-base-rate, so it rules out only a large effect, not all effects.
+Finally, a pre-specified steering experiment added the coherent-pair activation direction during generation. The manipulation moved an independent internal readout monotonically and shifted explicit self-reports in the predicted direction at nondegenerate intervention strengths. A post-result audit found that two of five norm-matched orthogonal directions caused larger self-report shifts, so the behavioral effect is not learned-direction-specific. Neither learned nor control directions produced the predicted increase in safety refusals. The behavioral safety test was small and low-base-rate, so it rules out only a large effect, not all effects.
 
 A frozen cross-model core then reran the two valid 250-pair controls on Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B. Every model had exactly zero activation difference throughout the byte-identical prefix, passing the deterministic leakage check, and nonzero final-turn differences. A post-result layer-selection audit found that the original within-control runner used saturated in-sample training AUROC. Uniform nested grouped selection corrected Gemma from `0.72667` to `0.97296` on `eval_shared` and from `0.64744` to `0.85902` on matched coherence, while leaving the other models nearly unchanged. A CPU-only reprioritization audit then compared every primary linear prediction vector with the same strongest full-input E5 interaction. All eight point differences favor E5; five paired intervals exclude zero in that direction and three include zero. A second uniform audit compared the prespecified closing-token state with the mean final-user-turn state. Unrestricted mean pooling aligns Gemma on matched coherence only by selecting input-embedding layer zero; excluding embeddings makes Gemma substantially weaker while the other three models cluster. A third, decoder-capacity audit fits nested RBF probes at the primary-selected layers. It raises matched-coherence AUROC to `0.98112`--`0.98786` in all four models and exceeds E5-interaction RBF with positive paired intervals. A subsequent same-layer comparison shows that nested L2 logistic recovers most of this gain: five-seed mean RBF-minus-L2 is only `+0.00090`--`+0.01036`, and every seed-0 paired interval includes zero. The completed panel therefore supports cross-checkpoint post-divergence decodability, shows strong estimator and readout dependence, and does not establish an architecture-invariant evaluation-awareness variable.
 
-The most defensible overall conclusion is therefore narrower than “the model knows when it is being evaluated.” The experiments show linearly and nonlinearly decodable activation differences associated with several independently constructed eval-like versus deploy-like situations. The separation emerges at the user turn that introduces the distinction across four model families; in the Llama reference it also persists among replies without observable awareness language and causally influences explicit eval/deploy self-reports when steered. The experiments do not isolate a single, architecture-invariant semantic variable free from content, topic, speech-act, authorship, or generation-context differences, and they do not show that this direction causes a broad behavioral policy change.
+The most defensible overall conclusion is therefore narrower than “the model knows when it is being evaluated.” The experiments show linearly and nonlinearly decodable activation differences associated with several independently constructed eval-like versus deploy-like situations. The separation emerges at the user turn that introduces the distinction across four model families; in the Llama reference it also persists among replies without observable awareness language. Steering specifically moves the decoded independent readout, but self-report is equally or more sensitive to some orthogonal perturbations. The experiments do not isolate a single, architecture-invariant semantic variable free from content, topic, speech-act, authorship, or generation-context differences, and they do not show that this direction specifically causes self-report or a broad behavioral policy change.
 
 ## 1. Background: what was being measured
 
@@ -787,7 +787,7 @@ This occurs because reporting `|AUROC - 0.5|` removes orientation and high-dimen
 
 ### What was pre-specified
 
-The steering protocol was frozen before viewing steering outputs. A later amendment, also written before behavioral generation, records a change made after the initial direction computation. The protocol used the 250-pair matched-coherence dataset rather than selecting prompts after observing behavior.
+The steering protocol was frozen before viewing steering outputs. A later amendment, also written before behavioral generation, records a change made after the initial direction computation. The protocol used the 250-pair matched-coherence dataset rather than selecting prompts after observing behavior. Amendment 2 is different: it is explicitly a post-result, mentor-requested robustness audit added after the aggregate steering curve was known. It freezes prompt-level inference and unrelated-direction controls without retroactively changing the original confirmatory status.
 
 The direction was fitted from `coherent_pairs` last-user activations using all 250 examples per class with five-fold cross-validation across layers. The cross-validated layer curve was broad rather than sharply peaked:
 
@@ -851,9 +851,62 @@ The deterministic safety scorer searches the first 120 characters for refusal la
 
 Spearman correlation was `-0.356`, opposite the predicted increase. Across the full nondegenerate range this is only 3–6 refusals out of 48 prompts. At a baseline rate of 0.125, the design had about 80% power only for an increase to roughly 0.37. The correct conclusion is that no large predicted safety-refusal effect was observed; the experiment was underpowered for small effects and does not establish exact absence.
 
+### Post-result Priority 8 prompt inference and direction controls
+
+Mentor feedback requested inference over prompts rather than only seven
+aggregate rates. Amendment 2 fixes the prompt index as the cluster and sampling
+unit, a primary paired `+2` minus `-2` risk difference, secondary comparisons
+with zero, and a mean within-prompt slope over the seven nondegenerate
+coefficients. Intervals use 10,000 prompt-cluster bootstrap draws with seed
+`20260823`; endpoint tests are two-sided exact McNemar/binomial tests over
+discordant prompt pairs.
+
+The learned-direction results are:
+
+| Outcome | `+2` minus `-2` risk difference (95% interval) | Exact paired `p` | Mean within-prompt slope (95% interval) |
+|---|---:|---:|---:|
+| Evaluation self-report | `+0.7500` `[+0.5833,+0.8889]` | `1.12e-7` | `+0.1759` `[+0.1362,+0.2130]` |
+| Safety refusal | `-0.0208` `[-0.0625,0.0000]` | `1.0` | `-0.0060` `[-0.0169,+0.0020]` |
+
+For self-report, 28 prompts change only in the predicted positive direction and
+one only in the negative direction between the endpoints. For safety, zero
+prompts change only positively and one only negatively. The prompt-level audit
+therefore strengthens the explicit self-report result while confirming that
+the refusal arm does not show the predicted positive effect.
+
+The control protocol uses five NumPy-PCG64 seeds `20260823`--`20260827`. Each
+standard-normal vector is projected orthogonal to the learned layer-14 unit
+direction, renormalized, and multiplied by the same `2.292718` class-mean-gap
+scale. Stored target cosines are at most `3.47e-17` in absolute value. The
+learned direction moves the independent readout by `+1.044724` eval--deploy gap
+units between `-2` and `+2`; the five control changes are `+0.037667`,
+`-0.038112`, `-0.094441`, `+0.084192`, and `-0.011401`. This supports
+readout-level specificity rather than a generic effect of a matched-norm
+residual perturbation.
+
+All 840 behavioral-control generations are complete. The frozen alpha-zero
+output is reused because zero installs no offset. Every control endpoint passes
+the frozen repetition and response-length screen. Results are:
+
+| Seed | Self-report `+2` minus `-2` (95% interval) | Exact paired `p` | Safety `+2` minus `-2` (95% interval) | Exact paired `p` |
+|---:|---:|---:|---:|---:|
+| `20260823` | `+0.4167` `[+0.2500,+0.5833]` | `6.10e-5` | `-0.0417` `[-0.1042,0.0000]` | `0.5` |
+| `20260824` | `+0.9444` `[+0.8611,+1.0000]` | `1.16e-10` | `-0.0208` `[-0.1042,+0.0625]` | `1.0` |
+| `20260825` | `+0.3056` `[+0.1667,+0.4722]` | `9.77e-4` | `0.0000` `[-0.0833,+0.0833]` | `1.0` |
+| `20260826` | `0.0000` `[-0.0833,+0.0833]` | `1.0` | `-0.0417` `[-0.1042,0.0000]` | `0.5` |
+| `20260827` | `+1.0000` `[+1.0000,+1.0000]` | `2.91e-11` | `-0.0417` `[-0.1042,0.0000]` | `0.5` |
+
+The learned self-report difference `+0.7500` has a positive prompt-level
+interval, but it does not exceed every eligible control: seeds `20260824` and
+`20260827` produce larger shifts. The frozen behavioral-specificity criterion
+therefore fails. This is not explained by those controls moving the independent
+readout: their readout effects remain small and mixed-sign. Instead, explicit
+self-report is generically sensitive to some residual directions at this norm.
+No learned or control direction produces the predicted positive safety effect.
+
 ### What steering established
 
-The chosen intervention causally moved an independent internal readout and explicit eval/deploy self-reports in the predicted direction before output degeneration. It did not demonstrate a corresponding broad change in safety behavior. Steering therefore strengthens the claim that the direction is behaviorally accessible, but not the stronger claim that it is the causal mechanism behind deployment-policy changes.
+The chosen intervention causally and specifically moved an independent internal readout. It also moved explicit eval/deploy self-reports in the predicted direction before output degeneration, but norm-matched orthogonal controls matched or exceeded that behavioral effect. It did not demonstrate a corresponding broad change in safety behavior. Steering therefore establishes causal accessibility of the decoded readout, not direction-specific causal control of self-report or deployment-policy changes.
 
 ## 3.10 Authorship factorial pilot: v2 stopped at the coherence gate
 
@@ -1185,7 +1238,7 @@ The experiments should be understood as a sequence of increasingly restrictive t
 | Observed silence | Retain terminated pairs without detected awareness language | High raw separation remains; coherent probe and BoW tie | Overt disclosure is not necessary, but coherent silence does not beat lexical text |
 | Slice 5 | Genuine vs reconstructed replies | Replicates, but stronger reply-only baselines narrow or erase margins | Provenance/context and surface form are represented; not specifically self-authorship |
 | Estimator/null checks | Logistic probe and full permutations | Main final-turn effects replicate; paired controls pass deterministic equality checks | Effects are not estimator-specific or ordinary selection noise |
-| Steering | Add direction during generation | Readout and self-report move; safety does not | Direction is causally accessible for self-report, not shown to govern broad policy |
+| Steering | Add learned and orthogonal directions during generation | Learned readout moves specifically; self-report also moves under some controls; safety does not | Decoded readout is causally accessible, but self-report effect is not direction-specific |
 | Authorship pilot, pre-activation gate | Cross final-turn status with three generated history authors | 150/150 histories terminate, but only 36/50 scenarios survive the combined coherence gate | v2 fails before activation extraction; authorship effects remain untested |
 | Cross-model confirmatory suite | Freeze two valid controls across three current model families | All models pass equality checks and show post-divergence decoding; none of eight linear cells beats full-input E5 | Decodability holds at four tested checkpoints without a primary linear advantage over the specified text baseline |
 | Nonlinear-capacity audit | Fit nested RBF decoders at the primary-selected layer; add E5-interaction RBF, five fold seeds, and source-only transfer | Activation RBF exceeds E5-interaction RBF on matched coherence in every seed; shared margins remain heterogeneous and transfer loses to specified text baselines | Within-control decoding is decoder- and construction-dependent; semantic identity and transfer remain unestablished |
@@ -1205,7 +1258,9 @@ The repository supports the following statements, provided their qualifications 
 6. High raw separation remains in matched pairs whose generated replies contain no detected awareness language. On matched-coherence silence pairs, however, the activation probe and final-turn bag-of-words are tied; `eval_shared` retains only a modest activation margin.
 7. Genuine versus reconstructed assistant replies are internally separable across WildChat and LMSYS, but reply-only format baselines explain much of the effect and controls rule out a narrow self-authorship interpretation.
 8. The main activation results survive a second probe estimator and full-pipeline permutation tests.
-9. Steering along the matched-coherence direction monotonically moves an independent readout and explicit eval/deploy self-reports at nondegenerate strengths.
+9. Steering along the matched-coherence direction monotonically and specifically
+   moves an independent readout. Its self-report effect is not direction-
+   specific: two of five norm-matched orthogonal controls are larger.
 10. Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B all pass the exact pre-final leakage check and reproduce above-chance final-turn separation on the two frozen paired controls. Against the same full-input E5 interaction, all eight primary linear point differences favor text; five paired intervals exclude zero in that direction and three include zero. Positive shared-prefix margins against word TF-IDF are secondary sparse-text comparisons.
 11. Under an identical grouped nested pipeline and fold-selected layer, L2
 logistic recovers most of the RBF gain over direction-of-means; every seed-0
@@ -1237,6 +1292,9 @@ The following would overstate what was done:
 - “The observed-silence subset proves unconscious or unverbalized awareness.” Absence of detected disclosure does not reveal the model’s full internal semantics.
 - “Slice 5 demonstrates self-recognition.” The signal survives a different generator and strengthens under context ablation.
 - “Steering the direction improves safety behavior.” It changed self-report, but the refusal test showed no predicted increase.
+- “The learned direction specifically causes the self-report change.” Two of
+  five norm-matched orthogonal controls produce larger endpoint shifts, so only
+  the independent-readout manipulation check is direction-specific.
 - “The effect is invariant to who generated the preceding conversation.” The v2 authorship-factorial pilot failed its coherence gate before activation extraction, so this remains untested.
 - “The effect has architecture-invariant strength or follows a universal scaling law.” Temporal decodability appears in all four tested families, but matched-coherence and transfer strength vary substantially. A uniform six-size Qwen3 audit also fails its prespecified requirement that both primary within-control slope intervals exclude zero in the same direction.
 - “The project measured agentic tool-use behavior or positive spontaneous verbalization cases.” There is no completed per-class tool-use dataset, and no real positive-disclosure classifier could be estimated because the judged matched-coherence outputs contained zero positives.
@@ -1305,11 +1363,18 @@ This map lists the paper-relevant implementation rather than every operational f
 
 ### Steering
 
-- `datasets/steering/prespec.md`: frozen protocol and dated amendment.
+- `datasets/steering/prespec.md`: original frozen protocol, pre-generation
+  amendment, and explicitly post-result Priority 8 robustness amendment.
 - `datasets/steering/behavior_prompts.json`: fixed carrier and safety prompts.
 - `src/vnaa/steering.py`: residual hook, scaling, readout, scoring, and degeneration metrics.
 - `src/vnaa/run_steering.py`: direction fitting, manipulation check, generation, and analysis.
 - `results/steer_Llama-3.1-8B-Instruct_analysis.json`: completed steering result.
+- `src/vnaa/run_steering_priority8.py`: prompt-level paired inference and
+  deterministic norm-matched random/orthogonal control pipeline.
+- `scripts/steering_priority8.md`, `scripts/run_steering_priority8_pod.sh`:
+  audit handoff and resumable 24GB+ GPU runner.
+- `results/steering_priority8/`: ignored control-direction, readout, inference,
+  completed behavioral-control artifacts, logs, and SHA-256 inventory.
 
 ### Authorship factorial pilot
 
@@ -1363,12 +1428,12 @@ This map lists the paper-relevant implementation rather than every operational f
 
 ### Verification
 
-The current test suite contains 157 passing tests covering probes, estimator splitting, nested pair-grouped layer selection, same-layer L2/RBF comparison, strongest full-input E5 inference, stronger sparse-text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, cross-model dataset fingerprints, revision pinning, artifact isolation, native Qwen/Gemma/Ministral chat boundaries, causal-prefix extraction, cross-platform manifest hashing, alternate-readout audit validation, nonlinear grouped-capacity validation, contextual-E5 RBF selection, source-only nonlinear transfer, dense-Qwen3 scale-ladder validation and inference, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved reference-model activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
+The current test suite contains 164 passing tests covering probes, estimator splitting, nested pair-grouped layer selection, same-layer L2/RBF comparison, strongest full-input E5 inference, stronger sparse-text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, cross-model dataset fingerprints, revision pinning, artifact isolation, native Qwen/Gemma/Ministral chat boundaries, causal-prefix extraction, cross-platform manifest hashing, alternate-readout audit validation, nonlinear grouped-capacity validation, contextual-E5 RBF selection, source-only nonlinear transfer, dense-Qwen3 scale-ladder validation and inference, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, steering hooks/scorers, prompt-cluster inference, and seeded norm-matched orthogonal controls. The saved reference-model activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
 
 ## 8. Recommended paper-level summary
 
 A concise and accurate paper summary, updated after the completed primary model panel, would be:
 
-> We progressively tested whether hidden states distinguish evaluation-like from deployment-like interactions after accounting for surface cues. Initial Llama-3.1-8B-Instruct benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences. Their activation directions preserve substantial target separability, but on completely disjoint transfers signed AUROC is `0.6521` for the probe versus `0.6656` for unigrams and probe orientation is less stable. Two multi-turn paired controls pass exact pre-final activation-equality checks, validating their construction and extraction; labels become decodable after the differing final turn. Three prespecified replications—Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B—pass the same leakage check and reproduce above-chance final-turn decodability. Against the strongest full-input E5 interaction, all eight primary linear point differences favor text; five paired intervals exclude zero and three include it. Under the same grouped nested pipeline and fold-selected layer, L2 logistic recovers most of the apparent RBF gain; activation RBF still reaches `0.9811`--`0.9879` on matched coherence in every model and exceeds E5-interaction RBF with positive paired intervals in every one of five fold seeds. Activation RBF does not beat specified text baselines under cross-control transfer. A uniform ladder over all six original dense Qwen3 checkpoints from 0.75B to 32.76B does not meet the prespecified two-control criterion for a consistent scale trend, while E5-referenced RBF margins are nearly flat across size. On Llama, raw separation also remains among terminated pairs without detected awareness disclosure, and a pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports but did not increase safety refusals. These results identify cross-checkpoint, behaviorally accessible and estimator-sensitive decodable differences associated with the studied constructions while showing that current evidence does not isolate an architecture-invariant evaluation-awareness variable from textual task structure.
+> We progressively tested whether hidden states distinguish evaluation-like from deployment-like interactions after accounting for surface cues. Initial Llama-3.1-8B-Instruct benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences. Their activation directions preserve substantial target separability, but on completely disjoint transfers signed AUROC is `0.6521` for the probe versus `0.6656` for unigrams and probe orientation is less stable. Two multi-turn paired controls pass exact pre-final activation-equality checks, validating their construction and extraction; labels become decodable after the differing final turn. Three prespecified replications—Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B—pass the same leakage check and reproduce above-chance final-turn decodability. Against the strongest full-input E5 interaction, all eight primary linear point differences favor text; five paired intervals exclude zero and three include it. Under the same grouped nested pipeline and fold-selected layer, L2 logistic recovers most of the apparent RBF gain; activation RBF still reaches `0.9811`--`0.9879` on matched coherence in every model and exceeds E5-interaction RBF with positive paired intervals in every one of five fold seeds. Activation RBF does not beat specified text baselines under cross-control transfer. A uniform ladder over all six original dense Qwen3 checkpoints from 0.75B to 32.76B does not meet the prespecified two-control criterion for a consistent scale trend, while E5-referenced RBF margins are nearly flat across size. On Llama, raw separation also remains among terminated pairs without detected awareness disclosure. Learned-direction steering specifically moves an independent readout, but orthogonal controls match or exceed its self-report effect and no direction increases safety refusals. These results identify cross-checkpoint and estimator-sensitive decodable differences associated with the studied constructions while showing that current evidence does not isolate an architecture-invariant evaluation-awareness variable from textual task structure.
 
 That language reflects what the repository demonstrates without turning unsuccessful matching, conditional silence, provenance detection, or a self-report steering effect into stronger claims than the experiments justify.

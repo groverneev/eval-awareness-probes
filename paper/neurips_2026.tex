@@ -133,12 +133,13 @@ previously attributed to nonlinear capacity. RBF probes still outperform a
 capacity-matched E5-interaction RBF on the coherence-matched control
 across all four model families, but do not transfer better than text between
 controls. Across six Qwen3 sizes, the results fail our prespecified criterion
-for a consistent scaling trend. Steering the decoded direction changes an
-independent activation readout and the model's explicit reports of whether it
-is being evaluated, but produces no detectable change in safety refusals. Taken
-together, these results show widespread decodability of evaluation-like versus
-deployment-like situations without establishing a universal,
-content-independent representation of evaluation awareness.
+for a consistent scaling trend. Steering the decoded direction moves an
+independent readout and changes evaluation self-reports, but some norm-matched
+orthogonal random directions cause equally large or larger self-report shifts;
+none produces a meaningful safety-refusal change. Taken together, these results
+show widespread decodability of evaluation-like versus deployment-like
+situations without establishing a universal, content-independent
+representation of evaluation awareness.
 \end{abstract}
 
 \section{Introduction}
@@ -165,9 +166,10 @@ believes it is being evaluated, while \emph{policy use} means that its perceived
 evaluation status influences task-relevant behavior. These properties may
 dissociate. We therefore treat text-controlled and cross-construction
 generalization as tests of whether a decoded signal supports the stronger
-evaluation-awareness interpretation, self-report steering as evidence of causal
-control over the model's evaluation report, and refusal steering as one narrow
-test of policy use.
+evaluation-awareness interpretation, self-report steering with unrelated-
+direction controls as a test of direction-specific causal control over the
+model's evaluation report, and refusal steering as one narrow test of policy
+use.
 
 Linear probes offer one possible white-box diagnostic, and recent work finds
 that evaluation and deployment prompts are separable in residual-stream
@@ -197,9 +199,10 @@ the four model families. Regularized logistic probes recover most of the
 same-layer RBF gain; activation RBF exceeds a capacity-matched E5-interaction
 RBF under coherence matching but not text baselines in cross-control transfer;
 and margins do not vary consistently with Qwen3 model size across both
-controls. Fourth, steering changes an independent activation readout and
-explicit evaluation self-report, but produces no detectable change in safety
-refusals. Together, these results establish widespread post-divergence
+controls. Fourth, steering the learned direction specifically moves an
+independent readout, but its self-report effect is not specific relative to
+norm-matched orthogonal directions, and no predicted safety-refusal effect
+appears. Together, these results establish widespread post-divergence
 decodability without identifying a universal, content-independent
 representation of evaluation awareness.
 
@@ -347,7 +350,9 @@ by adding the coherence-matched direction to the residual stream during
 generation. An independent readout trained on the other control checks that the
 intervention moves the intended quantity. We then score explicit
 evaluation/deployment self-reports and safety refusals under a protocol fixed
-before behavioral generation.
+before behavioral generation. A post-result robustness audit adds paired
+prompt-level inference and five seeded, norm-matched random directions projected
+orthogonal to the learned direction.
 
 \FloatBarrier
 \section{Results}
@@ -518,41 +523,31 @@ comparator by one common E5 vector shifts margin levels but leaves each paired
 slope unchanged; nonlinear margins are also nearly flat (Figure~\ref{fig:qwen-scale}).
 Appendix~\ref{app:qwen-scale} reports exact values and status.
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\linewidth]{figures/qwen_scale_ladder.pdf}
-  \caption{Within-family Qwen3 scale ladder. \textbf{(a)} Primary linear probe
-  minus the full-input E5 interaction, with 95\% pair-bootstrap intervals and
-  fitted slopes. Using one common text vector changes margin levels but not the
-  prespecified slopes; only the coherence-matched interval excludes zero.
-  \textbf{(b)} Activation RBF minus E5-interaction RBF, mean $\mathbin{\pm}$ SD
-  over five grouped-fold seeds, remains nearly flat with size.}
-  \label{fig:qwen-scale}
-\end{figure}
-
-\subsection{Steering changes self-report, not refusals}
+\subsection{Self-report steering is not direction-specific}
 
 The prespecified intervention passes its manipulation check: an independent
 readout moves monotonically with strength (Spearman $\rho=1.00$), and explicit
 evaluation self-reports rise from $0.139$ at coefficient $-2$ to $0.889$ at
-$+2$ ($\rho=0.991$). Changing the direction therefore changes the model's own
-classification of the setting.
+$+2$ ($\rho=0.991$). At the prompt level, the paired endpoint risk difference
+is $+0.750$ (95\% prompt-bootstrap interval $[+0.583,+0.889]$; exact paired
+$p=1.12\times10^{-7}$).
+
+However, the behavioral effect is not specific to the learned direction. Five
+seeded, norm-matched orthogonal directions yield self-report risk differences
+$+0.417,+0.944,+0.306,0.000,$ and $+1.000$ under the same $-2$ versus $+2$
+comparison; all pass the frozen output-quality screen, and two exceed the
+learned effect. By contrast, their independent-readout changes range only from
+$-0.094$ to $+0.084$ class-gap units, versus $+1.045$ for the learned direction.
+Thus the manipulation check is direction-specific, but the self-report shift is
+not: it may reflect generic direction-dependent sensitivity of the report to
+residual-stream perturbation rather than causal use of the decoded feature.
 
 Safety-refusal rates remain between $0.062$ and $0.125$ and trend slightly
-opposite to the prediction. With 48 prompts, the test has approximately 80\%
-power only against an increase from $0.125$ to about $0.37$; it rules out a
-large refusal effect, not smaller policy changes. Steering establishes causal
-access to self-report without showing control over broader safety behavior.
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\linewidth]{figures/steering_effects.pdf}
-  \caption{Steering moves the independent readout and explicit self-report, but
-  not refusal behavior. \textbf{(a)} Independent readout. \textbf{(b)} Evaluation
-  self-report rate. \textbf{(c)} Safety-refusal rate. Shaded, hollow endpoints
-  violate the frozen output-degeneracy rule and are excluded from trends.}
-  \label{fig:steering}
-\end{figure}
+opposite to the prediction. The learned endpoint difference is $-0.021$
+($[-0.063,0.000]$), while the five controls range from $-0.042$ to $0.000$.
+With 48 prompts, the test has approximately 80\% power only against an increase
+from $0.125$ to about $0.37$; it rules out a large refusal effect, not smaller
+policy changes.
 
 \FloatBarrier
 \section{Discussion}
@@ -560,8 +555,9 @@ access to self-report without showing control over broader safety behavior.
 \subsection{What the direction may represent}
 
 Under the hierarchy above, our experiments establish widespread prompt-category
-decodability and causal control over evaluation self-report. They do not
-establish a construction-invariant representation of evaluation status or
+decodability and direction-specific control of an independent activation
+readout. They do not establish direction-specific causal control over evaluation
+self-report, a construction-invariant representation of evaluation status, or
 task-policy use. Exact pre-final equality is an expected pipeline check, not
 awareness evidence. The post-divergence result shows only that labels become
 decodable after the texts first differ; it does not determine whether the
@@ -578,8 +574,8 @@ and RBF probes bring all four close to ceiling within each control without
 improving cross-control transfer, while the Qwen3 ladder shows no consistent
 trend across both controls. Single-turn
 separability transfers more reliably than label orientation. Together with the
-self-report-only steering result, these findings support architecture- and
-construction-dependent directions rather than a shared, unitary measure of
+nonspecific self-report steering result, these findings support architecture-
+and construction-dependent directions rather than a shared, unitary measure of
 ``awareness'' or a demonstrated behavioral policy variable.
 
 \subsection{Implications for AI evaluation}
@@ -636,7 +632,9 @@ orientation than unigram transfer. The observed-silence analysis shows only an
 absence of detected disclosure, not an absence of internal reasoning or
 awareness. Finally, the steering refusal arm
 has only 48 prompts and can exclude large effects, not modest behavioral
-changes. These limits are why our central claim concerns the validity of current
+changes. The self-report arm is also intervention-sensitive in a way that is
+not specific to the learned direction: two of five orthogonal controls exceed
+its endpoint effect. These limits are why our central claim concerns the validity of current
 probe evidence rather than whether any model definitively knows it is being
 evaluated.
 
@@ -648,13 +646,16 @@ differing user message. The primary linear probes do not outperform the
 full-input E5 interaction; activation RBF exceeds E5-interaction RBF only in the
 coherence-matched within-control analysis and does not beat specified text
 baselines in cross-control transfer. Separability transfers more reliably than
-orientation, the Qwen3 ladder shows no consistent trend across both controls,
-and steering changes self-report without a detectable safety-refusal effect.
+orientation, the Qwen3 ladder shows no consistent trend across both controls.
+Learned-direction steering specifically moves an independent readout, but its
+self-report shift is matched or exceeded by orthogonal directions, and no
+predicted safety-refusal effect appears.
 
 The evidence therefore reaches different levels: it is strong for
 prompt-category decodability, limited for construct-level generalization,
-positive for causal control of evaluation self-report, and inconclusive for
-task-policy use. Probe accuracy alone therefore does not identify evaluation
+positive for causal control of the independent readout, insufficient for
+direction-specific causal control of evaluation self-report, and inconclusive
+for task-policy use. Probe accuracy alone therefore does not identify evaluation
 awareness or which abstraction the model represents. Probe-based auditing
 remains promising, but stronger semantic claims require
 controls that separate evaluation status from textual form, competitive text
@@ -842,6 +843,18 @@ slope $-0.0529$ $[-0.0664,-0.0389]$, whereas coherent-to-shared has slope
 $-0.0002$ $[-0.0156,+0.0149]$. These six checkpoints test an internal-family
 pattern for this pipeline, not a universal scaling law.
 
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{figures/qwen_scale_ladder.pdf}
+  \caption{Within-family Qwen3 scale ladder. \textbf{(a)} Primary linear probe
+  minus the full-input E5 interaction, with 95\% pair-bootstrap intervals and
+  fitted slopes. Using one common text vector changes margin levels but not the
+  prespecified slopes; only the coherence-matched interval excludes zero.
+  \textbf{(b)} Activation RBF minus E5-interaction RBF, mean $\mathbin{\pm}$ SD
+  over five grouped-fold seeds, remains nearly flat with size.}
+  \label{fig:qwen-scale}
+\end{figure}
+
 \FloatBarrier
 \subsection{Cross-model readout sensitivity}
 \label{app:readout-sensitivity}
@@ -1005,6 +1018,59 @@ $-2,-1,-0.5,0,0.5,1,2$, evaluation self-report rates are respectively
 $0.139,0.611,0.667,0.778,0.806,0.889,0.889$. Safety-refusal rates over the same
 grid are $0.083,0.104,0.104,0.125,0.104,0.083,0.062$. Coefficients $\pm4$ fail
 the frozen repetition/degeneracy rule and are excluded from both trends.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{figures/steering_effects.pdf}
+  \caption{Learned-direction steering curves. \textbf{(a)} Independent readout.
+  \textbf{(b)} Evaluation self-report rate. \textbf{(c)} Safety-refusal rate.
+  Shaded, hollow endpoints violate the frozen output-degeneracy rule and are
+  excluded from trends. Orthogonal controls establish readout specificity but
+  not self-report specificity (text and Table~\ref{tab:steering-controls}).}
+  \label{fig:steering}
+\end{figure}
+
+\subsection{Prompt-level steering inference and orthogonal controls}
+\label{app:steering-controls}
+
+A post-result mentor-requested audit treats prompt index as the sampling unit.
+For the learned direction, the paired $+2$ minus $-2$ self-report risk difference
+is $+0.750$ ($[+0.583,+0.889]$; exact McNemar $p=1.12\times10^{-7}$), while the
+safety difference is $-0.021$ ($[-0.063,0.000]$; $p=1.0$). Mean within-prompt
+slopes over all seven nondegenerate coefficients are $+0.176$
+($[+0.136,+0.213]$) and $-0.006$ ($[-0.017,+0.002]$), respectively.
+
+Each control is a seeded standard-normal layer-14 vector projected exactly
+orthogonal to the learned unit direction, renormalized, and multiplied by the
+same class-mean-gap scale. All ten control endpoints pass the frozen quality
+screen. Table~\ref{tab:steering-controls} reports the paired effects.
+
+\begin{table}[h]
+  \caption{Paired $+2$ minus $-2$ risk differences for the learned and
+  norm-matched orthogonal directions. Intervals are 95\% prompt bootstraps.}
+  \label{tab:steering-controls}
+  \centering
+  \small
+  \begin{tabular}{lrr}
+    \toprule
+    Direction & Self-report difference & Safety difference \\
+    \midrule
+    Learned & $+0.750$ $[+0.583,+0.889]$ & $-0.021$ $[-0.063,0.000]$ \\
+    Seed 20260823 & $+0.417$ $[+0.250,+0.583]$ & $-0.042$ $[-0.104,0.000]$ \\
+    Seed 20260824 & $+0.944$ $[+0.861,+1.000]$ & $-0.021$ $[-0.104,+0.063]$ \\
+    Seed 20260825 & $+0.306$ $[+0.167,+0.472]$ & $0.000$ $[-0.083,+0.083]$ \\
+    Seed 20260826 & $0.000$ $[-0.083,+0.083]$ & $-0.042$ $[-0.104,0.000]$ \\
+    Seed 20260827 & $+1.000$ $[+1.000,+1.000]$ & $-0.042$ $[-0.104,0.000]$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The learned direction moves the independent readout by $+1.045$ eval--deploy
+gap units, versus $-0.094$ to $+0.084$ for the controls. It therefore passes
+readout specificity but fails the frozen behavioral-specificity criterion:
+two orthogonal directions cause larger self-report shifts. The result supports
+causal accessibility of the decoded readout, not a direction-specific causal
+link to self-report.
 
 \section{Failed and rejected controls}
 \label{app:failures}

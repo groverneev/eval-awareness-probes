@@ -73,10 +73,12 @@ exceeding it by about `+0.036`--`+0.038` on matched coherence at every size.
 On the Llama reference model, separation remains among terminated reply pairs
 without detected awareness disclosure. A pre-specified residual intervention
 also moves an independent activation readout and explicit evaluation/deployment
-self-reports in the predicted direction. It does not increase safety refusals.
-The defensible conclusion is therefore that the studied constructions induce
-cross-family, behaviorally accessible activation directions whose strength and
-meaning remain entangled with textual task structure.
+self-reports in the predicted direction, but two of five norm-matched orthogonal
+directions produce larger self-report shifts. Neither learned nor control
+directions increase safety refusals. The defensible conclusion is therefore
+that the studied constructions induce cross-family, decodable activation
+directions whose behavioral meaning remains entangled with textual task
+structure and generic intervention sensitivity.
 
 ## Common analysis conventions
 
@@ -89,8 +91,9 @@ format, or speech act. **Evaluation self-report** is the model's report of
 whether it believes it is being evaluated. **Policy use** means that perceived
 evaluation status influences task-relevant behavior. Text-controlled and
 cross-construction generalization test the construct interpretation;
-self-report steering tests causal control of the report; and refusal steering
-is one narrow policy-use test. These properties may dissociate.
+self-report steering with unrelated-direction controls tests direction-specific
+causal control of the report; and refusal steering is one narrow policy-use
+test. These properties may dissociate.
 
 The primary reference model is `meta-llama/Llama-3.1-8B-Instruct`. The frozen
 cross-family confirmation panel contains Qwen3-8B, Gemma-3-12B-IT, and
@@ -358,8 +361,37 @@ correlation `0.991`. Safety-refusal rates were
 12.5% baseline refusal rate, the experiment rules out a large predicted effect
 but is underpowered for small effects.
 
-The intervention causally moves the independent readout and explicit
-eval/deploy self-report. It is not shown to govern broad safety policy.
+A post-result mentor-requested audit preserves prompts as the inference unit.
+For self-report, the paired `+2` minus `-2` risk difference is `+0.7500`, with
+a 95% prompt-bootstrap interval `[+0.5833,+0.8889]` and two-sided exact McNemar
+`p=1.12e-7`; the mean within-prompt slope across all seven nondegenerate
+coefficients is `+0.1759` per alpha unit (`[+0.1362,+0.2130]`). For safety, the
+endpoint risk difference is `-0.0208` (`[-0.0625,0.0000]`, exact `p=1.0`) and
+the mean within-prompt slope is `-0.0060` (`[-0.0169,+0.0020]`). Thus the
+self-report result survives prompt-level inference while the refusal result
+does not show the predicted positive effect.
+
+The same audit freezes five seeded, norm-matched random directions projected
+orthogonal to the learned direction. On the independent readout, the learned
+direction moves `+1.0447` eval--deploy gap units from `-2` to `+2`; the five
+controls range from `-0.0944` to `+0.0842`, with mixed signs. This supports
+readout-level direction specificity.
+
+All 840 control-direction behavioral generations are complete. Every endpoint
+passes the frozen output-quality screen. The five paired self-report risk
+differences are `+0.4167`, `+0.9444`, `+0.3056`, `0.0000`, and `+1.0000`; their
+95% prompt-bootstrap intervals are respectively `[+0.2500,+0.5833]`,
+`[+0.8611,+1.0000]`, `[+0.1667,+0.4722]`, `[-0.0833,+0.0833]`, and
+`[+1.0000,+1.0000]`. Two controls exceed the learned-direction effect of
+`+0.7500`, so the frozen behavioral-specificity criterion fails. Safety risk
+differences are `-0.0417`, `-0.0208`, `0.0000`, `-0.0417`, and `-0.0417`; none
+shows the predicted positive effect.
+
+The intervention causally and specifically moves the independent readout, but
+the self-report shift is not learned-direction-specific. The experiment does
+not establish causal use of the decoded feature in self-report or broad safety
+policy; it instead reveals generic direction-dependent sensitivity of the
+self-report endpoint to residual-stream perturbation.
 
 ### 9. Authorship-factorial pilot
 
@@ -576,8 +608,10 @@ attached:
    but controls rule out a narrow self-authorship interpretation.
 11. Main activation effects survive a second estimator and full-pipeline
    permutation tests.
-12. Steering moves an independent activation readout and explicit self-report,
-    but not safety refusals.
+12. Learned-direction steering specifically moves an independent activation
+    readout, but its self-report shift is not direction-specific: two of five
+    norm-matched orthogonal controls exceed it. No direction produces the
+    predicted positive safety-refusal effect.
 13. Four tested checkpoints pass the exact pre-final leakage check and show
     post-divergence decodability and model-by-readout sensitivity without a
     primary linear advantage over the specified E5 baseline.
@@ -607,6 +641,9 @@ The repository does not support the following:
 - Observed silence proves unconscious or unverbalized awareness.
 - Slice 5 demonstrates self-recognition.
 - Steering improves safety behavior or establishes a broad policy mechanism.
+- The learned direction specifically causes the self-report shift. Two of five
+  norm-matched orthogonal controls produce larger effects despite the learned
+  direction's specific independent-readout manipulation check.
 - The effect is invariant to history authorship; the relevant pilot failed
   before activation extraction.
 - The effect has architecture-invariant strength, a consistent trend across

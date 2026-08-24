@@ -129,3 +129,63 @@ than assumed.
 
 Neither change touches the outcome measures, the scoring rules, the degeneracy
 thresholds, or the predictions.
+
+## Amendment 2 — 23 August 2026, post-result mentor-requested robustness audit
+
+This amendment is written after the original aggregate steering results were
+known and is therefore a **post-result audit**, not a retroactive part of the
+confirmatory steering arm. Mentors requested two additions: inference that
+preserves the repeated-prompt structure, and unrelated-direction controls. The
+existing prompts, generations, scoring rules, direction, selected layer, and
+degeneracy decisions remain unchanged.
+
+### Prompt-level inference on the existing generations
+
+The binary outcome is ``evaluation`` versus all other self-report labels for
+the 36 self-report prompts, and refusal versus non-refusal for the 48 safety
+prompts. Coefficients `-4` and `+4` remain excluded under the original frozen
+degeneracy rule. The prompt index is the sampling and clustering unit.
+
+The primary contrast for each outcome is the paired risk difference at
+`alpha = +2` minus `alpha = -2`. Secondary paired contrasts compare `+2` with
+`0` and `-2` with `0`. Each contrast reports the two rates, paired risk
+difference, a 95% percentile interval from 10,000 prompt-cluster bootstrap
+draws, the discordant-pair counts, and a two-sided exact McNemar/binomial test.
+Bootstrap seed `20260823` is fixed here.
+
+As a complementary whole-curve summary, fit an ordinary least-squares slope
+within each prompt over the seven nondegenerate coefficients
+`{-2,-1,-0.5,0,0.5,1,2}` and average those prompt-level slopes. Report a 95%
+percentile interval by resampling prompts with the same 10,000-draw bootstrap.
+The aggregate Spearman curve remains descriptive; it is not the inferential
+unit. Secondary contrasts are labeled secondary rather than treated as three
+independent confirmatory tests.
+
+### Norm-matched random/orthogonal direction controls
+
+At the already selected layer 14, construct five control directions with
+NumPy `PCG64` seeds `20260823` through `20260827`. For each seed, draw an
+isotropic standard-normal vector in float64, subtract its projection onto the
+unit learned evaluation direction, and renormalize it to unit length. Thus the
+controls are reproducibly random and exactly orthogonal to the learned
+direction up to floating-point tolerance. They use the learned direction's
+existing class-mean-gap scale, the same residual hook, model, prompt sets,
+greedy decoding, token cap, and scoring rules.
+
+For every control direction, run the independent readout, self-report, and
+safety evaluations at `alpha = -2` and `alpha = +2`. The original learned
+direction's `alpha = 0` generations are reused because a zero intervention is
+direction-independent and the hook installs no offset. Do not regenerate or
+average multiple zero conditions. Apply the original degeneration veto to each
+control endpoint relative to that shared zero baseline.
+
+Report all five control directions individually; none is selected or removed
+based on its readout or behavioral result. For each outcome, report the same
+paired `+2` minus `-2` risk difference and prompt-bootstrap interval used for
+the learned direction. The learned-versus-control comparison is a specificity
+diagnostic, not a five-sample null-distribution significance test. In
+particular, a learned-direction effect is described as direction-specific only
+if it has the predicted sign, its prompt-bootstrap interval excludes zero, and
+its magnitude exceeds every nondegenerate control-direction point estimate.
+Safety and degeneration results are reported regardless of whether this rule
+is met.
