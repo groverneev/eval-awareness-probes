@@ -20,6 +20,7 @@ from pathlib import Path
 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -53,6 +54,7 @@ DEFAULT_AUDIT_RESULTS = ROOT / "results/nonlinear_probe_audit"
 AUDIT_ID = "postresult_rbf_capacity_v1"
 DEFAULT_C_GRID = (0.1, 1.0, 10.0)
 DEFAULT_GAMMA_MULTIPLIERS = (0.25, 1.0, 4.0)
+DEFAULT_LOGISTIC_C_GRID = (0.001, 0.01, 0.1, 1.0)
 TEXT_KINDS = ("word_tfidf", "char_tfidf")
 DEFAULT_TEXT_GAMMA_GRID = (0.25, 0.5, 1.0, 2.0, 4.0)
 
@@ -93,6 +95,40 @@ def _fit_rbf(
             gamma=gamma,
             kernel="rbf",
             cache_size=1024,
+        ),
+    )
+    pipeline.fit(acts, labels)
+    return pipeline
+
+
+def logistic_configurations(
+    c_grid: tuple[float, ...] = DEFAULT_LOGISTIC_C_GRID,
+) -> list[dict[str, float]]:
+    """Return the fixed L2 grid in strong-to-weak regularization order."""
+    if not c_grid or any(value <= 0 for value in c_grid):
+        raise ValueError("logistic C values must be non-empty and positive")
+    return [{"C": float(value)} for value in c_grid]
+
+
+def _fit_l2_logistic(
+    acts: np.ndarray,
+    labels: np.ndarray,
+    config: dict[str, float],
+    seed: int,
+) -> object:
+    """Fit standardized L2 logistic regression on one training partition."""
+    acts = np.asarray(acts, dtype=np.float64)
+    labels = np.asarray(labels)
+    if acts.ndim != 2 or len(acts) != len(labels):
+        raise ValueError("logistic inputs must have shape (sample, feature)")
+    if len(np.unique(labels)) < 2:
+        raise ValueError("logistic fitting needs both classes")
+    pipeline = make_pipeline(
+        StandardScaler(),
+        LogisticRegression(
+            C=config["C"],
+            max_iter=5000,
+            random_state=seed,
         ),
     )
     pipeline.fit(acts, labels)
@@ -293,14 +329,71 @@ def select_rbf_config_grouped_cv(
     return configurations[int(np.argmax(scores))], scores
 
 
+def grouped_logistic_config_scores(
+    acts_pos: np.ndarray,
+    acts_neg: np.ndarray,
+    configurations: list[dict[str, float]],
+    n_folds: int,
+    seed: int,
+) -> np.ndarray:
+    """Pair-grouped inner-CV AUROC for each L2 configuration."""
+    acts_pos = np.asarray(acts_pos, dtype=np.float64)
+    acts_neg = np.asarray(acts_neg, dtype=np.float64)
+    if acts_pos.shape != acts_neg.shape or acts_pos.ndim != 2:
+        raise ValueError("paired logistic activations must share shape")
+    if not configurations:
+        raise ValueError("at least one logistic configuration is required")
+    n_pairs = len(acts_pos)
+    labels = np.r_[np.ones(n_pairs), np.zeros(n_pairs)]
+    pooled = np.r_[acts_pos, acts_neg]
+    held_scores = np.empty((2 * n_pairs, len(configurations)), dtype=np.float64)
+
+    for fold, (train_pairs, test_pairs) in enumerate(
+        pair_folds(n_pairs, n_folds, seed)
+    ):
+        train_idx = np.r_[train_pairs, n_pairs + train_pairs]
+        test_idx = np.r_[test_pairs, n_pairs + test_pairs]
+        for index, config in enumerate(configurations):
+            model = _fit_l2_logistic(
+                pooled[train_idx], labels[train_idx], config, seed + fold
+            )
+            held_scores[test_idx, index] = model.decision_function(
+                pooled[test_idx]
+            )
+
+    return np.asarray(
+        [
+            roc_auc_score(labels, held_scores[:, index])
+            for index in range(len(configurations))
+        ],
+        dtype=np.float64,
+    )
+
+
+def select_logistic_config_grouped_cv(
+    acts_pos: np.ndarray,
+    acts_neg: np.ndarray,
+    configurations: list[dict[str, float]],
+    n_folds: int,
+    seed: int,
+) -> tuple[dict[str, float], np.ndarray]:
+    """Select L2 regularization by grouped inner CV with stable tie-breaking."""
+    scores = grouped_logistic_config_scores(
+        acts_pos, acts_neg, configurations, n_folds, seed
+    )
+    return configurations[int(np.argmax(scores))], scores
+
+
 def grouped_nonlinear_oof_predictions(
     pair,
     n_folds: int,
     seed: int,
     configurations: list[dict[str, float]],
     include_text: bool = True,
+    logistic_configs: list[dict[str, float]] | None = None,
+    include_l2: bool = False,
 ) -> dict:
-    """Honest outer-fold predictions for DoM and the capacity-only RBF audit."""
+    """Honest same-layer outer predictions for DoM, optional L2, and RBF."""
     pos, neg, acts_pos, acts_neg = pair
     acts_pos = np.asarray(acts_pos, dtype=np.float64)
     acts_neg = np.asarray(acts_neg, dtype=np.float64)
@@ -313,7 +406,11 @@ def grouped_nonlinear_oof_predictions(
 
     n_pairs = len(pos)
     labels = np.r_[np.ones(n_pairs), np.zeros(n_pairs)]
+    if include_l2 and logistic_configs is None:
+        logistic_configs = logistic_configurations()
     prediction_names = ["direction_of_means", "rbf"]
+    if include_l2:
+        prediction_names.insert(1, "l2_logistic")
     if include_text:
         prediction_names.extend(BASELINES)
         pos_text, neg_text = differing_final_messages(pos, neg)
@@ -324,6 +421,8 @@ def grouped_nonlinear_oof_predictions(
     }
     selected_layers = []
     selected_layer_inner_aurocs = []
+    selected_logistic_configs = []
+    selected_logistic_inner_aurocs = []
     selected_rbf_configs = []
     selected_rbf_inner_aurocs = []
 
@@ -346,6 +445,15 @@ def grouped_nonlinear_oof_predictions(
         selected_layers.append(int(layer))
         selected_layer_inner_aurocs.append(float(layer_scores[layer]))
 
+        if include_l2:
+            logistic_config, logistic_scores = select_logistic_config_grouped_cv(
+                acts_pos[train_pairs, layer],
+                acts_neg[train_pairs, layer],
+                logistic_configs,
+                n_folds,
+                seed + fold,
+            )
+
         config, config_scores = select_rbf_config_grouped_cv(
             acts_pos[train_pairs, layer],
             acts_neg[train_pairs, layer],
@@ -357,6 +465,16 @@ def grouped_nonlinear_oof_predictions(
             acts_pos[train_pairs, layer], acts_neg[train_pairs, layer]
         ]
         y_train = labels[train_idx]
+        if include_l2:
+            logistic = _fit_l2_logistic(
+                x_train, y_train, logistic_config, seed + fold
+            )
+            predictions["l2_logistic"][test_idx] = logistic.decision_function(
+                x_test[:, layer]
+            )
+            selected_logistic_configs.append(dict(logistic_config))
+            selected_logistic_inner_aurocs.append(float(np.max(logistic_scores)))
+
         rbf = _fit_rbf(x_train, y_train, config)
         predictions["rbf"][test_idx] = rbf.decision_function(x_test[:, layer])
         selected_rbf_configs.append(dict(config))
@@ -374,6 +492,8 @@ def grouped_nonlinear_oof_predictions(
         "predictions": predictions,
         "selected_layers": selected_layers,
         "selected_layer_inner_aurocs": selected_layer_inner_aurocs,
+        "selected_logistic_configs": selected_logistic_configs,
+        "selected_logistic_inner_aurocs": selected_logistic_inner_aurocs,
         "selected_rbf_configs": selected_rbf_configs,
         "selected_rbf_inner_aurocs": selected_rbf_inner_aurocs,
     }
@@ -433,6 +553,29 @@ def summarize_nonlinear_predictions(
             seed,
         ),
     }
+    if "l2_logistic" in predictions:
+        result["selected_logistic_configs"] = run["selected_logistic_configs"]
+        result["selected_logistic_inner_aurocs"] = run[
+            "selected_logistic_inner_aurocs"
+        ]
+        result["l2_minus_direction_of_means"] = _paired_comparison(
+            labels,
+            predictions["l2_logistic"],
+            predictions["direction_of_means"],
+            clusters,
+            n_boot,
+            n_permutations,
+            seed,
+        )
+        result["rbf_minus_l2"] = _paired_comparison(
+            labels,
+            predictions["rbf"],
+            predictions["l2_logistic"],
+            clusters,
+            n_boot,
+            n_permutations,
+            seed,
+        )
     available_text = [
         name for name in (*BASELINES, "text_rbf") if name in predictions
     ]

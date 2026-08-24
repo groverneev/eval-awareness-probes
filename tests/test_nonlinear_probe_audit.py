@@ -4,7 +4,9 @@ from sklearn.metrics import roc_auc_score
 from vnaa.run_nonlinear_probe_audit import (
     grouped_nonlinear_oof_predictions,
     grouped_text_rbf_oof_predictions,
+    logistic_configurations,
     rbf_configurations,
+    select_logistic_config_grouped_cv,
     select_rbf_config_grouped_cv,
     text_rbf_configurations,
 )
@@ -29,6 +31,33 @@ def test_rbf_grid_rejects_empty_or_nonpositive_values():
             pass
         else:
             raise AssertionError("invalid RBF grid was accepted")
+
+
+def test_logistic_grid_rejects_empty_or_nonpositive_values():
+    for c_grid in ((), (0.0,), (-1.0,)):
+        try:
+            logistic_configurations(c_grid)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("invalid logistic grid was accepted")
+
+
+def test_grouped_logistic_selection_is_deterministic():
+    rng = np.random.default_rng(7)
+    pos = rng.normal(loc=0.5, size=(30, 6))
+    neg = rng.normal(loc=-0.5, size=(30, 6))
+    configs = logistic_configurations((0.001, 0.01, 0.1))
+
+    first, first_scores = select_logistic_config_grouped_cv(
+        pos, neg, configs, n_folds=3, seed=2
+    )
+    second, second_scores = select_logistic_config_grouped_cv(
+        pos, neg, configs, n_folds=3, seed=2
+    )
+
+    assert first == second
+    np.testing.assert_allclose(first_scores, second_scores)
 
 
 def test_grouped_rbf_selection_is_deterministic():
@@ -68,13 +97,17 @@ def test_rbf_recovers_xor_missed_by_direction_of_means():
         seed=0,
         configurations=rbf_configurations((0.1, 1.0, 10.0), (0.5, 1.0)),
         include_text=False,
+        include_l2=True,
     )
     labels = run["labels"]
     dom = roc_auc_score(labels, run["predictions"]["direction_of_means"])
+    l2 = roc_auc_score(labels, run["predictions"]["l2_logistic"])
     rbf = roc_auc_score(labels, run["predictions"]["rbf"])
 
     assert 0.35 < dom < 0.65
+    assert 0.35 < l2 < 0.65
     assert rbf > 0.95
+    assert len(run["selected_logistic_configs"]) == 4
     assert len(run["selected_rbf_configs"]) == 4
 
 
@@ -90,14 +123,17 @@ def test_outer_predictions_cover_every_row_once_and_preserve_pairs():
         seed=0,
         configurations=rbf_configurations((1.0,), (1.0,)),
         include_text=False,
+        include_l2=True,
     )
 
     assert np.isfinite(run["predictions"]["direction_of_means"]).all()
+    assert np.isfinite(run["predictions"]["l2_logistic"]).all()
     assert np.isfinite(run["predictions"]["rbf"]).all()
     np.testing.assert_array_equal(
         run["cluster_ids"][:n_pairs], run["cluster_ids"][n_pairs:]
     )
     assert len(run["selected_layers"]) == 3
+    assert len(run["selected_logistic_configs"]) == 3
 
 
 def test_text_rbf_is_nested_deterministic_and_pair_complete():

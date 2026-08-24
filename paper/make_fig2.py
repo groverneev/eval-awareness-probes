@@ -1,4 +1,4 @@
-"""Figure 2: temporal localization, text-comparator hierarchy, cross-model margins."""
+"""Figure 2: leakage check, text-comparator hierarchy, cross-model margins."""
 
 from __future__ import annotations
 
@@ -28,13 +28,12 @@ COMPARATORS = [
     ("char_tfidf", "Char TF-IDF"),
 ]
 
-CROSS_MODEL_PATHS = {
-    "Qwen3-8B": "cross_model/v2/Qwen-Qwen3-8B-a82fd54762/full/analysis.json",
-    "Gemma-3-12B": "cross_model/v2/google-gemma-3-12b-it-4abc260aaf/full/analysis.json",
-    "Ministral-3-8B": (
-        "cross_model/v2/mistralai-Ministral-3-8B-Instruct-2512-BF16-18a1530627"
-        "/full/analysis.json"
-    ),
+FULL_CONTEXT_PATH = RESULTS_DIR / "full_context_linear_comparison/analysis.json"
+MODEL_REPOSITORIES = {
+    "Llama-3.1-8B": "meta-llama/Llama-3.1-8B-Instruct",
+    "Qwen3-8B": "Qwen/Qwen3-8B",
+    "Gemma-3-12B": "google/gemma-3-12b-it",
+    "Ministral-3-8B": "mistralai/Ministral-3-8B-Instruct-2512-BF16",
 }
 
 
@@ -87,20 +86,29 @@ def panel_temporal(axis, estimator: dict) -> None:
     axis.set_ylabel("Probe AUROC")
     axis.grid(axis="y", color=GRID, linewidth=0.5)
     axis.set_axisbelow(True)
-    figstyle.panel_label(axis, "a", "Temporal localization")
+    figstyle.panel_label(axis, "a", "Leakage check")
     figstyle.despine(axis)
 
 
-def panel_hierarchy(axis, within: dict) -> None:
+def panel_hierarchy(axis, within: dict, full_context: dict) -> None:
     """Every text comparator against the probe, on the Llama slice."""
-    rows = COMPARATORS + [("probe", "Probe")]
+    rows = COMPARATORS + [("e5_interaction", "E5 interaction"), ("probe", "Probe")]
     y = np.arange(len(rows))
     height = 0.36
 
     for control_index, (key, label, color, _marker) in enumerate(CONTROLS):
         aurocs = within[key]["aurocs"]
         offset = height / 2 - height * control_index
-        values = [aurocs[name] for name, _ in rows]
+        values = [
+            (
+                full_context[key]["text_auroc"]
+                if name == "e5_interaction"
+                else full_context[key]["probe_auroc"]
+                if name == "probe"
+                else aurocs[name]
+            )
+            for name, _ in rows
+        ]
         bars = axis.barh(
             y + offset,
             [value - 0.5 for value in values],
@@ -110,10 +118,12 @@ def panel_hierarchy(axis, within: dict) -> None:
             edgecolor="none",
             label=label,
         )
-        # The probe is the comparison of interest; the text baselines are context.
+        # E5 is the main text comparator; sparse baselines provide the hierarchy.
         for bar_index, bar in enumerate(bars):
-            if rows[bar_index][0] != "probe":
-                bar.set_alpha(0.42)
+            if rows[bar_index][0] in dict(COMPARATORS):
+                bar.set_alpha(0.30)
+            elif rows[bar_index][0] == "e5_interaction":
+                bar.set_alpha(0.72)
 
     axis.axvline(0.5, color=NEUTRAL, linewidth=0.7)
     axis.set_yticks(y, [label for _, label in rows])
@@ -123,13 +133,13 @@ def panel_hierarchy(axis, within: dict) -> None:
     axis.set_xlabel("AUROC")
     axis.grid(axis="x", color=GRID, linewidth=0.5)
     axis.set_axisbelow(True)
-    figstyle.panel_label(axis, "b", "Text comparators")
+    figstyle.panel_label(axis, "b", "Text baseline hierarchy")
     figstyle.despine(axis)
     axis.tick_params(axis="y", length=0)
 
 
 def panel_cross_model(axis_outlier, axis_main, models: dict) -> None:
-    """Paired probe-minus-strongest-text margins, on a broken axis.
+    """Paired probe-minus-E5-interaction margins, on a broken axis.
 
     Gemma's coherence-matched margin remains separated from the near-zero
     margins, so the break keeps those intervals legible.
@@ -140,10 +150,10 @@ def panel_cross_model(axis_outlier, axis_main, models: dict) -> None:
     for control_index, (key, label, color, marker) in enumerate(CONTROLS):
         offset = -0.16 + 0.32 * control_index
         for index, name in enumerate(names):
-            bootstrap = models[name][key]["probe_minus_strongest"]["bootstrap"]
+            bootstrap = models[name][key]["probe_minus_text"]["bootstrap"]
             difference = bootstrap["difference"]
             low, high = bootstrap["ci_low"], bootstrap["ci_high"]
-            significant = low > 0
+            significant = low > 0 or high < 0
             for axis in (axis_outlier, axis_main):
                 axis.errorbar(
                     difference,
@@ -176,13 +186,13 @@ def panel_cross_model(axis_outlier, axis_main, models: dict) -> None:
     axis_outlier.xaxis.set_major_formatter(formatter)
     axis_main.xaxis.set_major_formatter(formatter)
 
-    axis_outlier.set_xlim(-0.125, -0.045)
-    axis_outlier.set_xticks([-0.10, -0.05])
+    axis_outlier.set_xlim(-0.125, -0.060)
+    axis_outlier.set_xticks([-0.10])
     axis_outlier.set_yticks(y, names)
     axis_outlier.spines["right"].set_visible(False)
 
-    axis_main.set_xlim(-0.042, 0.075)
-    axis_main.set_xticks([0.0, 0.05])
+    axis_main.set_xlim(-0.050, 0.012)
+    axis_main.set_xticks([-0.04, 0.0])
     axis_main.set_yticks(y, [])
     axis_main.spines["left"].set_visible(False)
     axis_main.axvline(0.0, color=NEUTRAL, linewidth=0.7)
@@ -201,8 +211,8 @@ def panel_cross_model(axis_outlier, axis_main, models: dict) -> None:
                 zorder=5,
             )
 
-    figstyle.panel_label(axis_outlier, "c", "Beyond-text margin")
-    axis_main.set_xlabel(r"Probe $-$ strongest text AUROC", x=0.15)
+    figstyle.panel_label(axis_outlier, "c", "Relative to E5 interaction")
+    axis_main.set_xlabel(r"Probe $-$ E5 interaction AUROC", x=0.05)
 
 
 def main() -> None:
@@ -214,14 +224,11 @@ def main() -> None:
     llama = load_json(
         RESULTS_DIR / "strong_baseline_audit_Llama-3.1-8B-Instruct_slice3.json"
     )["within"]
-
-    models = {"Llama-3.1-8B": llama}
-    models.update(
-        {
-            name: load_json(RESULTS_DIR / relative)["within"]
-            for name, relative in CROSS_MODEL_PATHS.items()
-        }
-    )
+    full_context = load_json(FULL_CONTEXT_PATH)["models"]
+    models = {
+        label: full_context[repository]
+        for label, repository in MODEL_REPOSITORIES.items()
+    }
 
     fig = plt.figure(figsize=(figstyle.TEXT_WIDTH_IN, 2.05))
     outer = fig.add_gridspec(
@@ -234,7 +241,7 @@ def main() -> None:
     axis_main = fig.add_subplot(inner[1])
 
     panel_temporal(axis_temporal, estimator)
-    panel_hierarchy(axis_hierarchy, llama)
+    panel_hierarchy(axis_hierarchy, llama, models["Llama-3.1-8B"])
     panel_cross_model(axis_outlier, axis_main, models)
 
     handles, labels = axis_temporal.get_legend_handles_labels()

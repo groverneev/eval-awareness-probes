@@ -29,6 +29,11 @@ never be written to committed files.
   ending/full-context/prefix--ending interaction audit with grouped predictions
   and paired probe comparisons. Local output is
   `results/contextual_text_baseline/contextual_text_baseline.json`.
+- `src/vnaa/run_full_context_linear_comparison.py`: CPU-only reprioritization
+  audit comparing every primary cross-model and Qwen-scale linear probe with
+  the cached full-input E5 prefix--ending interaction under paired inference.
+  Local output is
+  `results/full_context_linear_comparison/analysis.json`.
 - `src/vnaa/estimators.py`: honest direction-of-means and logistic estimators,
   training-only cross-validation, permutations, shuffled directions, and random-
   direction diagnostics.
@@ -142,6 +147,9 @@ never be written to committed files.
 - `src/vnaa/run_nonlinear_followup.py`: frozen-E5 RBF comparison, source-only
   nonlinear cross-control transfer, and five-seed stability analysis. It caches
   revision-pinned E5 features under the ignored results directory.
+- `src/vnaa/run_decoder_comparison.py`: CPU-only same-layer comparison of
+  direction-of-means, nested L2 logistic, and nested RBF across the frozen
+  four-checkpoint panel and five grouped-fold seeds.
 - `scripts/cross_model_confirmatory.md`: local smoke, rented-GPU execution,
   compute envelope, and artifact-copy checklist.
 - `results/cross_model/v2/{Qwen,google-gemma,mistralai-Ministral}*/full`: full
@@ -153,6 +161,9 @@ never be written to committed files.
 - `results/nonlinear_followup/`: cached E5 features, fixed-interaction
   inference, source-only nonlinear transfer, and five-seed per-model/combined
   outputs; ignored with the other reproducible result artifacts.
+- `results/decoder_comparison/`: completed per-model and combined same-layer
+  decoder analyses, including seed-0 paired inference; ignored with the other
+  reproducible result artifacts.
 - `results/qwen_scale/v1/`: all six full trajectory caches, primary analyses,
   validated paired predictions, SHA-256 inventories, and the 5,000-draw scale
   analysis; ignored because it contains large reproducible arrays.

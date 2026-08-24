@@ -1,7 +1,10 @@
-"""Figure 3: cross-construction transfer, probe against unigram counts.
+"""Figure 3: signed cross-construction transfer against unigram counts.
 
 The primary grid is the math-free one: GSM8K-derived items are removed from
 every cell first, because digit density alone nearly solves some contrasts.
+Signed target AUROC is primary because the source labels fix which direction
+means evaluation-like. Absolute distance from chance is retained only as a
+secondary measure of target separability when orientation is discarded.
 """
 
 from __future__ import annotations
@@ -45,24 +48,21 @@ def strength(auroc: float) -> float:
     return abs(auroc - 0.5)
 
 
-def margin_matrix(matrices: list[dict], cells: list[str]) -> np.ndarray:
-    """Seed-averaged probe-minus-unigram margin for every ordered transfer."""
+def signed_probe_matrix(matrices: list[dict], cells: list[str]) -> np.ndarray:
+    """Seed-averaged signed probe AUROC for every ordered transfer."""
     grid = np.full((len(cells), len(cells)), np.nan)
     for row, source in enumerate(cells):
         for column, target in enumerate(cells):
             if source == target:
                 continue
-            per_seed = [
-                strength(matrix[source]["to"][target]["probe"]["auroc"])
-                - strength(matrix[source]["to"][target]["bow"]["auroc"])
-                for matrix in matrices
-            ]
+            per_seed = [matrix[source]["to"][target]["probe"]["auroc"]
+                        for matrix in matrices]
             grid[row, column] = float(np.mean(per_seed))
     return grid
 
 
-def subset_summary(matrices, cells, pairs, shares_cell) -> list[tuple]:
-    """Probe and unigram strength, plus the paired margin, for each subset."""
+def subset_summary(matrices, cells, shares_cell) -> list[dict]:
+    """Signed AUROC, orientation, and secondary strength for each subset."""
     subsets = [
         ("Disjoint", lambda s, t: not shares_cell(s, t)),
         ("Shared cell", shares_cell),
@@ -79,39 +79,90 @@ def subset_summary(matrices, cells, pairs, shares_cell) -> list[tuple]:
         for matrix in matrices:
             entries = [matrix[s]["to"][t] for s, t in transfers]
             per_seed_probe.append(
-                float(np.mean([strength(e["probe"]["auroc"]) for e in entries]))
+                float(np.mean([e["probe"]["auroc"] for e in entries]))
             )
             per_seed_bow.append(
-                float(np.mean([strength(e["bow"]["auroc"]) for e in entries]))
+                float(np.mean([e["bow"]["auroc"] for e in entries]))
             )
-        margins = np.array(per_seed_probe) - np.array(per_seed_bow)
-        rows.append(
-            (
-                label,
-                len(transfers),
-                float(np.mean(per_seed_probe)),
-                float(np.mean(per_seed_bow)),
-                float(margins.mean()),
-                # Population SD over the five split seeds, matching the
-                # spread reported in the manuscript.
-                float(margins.std(ddof=0)),
-            )
+        probe_by_transfer = {
+            transfer: [
+                matrix[transfer[0]]["to"][transfer[1]]["probe"]["auroc"]
+                for matrix in matrices
+            ]
+            for transfer in transfers
+        }
+        bow_by_transfer = {
+            transfer: [
+                matrix[transfer[0]]["to"][transfer[1]]["bow"]["auroc"]
+                for matrix in matrices
+            ]
+            for transfer in transfers
+        }
+        majority = len(matrices) // 2 + 1
+        probe_oriented = sum(
+            sum(value > 0.5 for value in values) >= majority
+            for values in probe_by_transfer.values()
         )
+        bow_oriented = sum(
+            sum(value > 0.5 for value in values) >= majority
+            for values in bow_by_transfer.values()
+        )
+        probe_all_seeds = sum(
+            all(value > 0.5 for value in values)
+            for values in probe_by_transfer.values()
+        )
+        bow_all_seeds = sum(
+            all(value > 0.5 for value in values)
+            for values in bow_by_transfer.values()
+        )
+        signed_margins = np.array(per_seed_probe) - np.array(per_seed_bow)
+        strength_probe = [
+            float(np.mean([
+                strength(matrix[s]["to"][t]["probe"]["auroc"])
+                for s, t in transfers
+            ]))
+            for matrix in matrices
+        ]
+        strength_bow = [
+            float(np.mean([
+                strength(matrix[s]["to"][t]["bow"]["auroc"])
+                for s, t in transfers
+            ]))
+            for matrix in matrices
+        ]
+        strength_margins = np.array(strength_probe) - np.array(strength_bow)
+        rows.append({
+            "label": label,
+            "count": len(transfers),
+            "probe": float(np.mean(per_seed_probe)),
+            "probe_sd": float(np.std(per_seed_probe, ddof=0)),
+            "bow": float(np.mean(per_seed_bow)),
+            "bow_sd": float(np.std(per_seed_bow, ddof=0)),
+            "margin": float(signed_margins.mean()),
+            "margin_sd": float(signed_margins.std(ddof=0)),
+            "probe_oriented": probe_oriented,
+            "bow_oriented": bow_oriented,
+            "probe_all_seeds": probe_all_seeds,
+            "bow_all_seeds": bow_all_seeds,
+            "probe_strength": float(np.mean(strength_probe)),
+            "bow_strength": float(np.mean(strength_bow)),
+            "strength_margin": float(strength_margins.mean()),
+            "strength_margin_sd": float(strength_margins.std(ddof=0)),
+        })
     return rows
 
 
 def panel_heatmap(fig, axis, grid, cells, shares_cell) -> None:
     colormap = LinearSegmentedColormap.from_list(
-        "margin", [PURPLE, "#FFFFFF", GREEN], N=256
+        "signed_auroc", [PURPLE, "#FFFFFF", GREEN], N=256
     )
     colormap.set_bad("#F2F2F2")
-    limit = float(np.nanmax(np.abs(grid)))
 
     image = axis.imshow(
         np.ma.masked_invalid(grid),
         cmap=colormap,
-        vmin=-limit,
-        vmax=limit,
+        vmin=0.0,
+        vmax=1.0,
         aspect="auto",
     )
 
@@ -132,6 +183,18 @@ def panel_heatmap(fig, axis, grid, cells, shares_cell) -> None:
                     )
                 )
 
+            if source != target:
+                value = grid[row, column]
+                axis.text(
+                    column,
+                    row,
+                    f"{value:.2f}",
+                    ha="center",
+                    va="center",
+                    fontsize=5.2,
+                    color=NEUTRAL,
+                )
+
     labels = [DISPLAY_NAMES[cell] for cell in cells]
     axis.set_xticks(range(len(cells)), labels, rotation=38, ha="right")
     axis.set_yticks(range(len(cells)), labels)
@@ -146,7 +209,7 @@ def panel_heatmap(fig, axis, grid, cells, shares_cell) -> None:
         spine.set_visible(False)
 
     bar = fig.colorbar(image, ax=axis, fraction=0.055, pad=0.03)
-    bar.set_label(r"Probe $-$ unigram strength", labelpad=2)
+    bar.set_label("Probe signed target AUROC", labelpad=2)
     bar.outline.set_visible(False)
     bar.ax.tick_params(length=2, width=0.6)
 
@@ -155,51 +218,43 @@ def panel_heatmap(fig, axis, grid, cells, shares_cell) -> None:
 
 def panel_subsets(axis, rows) -> None:
     y = np.arange(len(rows))
-    for index, (_, _, probe, bow, _, _) in enumerate(rows):
+    for index, row in enumerate(rows):
+        probe, bow = row["probe"], row["bow"]
         axis.plot(
             [bow, probe], [y[index], y[index]], color=MUTED, linewidth=1.1, zorder=1
         )
-        axis.plot(
-            bow,
-            y[index],
-            marker="o",
-            markersize=4.4,
-            color="white",
-            markeredgecolor=NEUTRAL,
-            markeredgewidth=1.0,
-            zorder=2,
+        axis.errorbar(
+            bow, y[index], xerr=row["bow_sd"], fmt="o", markersize=4.4,
+            color="white", markeredgecolor=NEUTRAL, markeredgewidth=1.0,
+            ecolor=NEUTRAL, elinewidth=0.7, capsize=1.5, zorder=2,
             label="Unigram" if index == 0 else None,
         )
-        axis.plot(
-            probe,
-            y[index],
-            marker="o",
-            markersize=4.4,
-            color=GREEN,
-            zorder=2,
+        axis.errorbar(
+            probe, y[index], xerr=row["probe_sd"], fmt="o", markersize=4.4,
+            color=GREEN, ecolor=GREEN, elinewidth=0.7, capsize=1.5, zorder=2,
             label="Probe" if index == 0 else None,
         )
-
-    for index, (_, _, probe, bow, margin, sd) in enumerate(rows):
         axis.text(
-            (bow + probe) / 2,
-            y[index] - 0.22,
-            rf"$+{margin:.3f} \pm {sd:.3f}$",
-            fontsize=6.4,
+            0.995,
+            y[index] + 0.22,
+            f"oriented: P {row['probe_oriented']}/{row['count']}, "
+            f"U {row['bow_oriented']}/{row['count']}",
+            fontsize=5.7,
             color=NEUTRAL,
-            ha="center",
-            va="bottom",
+            ha="right",
+            va="top",
         )
 
-    axis.set_yticks(y, [f"{label}\n({count})" for label, count, *_ in rows])
+    axis.set_yticks(y, [f"{row['label']}\n({row['count']})" for row in rows])
     axis.set_ylim(len(rows) - 0.35, -0.65)
-    axis.set_xlim(0.08, 0.48)
-    axis.set_xticks([0.2, 0.3, 0.4])
-    axis.set_xlabel("Mean separation strength")
+    axis.set_xlim(0.45, 1.02)
+    axis.set_xticks([0.5, 0.75, 1.0])
+    axis.axvline(0.5, color=MUTED, linestyle="--", linewidth=0.7)
+    axis.set_xlabel(r"Mean signed target AUROC ($\pm$ seed SD)")
     axis.grid(axis="x", color=GRID, linewidth=0.5)
     axis.set_axisbelow(True)
     axis.legend(loc="upper right", bbox_to_anchor=(1.03, 1.03))
-    figstyle.panel_label(axis, "b", "By transfer subset")
+    figstyle.panel_label(axis, "b", "Signed transfer and orientation")
     figstyle.despine(axis)
     axis.tick_params(axis="y", length=0)
 
@@ -215,14 +270,27 @@ def main() -> None:
     def shares_cell(source: str, target: str) -> bool:
         return bool(pairs[source] & pairs[target])
 
-    grid = margin_matrix(matrices, cells)
-    rows = subset_summary(matrices, cells, pairs, shares_cell)
-    for label, count, probe, bow, margin, sd in rows:
-        print(f"{label:12s} n={count:2d} probe={probe:.5f} bow={bow:.5f} "
-              f"margin={margin:+.5f} +/- {sd:.5f}")
+    grid = signed_probe_matrix(matrices, cells)
+    rows = subset_summary(matrices, cells, shares_cell)
+    for row in rows:
+        print(
+            f"{row['label']:12s} n={row['count']:2d} "
+            f"signed probe={row['probe']:.5f} unigram={row['bow']:.5f} "
+            f"margin={row['margin']:+.5f} +/- {row['margin_sd']:.5f}; "
+            f"majority-oriented probe={row['probe_oriented']}/{row['count']} "
+            f"unigram={row['bow_oriented']}/{row['count']}; "
+            f"all-seed probe={row['probe_all_seeds']}/{row['count']} "
+            f"unigram={row['bow_all_seeds']}/{row['count']}"
+        )
+        print(
+            f"{'':12s} secondary strength probe={row['probe_strength']:.5f} "
+            f"unigram={row['bow_strength']:.5f} "
+            f"margin={row['strength_margin']:+.5f} "
+            f"+/- {row['strength_margin_sd']:.5f}"
+        )
 
     fig = plt.figure(figsize=(figstyle.TEXT_WIDTH_IN, 2.55))
-    outer = fig.add_gridspec(1, 2, width_ratios=[1.32, 1.0], wspace=0.62)
+    outer = fig.add_gridspec(1, 2, width_ratios=[1.32, 1.0], wspace=0.66)
     axis_heatmap = fig.add_subplot(outer[0])
     axis_subsets = fig.add_subplot(outer[1])
 

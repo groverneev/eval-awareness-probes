@@ -30,12 +30,12 @@ The terms used throughout are:
 
 The project began with a simple but heavily confounded contrast: benchmark-like evaluation prompts versus real user prompts. Llama-3.1-8B-Instruct activations separated the two almost perfectly, but surface classifiers also separated them almost perfectly. That established that the activation pipeline worked, not that the model represented an abstract fact such as “I am being evaluated.”
 
-The next phase audited an existing public 2×2 dataset and built a new four-cell single-turn dataset. Attempts to eliminate surface separation were unsuccessful: format and bag-of-words gates failed. The analysis therefore shifted from asking whether a probe was high in one contrast to asking whether a probe trained on one independently constructed eval/deploy contrast transferred to another better than the same surface baselines. On the math-free Slice 2b transfer grid, the probe’s mean off-diagonal separation strength exceeded bag-of-words by `0.07108 ± 0.01341` across five split seeds. A later audit shows that this average contains two regimes: the margin was `0.04754 ± 0.01538` across the 20 completely disjoint train–target transfers and `0.11815 ± 0.01335` across the 10 transfers whose source and target pairs shared one cell. The completely disjoint number is the cleaner generalization result.
+The next phase audited an existing public 2×2 dataset and built a new four-cell single-turn dataset. Attempts to eliminate surface separation were unsuccessful: format and bag-of-words gates failed. The analysis therefore shifted from asking whether a probe was high in one contrast to asking whether a probe trained on one independently constructed eval/deploy contrast transferred to another. A signed-orientation audit later corrected the interpretation of this experiment. On the 20 completely disjoint ordered transfers, mean signed target AUROC is `0.65209` for the probe versus `0.66565` for bag of words. Probe orientation is preserved in a majority of seeds for 15/20 transfers and in all five seeds for 12/20, compared with 17/20 and 15/20 for bag of words. Folding orientation away still gives the historical strength margin `+0.04754 ± 0.01538`, but that metric counts reversed directions as successful. Slice 2b therefore shows reusable target separability, not a more consistently oriented evaluation-like direction than unigram transfer.
 
 The multi-turn phase first created matched deployment, disguised-evaluation, and obvious-evaluation conversations. Its surface gate also failed, and the disguised-evaluation lead-ins themselves leaked the label before the final question. That version is not a clean awareness result. Two stronger controls were then built:
 
-- `eval_shared` retained a real-derived deployment conversation and changed only the final user turn to an evaluation question. Its prefix was byte-identical between classes. The probe was at chance before the changed turn (`0.49847 ± 0.00111`) and highly separating after it (`0.99168 ± 0.00330` at the last-user boundary). This is a strong temporal-localization control, but the final turn also changes topic and speech act.
-- `coherent_pairs` constructed both sides together so that the prefix was byte-identical and the two final turns were topically coherent and stylistically matched. At the last-user boundary, the original repeated-holdout analysis gave probe `0.95132 ± 0.01147` versus bag-of-words `0.93337 ± 0.00680`. A later grouped five-fold audit added word and character TF-IDF baselines and direct pair-level inference. Under that stronger audit, the probe (`0.94682`) tied character TF-IDF (`0.94474`; difference `+0.00208`, 95% pair-bootstrap interval `[-0.01341, +0.01675]`). The activation advantage is therefore not established in-distribution.
+- `eval_shared` retained a real-derived deployment conversation and changed only the final user turn to an evaluation question. Its prefix was byte-identical between classes. Exact pre-final activation equality passes the deterministic leakage check; after the changed turn, AUROC is `0.99168 ± 0.00330`. The final turn also changes topic and speech act, so this localizes decoding only to post-text divergence.
+- `coherent_pairs` constructed both sides together so that the prefix was byte-identical and the two final turns were topically coherent and stylistically matched. At the last-user boundary, the original repeated-holdout analysis gave probe `0.95132 ± 0.01147` versus bag-of-words `0.93337 ± 0.00680`. A later grouped five-fold audit added word and character TF-IDF baselines and direct pair-level inference. The probe (`0.94682`) tied character TF-IDF (`0.94474`; difference `+0.00208`, 95% pair-bootstrap interval `[-0.01341, +0.01675]`) and the stronger full-input E5 interaction (`0.95325`; probe-minus-E5 `-0.00643`, `[-0.01850,+0.00590]`). The primary linear probe therefore has no established advantage over either specified comparator.
 
 To test whether the internal separation remained when the model did not say it was in an evaluation, the model generated greedy replies and pairs were kept only when both replies terminated and neither a regex, two-stage blinded judge procedure, nor manual audit found explicit or implicit evaluation awareness. Raw activation separation remained high, but the corrected final-turn bag-of-words baseline tied it on matched-coherence and came within about `0.045` strength on `eval_shared`. This is correctly described as separation conditional on observed silence, not proof that the model lacked unexpressed awareness or that the remaining separation is nonlexical.
 
@@ -43,7 +43,7 @@ Slice 5 asked a different question: can the model distinguish a genuine assistan
 
 Finally, a pre-specified steering experiment added the coherent-pair activation direction during generation. The manipulation moved an independent internal readout monotonically and shifted explicit self-reports in the predicted direction at nondegenerate intervention strengths. It did not produce the predicted increase in safety refusals. The behavioral safety test was small and low-base-rate, so it rules out only a large effect, not all effects.
 
-A frozen cross-model core then reran the two valid 250-pair temporal controls on Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B. Every model had exactly zero activation difference throughout the byte-identical prefix and nonzero final-turn differences. A post-result layer-selection audit found that the original within-control runner used saturated in-sample training AUROC. Uniform nested grouped selection corrected Gemma from `0.72667` to `0.97296` on `eval_shared` and from `0.64744` to `0.85902` on matched coherence, while leaving the other models nearly unchanged. With the primary linear probe, Llama, Qwen, and Ministral establish positive margins over text on `eval_shared`; Gemma's `+0.02003` margin is inconclusive, no model establishes an advantage on matched coherence, and neither transfer direction beats character TF-IDF. A second uniform audit compared the prespecified closing-token state with the mean final-user-turn state. Unrestricted mean pooling aligns Gemma on matched coherence only by selecting input-embedding layer zero; excluding embeddings makes Gemma substantially weaker while the other three models cluster. A third, nonlinear-capacity audit fits nested RBF probes at the primary-selected layers. It raises matched-coherence AUROC to `0.98112`--`0.98786` in all four models and beats capacity-matched nonlinear text with positive paired intervals. The completed panel therefore supports cross-family temporal decodability, shows strong probe-geometry and readout dependence, and does not establish an architecture-invariant evaluation-awareness variable.
+A frozen cross-model core then reran the two valid 250-pair controls on Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B. Every model had exactly zero activation difference throughout the byte-identical prefix, passing the deterministic leakage check, and nonzero final-turn differences. A post-result layer-selection audit found that the original within-control runner used saturated in-sample training AUROC. Uniform nested grouped selection corrected Gemma from `0.72667` to `0.97296` on `eval_shared` and from `0.64744` to `0.85902` on matched coherence, while leaving the other models nearly unchanged. A CPU-only reprioritization audit then compared every primary linear prediction vector with the same strongest full-input E5 interaction. All eight point differences favor E5; five paired intervals exclude zero in that direction and three include zero. A second uniform audit compared the prespecified closing-token state with the mean final-user-turn state. Unrestricted mean pooling aligns Gemma on matched coherence only by selecting input-embedding layer zero; excluding embeddings makes Gemma substantially weaker while the other three models cluster. A third, decoder-capacity audit fits nested RBF probes at the primary-selected layers. It raises matched-coherence AUROC to `0.98112`--`0.98786` in all four models and exceeds E5-interaction RBF with positive paired intervals. A subsequent same-layer comparison shows that nested L2 logistic recovers most of this gain: five-seed mean RBF-minus-L2 is only `+0.00090`--`+0.01036`, and every seed-0 paired interval includes zero. The completed panel therefore supports cross-checkpoint post-divergence decodability, shows strong estimator and readout dependence, and does not establish an architecture-invariant evaluation-awareness variable.
 
 The most defensible overall conclusion is therefore narrower than “the model knows when it is being evaluated.” The experiments show linearly and nonlinearly decodable activation differences associated with several independently constructed eval-like versus deploy-like situations. The separation emerges at the user turn that introduces the distinction across four model families; in the Llama reference it also persists among replies without observable awareness language and causally influences explicit eval/deploy self-reports when steered. The experiments do not isolate a single, architecture-invariant semantic variable free from content, topic, speech-act, authorship, or generation-context differences, and they do not show that this direction causes a broad behavioral policy change.
 
@@ -123,7 +123,7 @@ Because a learned direction can be inverted, the project also reports **separati
 \text{strength} = |\text{AUROC}-0.5|.
 \]
 
-An AUROC of 0.2 and an AUROC of 0.8 both mean strong separation, but with opposite orientation. Raw AUROC is still reported where direction matters, especially in transfer matrices.
+An AUROC of 0.2 and an AUROC of 0.8 both mean strong separation, but with opposite orientation. Signed target AUROC is primary in transfer analyses because the source labels fix which score direction means evaluation-like. Strength is retained only as a secondary target-separability diagnostic.
 
 ### 2.4 Surface baselines
 
@@ -133,7 +133,7 @@ Every important activation result is compared with classifiers using only prompt
 - A standardized logistic classifier on 13 hand-engineered structural features: line count, newline count, digit density, punctuation density, uppercase density, mean word length, option-marker count, question-mark count, colon count, parenthesis density, whether the text ends in a question mark, whitespace density, and mean line length.
 - A bag-of-words logistic classifier using `CountVectorizer`. The vocabulary is fitted on the training partition only.
 
-The important comparison is normally not “probe above chance.” It is the probe’s separation strength minus the strongest relevant surface baseline on exactly the same split. This was necessary because several legitimate eval/deploy differences, such as canonical-answer questions versus practical requests, cannot be removed without changing the construct.
+The important comparison is normally not “probe above chance.” Within a fixed construction, it is the probe’s performance relative to the strongest relevant surface baseline on exactly the same split. In transfer, signed AUROC and orientation consistency are primary; folded strength is secondary. This distinction is necessary because several legitimate eval/deploy differences, such as canonical-answer questions versus practical requests, cannot be removed without changing the construct.
 
 For multi-turn analyses, surface text is causal: a baseline never sees text after the corresponding activation read point. For an ordinary, non-paired conversation this means the full serialized conversation through that point. For a byte-identical-prefix matched pair, however, the primary baseline uses only the differing final message. The shared prefix occurs exactly once under each label, contains no population-level label signal for an additive classifier, and can only add finite-sample estimation noise. Thus:
 
@@ -146,7 +146,7 @@ This differing-segment rule was applied in an August 9, 2026 audit after the ini
 
 ### 2.5 Transfer analysis
 
-In a transfer experiment, a direction and its layer are selected on a source cell pair, frozen, and scored on a different target pair. The equivalent text classifier is trained on the source pair and applied to the target texts. This asks whether the separation survives a change in construction procedure.
+In a transfer experiment, a direction and its layer are selected on a source cell pair, frozen, and scored on a different target pair. The equivalent text classifier is trained on the source pair and applied to the target texts. Signed target AUROC asks whether the source label orientation survives a change in construction; folded strength asks only whether the target remains separable in either orientation.
 
 There is an important qualification. The primary transfer implementation uses a source pair’s 30% held-out partition to select the layer. The target pair is not consulted when it is completely disjoint from the source. However:
 
@@ -374,7 +374,8 @@ Aggregated over the diagonal cells, mean separation strengths were:
 | Bag of words | 0.4218 |
 | Length | 0.0260 |
 
-Aggregated over all 30 off-diagonal source–target transfers:
+The original analysis aggregated folded separation over all 30 off-diagonal
+source–target transfers:
 
 | Method | Mean transfer strength |
 |---|---:|
@@ -383,7 +384,7 @@ Aggregated over all 30 off-diagonal source–target transfers:
 | Bag of words | 0.22057 |
 | Length | 0.025995 |
 
-The activation-minus-bag-of-words transfer margin was `0.07108 ± 0.01341`. It was positive for every split seed, ranging from `0.05330` to `0.08771`.
+The activation-minus-bag-of-words strength margin was `0.07108 ± 0.01341`. It was positive for every split seed, ranging from `0.05330` to `0.08771`. This is evidence of target separability after discarding orientation, not of semantic directional consistency.
 
 Per training pair, the mean activation-minus-bag-of-words margins and the proportion of individual target/seed transfers won by the probe were:
 
@@ -400,17 +401,33 @@ Per training pair, the mean activation-minus-bag-of-words margins and the propor
 
 The published all-off-diagonal average is correct for the 30 matrix entries, but not all 30 are equally independent. Ten source–target pairs share one dataset cell. Twenty have no cell in common.
 
+Signed target AUROC and majority-seed orientation preservation are:
+
+| Transfer subset | Probe signed AUROC | Bag-of-words signed AUROC | Probe − BoW signed difference | Majority-oriented, probe / BoW |
+|---|---:|---:|---:|---:|
+| 20 completely disjoint transfers | 0.65209 | 0.66565 | `-0.01355 ± 0.01961` | 15/20 / 17/20 |
+| 10 transfers sharing one cell | 0.91874 | 0.80059 | `+0.11815 ± 0.01335` | 10/10 / 10/10 |
+| All 30 off-diagonals | 0.74098 | 0.71063 | `+0.03035 ± 0.01552` | 25/30 / 27/30 |
+
+On the disjoint subset, the probe preserves orientation in all five seeds for
+12/20 transfers, versus 15/20 for bag of words. Across 100 disjoint
+transfer-by-seed results, 26 probe AUROCs and 13 bag-of-words AUROCs fall below
+`0.5`. Four of the five per-seed signed probe-minus-bag-of-words means are
+negative.
+
+For completeness, the secondary folded-strength summary is:
+
 | Transfer subset | Probe strength | Bag-of-words strength | Probe − BoW margin |
 |---|---:|---:|---:|
 | 20 completely disjoint transfers | 0.22810 | 0.18055 | `+0.04754 ± 0.01538` |
 | 10 transfers sharing one cell | 0.41874 | 0.30059 | `+0.11815 ± 0.01335` |
 | All 30 off-diagonals | 0.29164 | 0.22057 | `+0.07108 ± 0.01341` |
 
-The disjoint margin was positive in all five seeds, ranging from approximately `+0.02597` to `+0.06776`. This is the cleanest summary of cross-procedure generalization because neither a cell nor its examples are reused in the target.
+The disjoint strength margin was positive in all five seeds, ranging from approximately `+0.02597` to `+0.06776`. Because it treats a perfectly reversed direction as successful, it is not evidence that the probe transfers a consistently oriented evaluation-like direction.
 
 ### Logistic-estimator check
 
-Replacing the direction of means with the standardized L2 logistic estimator preserved the main pattern:
+Replacing the direction of means with the standardized L2 logistic estimator preserved the folded-strength pattern:
 
 - mean off-diagonal logistic-probe strength: `0.27621`;
 - bag-of-words strength on the same transfer set: `0.22057`;
@@ -418,13 +435,13 @@ Replacing the direction of means with the standardized L2 logistic estimator pre
 - A/WC → public standard: `0.9580 ± 0.0226`;
 - public standard → A/WC: `0.6415 ± 0.0319`.
 
-Thus, the transfer and asymmetry findings are not unique to the direction-of-means estimator.
+Thus, target separability and asymmetry are not unique to the direction-of-means estimator. This historical check did not headline signed orientation and does not restore the stronger semantic-transfer claim.
 
 ### What Slice 2b established
 
-Slice 2b did not create a surface-invariant within-dataset contrast; its gate failed. It did establish that activation directions learned from several newly constructed contrasts generalized across independently constructed eval/deploy pairs better than the tested format and bag-of-words baselines, including on the stricter completely disjoint transfer subset. The residual interpretation remains “a shared internal direction associated with these eval/deploy constructions,” not a proof that all topical, speech-act, or authorship information has been removed.
+Slice 2b did not create a surface-invariant within-dataset contrast; its gate failed. Activation directions learned from several constructions preserve substantial separability on independently constructed targets, but their evaluation-like orientation reverses more often than the unigram classifier's. The result therefore demonstrates reusable construction-dependent separation, not a shared semantic direction or superior oriented transfer.
 
-## 3.5 Slice 3: multi-turn conversations and temporal localization
+## 3.5 Slice 3: multi-turn conversations, leakage checks, and post-divergence decoding
 
 ### Real deployment source pool
 
@@ -482,7 +499,7 @@ The writer had produced different synthetic lead-ins for the classes. Because th
 
 ### The `eval_shared` recombination control
 
-`eval_shared` fixes the pre-final leak by taking the deployment rewrite and replacing only its final user turn with the final user turn from the disguised-evaluation version. For every one of the 250 pairs, all messages before the final user turn are byte-identical. This yields a sharp temporal prediction: any genuine class separation must appear only after the changed final turn.
+`eval_shared` fixes the pre-final leak by taking the deployment rewrite and replacing only its final user turn with the final user turn from the disguised-evaluation version. For every one of the 250 pairs, all messages before the final user turn are byte-identical. Exact pre-final activation equality is therefore an expected deterministic leakage check; decoding results are interpreted only after the changed final turn.
 
 Current train-only reanalysis gives:
 
@@ -527,7 +544,7 @@ This sacrifices the realism of a genuinely sourced prefix in exchange for strong
 
 ### Pilot and full results
 
-The 50-pair pilot gave last-user AUROC `0.99733`, final-turn-only bag-of-words `0.96533`, format `0.67244`, and pre-final probe AUROC `0.50044`. The temporal prediction held before scaling, but the stronger lexical baseline accounted for most of the final-turn separation.
+The 50-pair pilot gave last-user AUROC `0.99733`, final-turn-only bag-of-words `0.96533`, format `0.67244`, and pre-final probe AUROC `0.50044`. Because the prefix should be identical, the pre-final value is a pipeline diagnostic rather than scientific evidence; the stronger lexical baseline accounted for most of the final-turn separation.
 
 On all 250 pairs, current train-only results were:
 
@@ -548,7 +565,7 @@ The two controls were built by different procedures and have different weaknesse
 | `eval_shared` → `coherent_pairs` | `0.85842 ± 0.03207` | `0.79154 ± 0.02343` | 0.61963 | 0.06688 |
 | `coherent_pairs` → `eval_shared` | `0.78791 ± 0.09936` | `0.67847 ± 0.04641` | 0.57931 | 0.10944 |
 
-These are completely independent constructions. The activation direction still transfers better than final-turn word counts, but the corrected margins are much smaller than under the noisy whole-conversation baseline. This supports some shared representation beyond unigram counts, not a large lexical-independent effect. The substantial seed variation in the coherent-to-shared direction should remain visible in any paper table.
+These are completely independent constructions. The activation direction still transfers better than final-turn word counts, but the corrected margins are much smaller than under the noisy whole-conversation baseline. This shows target separability relative to that specified unigram comparator, not a large lexical-independent effect. The substantial seed variation in the coherent-to-shared direction should remain visible in any paper table.
 
 ### Strong sparse-text audit and direct margin inference
 
@@ -559,14 +576,14 @@ The bag-of-words comparison above was not the end of the surface audit. A later 
 
 The audit uses grouped five-fold outer predictions for within-control results, keeping both members of every scenario pair in the same fold. After the cross-model layer-selection audit, the within-control layer is selected by pair-grouped CV nested inside each outer training fold. For transfer, layer and orientation are selected by grouped cross-validation on the source only, the final probe and text classifiers are fit on all source pairs, and every target pair is scored. Vocabularies and IDF weights are always fitted on source/training text only. Uncertainty is a 2,000-draw cluster bootstrap over matched scenarios. The one-sided p-value comes from 2,000 approximate-randomization draws that swap the probe and comparator prediction vectors within scenario; unlike the earlier label-permutation test, this directly tests the probe-minus-baseline AUROC difference.
 
-| Analysis | Probe | Strongest text baseline | Baseline AUROC | Probe − baseline | 95% pair-bootstrap interval | One-sided p |
+| Analysis | Probe | Strongest sparse-text baseline | Baseline AUROC | Probe − baseline | 95% pair-bootstrap interval | One-sided p |
 |---|---:|---|---:|---:|---:|---:|
 | `eval_shared`, grouped OOF | 0.98779 | word TF-IDF | 0.95293 | `+0.03486` | `[+0.01833, +0.05395]` | 0.00150 |
 | `coherent_pairs`, grouped OOF | 0.94682 | character TF-IDF | 0.94474 | `+0.00208` | `[-0.01341, +0.01675]` | 0.43778 |
 | `eval_shared` → `coherent_pairs` | 0.84496 | character TF-IDF | 0.86614 | `-0.02118` | `[-0.04887, +0.00811]` | 0.87856 |
 | `coherent_pairs` → `eval_shared` | 0.71874 | character TF-IDF | 0.84854 | `-0.12981` | `[-0.16654, -0.09081]` | 1.00000 |
 
-This changes the evidential chain. `eval_shared` retains a statistically reliable activation advantage over the stronger sparse-text set, although its topic/speech-act discontinuity remains. Matched coherence is tied by character n-grams. Most importantly, the earlier statement that activation directions transfer between the controls better than text was specific to unigram counts and does not survive character n-grams. Cross-control transfer remains evidence that both representations encode a shared distinction, but it is not evidence for an activation-specific component beyond the tested text classifiers.
+This changes the evidential chain. `eval_shared` has a positive probe-minus-word-TF-IDF margin, although its topic/speech-act discontinuity remains. Matched coherence is tied by character n-grams. Most importantly, the earlier statement that activation directions transfer between the controls better than text was specific to unigram counts and does not survive character n-grams. Cross-control transfer remains evidence that both representations encode a shared distinction, but the probe does not outperform the specified character classifier.
 
 ## 3.6 Observed-silence analysis
 
@@ -746,7 +763,7 @@ The final robustness run reanalyzed the main saved activation contrasts with bot
 | Shared context ablation, token | `0.86808 ± 0.01154` | `0.94680 ± 0.01465` |
 | Shared context ablation, mean | `0.80279 ± 0.02289` | `0.89762 ± 0.02550` |
 
-The logistic estimator generally increases predictive AUROC but does not change which controls pass or fail. The two identical-prefix pre-final contrasts remain exactly at chance.
+The logistic estimator generally increases predictive AUROC but does not change which controls pass or fail. The two identical-prefix controls pass exact pre-final equality checks; near-chance AUROC is an expected consequence rather than inferential evidence.
 
 ### Permutation tests
 
@@ -764,7 +781,7 @@ Two diagnostics were intentionally not treated as hypothesis tests:
 - A direction fitted after shuffling training labels can still have strength around `0.243–0.286` on strongly structured cells even though its signed AUROC averages near 0.5.
 - A random unit direction can have strength around `0.110–0.145`.
 
-This occurs because reporting `|AUROC - 0.5|` removes orientation and high-dimensional structured data contain many separating directions by chance. It means raw strength can overstate how probe-specific a pattern is. The valid significance check is the full-label permutation that repeats layer selection and evaluation, which the real final-turn contrasts pass and the pre-final controls do not.
+This occurs because reporting `|AUROC - 0.5|` removes orientation and high-dimensional structured data contain many separating directions by chance. It means raw strength can overstate how probe-specific a pattern is. Full-label permutations that repeat layer selection and evaluation test the final-turn contrasts; the byte-identical pre-final rows instead serve as deterministic leakage checks.
 
 ## 3.9 Pre-specified activation steering
 
@@ -874,7 +891,7 @@ sample.
 
 The initial grouped five-fold implementation qualitatively replicated the reference-model
 pattern. On `eval_shared`, the Qwen probe reached AUROC `0.99357` versus
-`0.95293` for the strongest text baseline (word TF-IDF), a paired difference of
+`0.95293` for the strongest sparse-text baseline (word TF-IDF), a paired difference of
 `+0.04064` with 95% pair-bootstrap interval `[+0.02364, +0.05982]` and
 one-sided paired-randomization `p=0.0050`. On `coherent_pairs`, the probe
 reaches `0.94653` versus character TF-IDF `0.94474`; the `+0.00179` difference
@@ -908,7 +925,7 @@ grouped source-only CV and is unchanged.
 
 The corrected replication table is:
 
-| Model | Endpoint | Probe | Strongest text | Difference (95% CI) | p |
+| Model | Endpoint | Probe | Strongest sparse text | Difference (95% CI) | p |
 |---|---|---:|---:|---:|---:|
 | Qwen3-8B | `eval_shared` within | 0.99192 | 0.95293 | `+0.03899` `[+0.02182, +0.05823]` | 0.0025 |
 | Qwen3-8B | coherent within | 0.94504 | 0.94474 | `+0.00030` `[-0.01628, +0.01643]` | 0.4918 |
@@ -923,15 +940,38 @@ The corrected replication table is:
 | Ministral-3-8B | eval -> coherent | 0.84232 | 0.86614 | `-0.02382` `[-0.05075, +0.00519]` | 0.9030 |
 | Ministral-3-8B | coherent -> eval | 0.87557 | 0.84854 | `+0.02702` `[-0.00619, +0.06111]` | 0.0660 |
 
-Together with the reference Llama result, exact temporal localization and
-above-chance final-turn decodability occur in all four families. The stronger
-primary-linear claim is heterogeneous: `eval_shared` establishes a positive paired advantage
-for Llama, Qwen, and Ministral, while Gemma's positive margin is inconclusive;
-matched coherence and both transfer directions fail
-to beat the strongest text baseline in every replication model. This is
-strong evidence that the temporal signal is not Llama-specific and that its
-linear strength is not architecture-invariant. The later nonlinear audit below
-changes the within-control capacity conclusion but not the transfer result.
+Together with the reference Llama result, the exact pre-final leakage check and
+above-chance final-turn decodability hold at all four tested checkpoints. In
+this historical sparse-text comparison, `eval_shared` has positive paired
+probe-minus-word-TF-IDF intervals for Llama, Qwen, and Ministral, while Gemma's
+includes zero; matched coherence and both transfer directions fail to beat the
+specified character baseline. The full-input audit below supersedes sparse text
+as the main within-control comparison; the later nonlinear audit changes the
+decoder-capacity conclusion but not transfer.
+
+### Strongest full-input linear text comparison
+
+The corrected table above is the historical sparse-text comparison. To make
+the strongest full-input baseline primary, a CPU-only audit reused the same
+nested probe predictions, immutable E5 feature cache, and paired inference.
+The text view concatenates frozen E5 prefix and ending embeddings with their
+absolute difference and elementwise product, then fits fixed L2 logistic
+regression in the same grouped folds. It was prespecified secondary in the
+post-result contextual audit; that status is retained even though it is now the
+main construct-validity comparator.
+
+| Model | Shared: probe / minus-E5 (95% CI) | Coherent: probe / minus-E5 (95% CI) |
+|---|---:|---:|
+| Llama-3.1-8B | 0.98779 / -0.00774 [-0.01557,-0.00150] | 0.94682 / -0.00643 [-0.01850,+0.00590] |
+| Qwen3-8B | 0.99192 / -0.00362 [-0.00878,+0.00062] | 0.94504 / -0.00821 [-0.02277,+0.00621] |
+| Gemma-3-12B-IT | 0.97296 / -0.02258 [-0.03572,-0.01134] | 0.85902 / -0.09422 [-0.12079,-0.06841] |
+| Ministral-3-8B | 0.98309 / -0.01245 [-0.02088,-0.00581] | 0.92790 / -0.02534 [-0.04490,-0.00504] |
+
+The E5 AUROCs are `0.99554` on shared prefix and `0.95325` on matched
+coherence. All eight point differences favor text; five intervals exclude zero
+and three include it. The primary linear claim is therefore performance below
+or statistically tied with this specified text baseline, not a baseline-free
+activation-specific claim.
 
 ### Post-result readout audit
 
@@ -968,7 +1008,7 @@ the models visually agree.
 
 ### Post-result nonlinear-capacity audit
 
-The next reviewer-facing question was whether the activation-versus-text
+The next reviewer-facing question was whether the probe-versus-specified-text
 conclusion was an artifact of testing only linear activation decoders. The
 uniform audit holds each outer fold's primary, train-only selected layer fixed
 and fits a standardized RBF SVM. `C` in `{0.1, 1, 10}` and kernel-width
@@ -999,11 +1039,49 @@ Relative to the primary linear probe, the matched-coherence RBF gains are
 Llama `+0.04016 [+0.02209,+0.05934]`, Qwen
 `+0.04282 [+0.02547,+0.06208]`, Gemma
 `+0.12210 [+0.09118,+0.15301]`, and Ministral
-`+0.05922 [+0.03426,+0.08519]`. Gemma therefore contains strong nonlinear
-final-token information at the same layer where the linear direction is weak;
-its primary anomaly is decoder-geometry dependent, not evidence that the cache
-lacks the distinction. This audit does not erase the linear result, identify
+`+0.05922 [+0.03426,+0.08519]`. This establishes that a learned RBF boundary
+can decode final-token information at the same layer where direction-of-means
+is weak; it is not evidence that the cache lacks the distinction. The later
+same-layer L2 comparison below shows that most of this recovery is not
+specifically nonlinear. This audit does not erase the primary result, identify
 the decoded feature semantically, or jointly search for nonlinear layers.
+
+### Post-result same-layer decoder comparison
+
+To separate nonlinear geometry from general estimator flexibility, the frozen
+activation caches were reanalyzed with direction-of-means, standardized L2
+logistic regression, and RBF SVC under one grouped nested pipeline. Each outer
+training partition selects the layer with the primary direction-of-means
+procedure. All three estimators use that same fold-specific layer; logistic
+`C` in `{0.001, 0.01, 0.1, 1}` and the existing RBF grid are selected using the
+same pair-grouped inner folds. No model is loaded and no activations are
+re-extracted. The complete comparison is repeated for outer-fold seeds 0--4.
+
+At fold seed 0:
+
+| Model | Shared direction-of-means / L2 / RBF | Coherent direction-of-means / L2 / RBF |
+|---|---:|---:|
+| Llama-3.1-8B | 0.98779 / 0.99483 / 0.99784 | 0.94682 / 0.98722 / 0.98698 |
+| Qwen3-8B | 0.99192 / 0.99834 / 0.99920 | 0.94504 / 0.98627 / 0.98786 |
+| Gemma-3-12B-IT | 0.97296 / 0.98755 / 0.98986 | 0.85902 / 0.97566 / 0.98112 |
+| Ministral-3-8B | 0.98309 / 0.99770 / 0.99877 | 0.92790 / 0.98494 / 0.98712 |
+
+On matched coherence, L2-minus-direction-of-means is `+0.04040`
+`[+0.02317,+0.05917]`, `+0.04123` `[+0.02384,+0.06043]`, `+0.11664`
+`[+0.08702,+0.14730]`, and `+0.05704` `[+0.03322,+0.08189]` for Llama,
+Qwen, Gemma, and Ministral. RBF-minus-L2 is instead `-0.00024`
+`[-0.00341,+0.00266]`, `+0.00158` `[-0.00094,+0.00438]`, `+0.00546`
+`[-0.00040,+0.01234]`, and `+0.00218` `[-0.00110,+0.00534]`; every interval
+includes zero. Across five seeds, coherence-matched mean L2 AUROC is `0.98746`,
+`0.98641`, `0.97402`, and `0.98644`, while mean RBF-minus-L2 is `+0.00090`,
+`+0.00225`, `+0.01036`, and `+0.00325`.
+
+Thus the robust recovery is primarily a learned multivariate linear-readout
+effect, not evidence that the distinction is encoded only in nonlinear
+geometry. Gemma retains the largest small RBF increment, but the seed-0
+interval does not exclude zero. This narrows the interpretation while
+strengthening the evidence that the primary direction-of-means result is
+estimator-sensitive.
 
 ### Nonlinear contextual baseline, transfer, and fold-seed stability
 
@@ -1058,22 +1136,25 @@ The scale audit was frozen before new activation extraction and includes all six
 original dense Qwen3 checkpoints: 0.6B, 1.7B, 4B, 8B, 14B, and 32B
 (0.75B--32.76B exact parameters). Every checkpoint used the same A100-SXM4-80GB
 pod, unquantized bfloat16 weights, causal-prefix extraction, 250 pairs per
-control, grouped folds, and strongest-text comparisons. The 8B checkpoint was
+control, grouped folds, and common text comparisons. The 8B checkpoint was
 re-extracted rather than borrowed from the cross-family panel. Its probe AUROC
 differences from the historical run were +0.00011 and +0.00158 on the two
 primary controls, below the frozen 0.01 audit threshold.
 
 | Exact size | Shared prefix (95% CI) | Matched coherence (95% CI) |
 |---|---:|---:|
-| 0.75B | +0.0144 [-0.0056,+0.0352] | -0.0035 [-0.0222,+0.0144] |
-| 2.03B | +0.0355 [+0.0171,+0.0554] | -0.0061 [-0.0251,+0.0117] |
-| 4.02B | +0.0341 [+0.0169,+0.0544] | -0.0046 [-0.0214,+0.0113] |
-| 8.19B | +0.0391 [+0.0219,+0.0583] | +0.0019 [-0.0149,+0.0181] |
-| 14.77B | -0.0003 [-0.0205,+0.0209] | +0.0092 [-0.0050,+0.0240] |
-| 32.76B | +0.0436 [+0.0266,+0.0634] | +0.0019 [-0.0169,+0.0200] |
+| 0.75B | -0.0283 [-0.0415,-0.0160] | -0.0120 [-0.0273,+0.0028] |
+| 2.03B | -0.0072 [-0.0149,-0.0008] | -0.0146 [-0.0308,+0.0010] |
+| 4.02B | -0.0085 [-0.0150,-0.0024] | -0.0131 [-0.0273,+0.0011] |
+| 8.19B | -0.0035 [-0.0087,+0.0008] | -0.0066 [-0.0212,+0.0076] |
+| 14.77B | -0.0429 [-0.0563,-0.0302] | +0.0007 [-0.0131,+0.0146] |
+| 32.76B | +0.0009 [-0.0028,+0.0048] | -0.0066 [-0.0218,+0.0093] |
 
-The 5,000-draw paired-scenario bootstrap resamples the same scenario IDs at
-every size and refits the OLS slope against log10 exact parameter count. The
+These entries are primary probe minus the full-input E5 interaction. The
+5,000-draw paired-scenario bootstrap resamples the same scenario IDs at every
+size and refits the OLS slope against log10 exact parameter count. Subtracting
+the same E5 prediction vector at every size leaves the frozen sparse-comparator
+slope unchanged. The
 shared-prefix slope is +0.0054 [-0.0017,+0.0129]; the matched-coherence slope is
 +0.0068 [+0.0013,+0.0132]. Only the latter excludes zero, so the prespecified
 same-direction criterion finds no consistent primary scale trend. Secondary
@@ -1084,7 +1165,7 @@ transfer is also asymmetric: shared-to-coherent declines with size
 The five-seed nonlinear audit remains nearly flat across size. Activation RBF
 minus fixed contextual E5 spans -0.0024 to +0.0036 on shared prefix and +0.0358
 to +0.0383 on matched coherence. This strengthens the claim that the
-activation-versus-text result is control- and decoder-dependent rather than
+E5-referenced activation margin is control- and decoder-dependent rather than
 consistently scale-predictable. Six checkpoints within one family do not
 establish a universal scaling law.
 
@@ -1096,19 +1177,19 @@ The experiments should be understood as a sequence of increasingly restrictive t
 |---|---|---|---|
 | Slice 1 | Benchmark eval vs real user prompts | Probe ≈0.99; surface classifiers ≈0.95–0.97 | Pipeline detects a heavily confounded distinction |
 | Slice 2a | Public 2×2 controls | Standard direction follows format; “matched” cells remain surface-separable | Existing controls do not isolate awareness under these baselines |
-| Slice 2b | New authorship/length-controlled cells and transfer | Gate fails, but cross-construction probe transfer beats baselines | A partly general direction is shared across constructions |
+| Slice 2b | New authorship/length-controlled cells and transfer | Gate fails; probe signed transfer is 0.652 vs 0.666 for unigrams and reverses more often | Target separability transfers, but not with a more stable probe orientation than text |
 | Slice 3, first written cells | Multi-turn matched skeletons | Signal appears before final question; surface gate fails | This version is not a valid temporal control |
-| `eval_shared` | Byte-identical prefix; only final turn swapped | Chance before swap, ≈0.992 after | Signal is introduced at the class-defining final turn |
-| `coherent_pairs` | Byte-identical coherent prefix and topic-matched endings | ≈0.951 vs final-turn BoW ≈0.933; chance before final turn | High separation remains, but is largely lexical in-distribution |
-| Cross-control transfer | Train on one multi-turn control, test the other | Probe beats unigram counts, but character TF-IDF reaches 0.866/0.849 vs probe 0.845/0.719 in the grouped audit | Transfer does not establish an activation-specific component beyond stronger text features |
+| `eval_shared` | Byte-identical prefix; only final turn swapped | Equality check passes; probe 0.988 vs full-input E5 0.996 after | Labels are decodable after divergence, but the linear probe is below the specified E5 baseline |
+| `coherent_pairs` | Byte-identical coherent prefix and topic-matched endings | Equality check passes; probe 0.947 vs full-input E5 0.953 | High post-divergence separation remains, but the linear probe ties the specified E5 baseline |
+| Cross-control transfer | Train on one multi-turn control, test the other | Character TF-IDF reaches 0.866/0.849 vs probe 0.845/0.719 in the grouped audit | Probe transfer does not outperform the specified character baseline |
 | Observed silence | Retain terminated pairs without detected awareness language | High raw separation remains; coherent probe and BoW tie | Overt disclosure is not necessary, but coherent silence does not beat lexical text |
 | Slice 5 | Genuine vs reconstructed replies | Replicates, but stronger reply-only baselines narrow or erase margins | Provenance/context and surface form are represented; not specifically self-authorship |
-| Estimator/null checks | Logistic probe and full permutations | Main final-turn effects replicate; pre-final controls remain null | Effects are not estimator-specific or ordinary selection noise |
+| Estimator/null checks | Logistic probe and full permutations | Main final-turn effects replicate; paired controls pass deterministic equality checks | Effects are not estimator-specific or ordinary selection noise |
 | Steering | Add direction during generation | Readout and self-report move; safety does not | Direction is causally accessible for self-report, not shown to govern broad policy |
 | Authorship pilot, pre-activation gate | Cross final-turn status with three generated history authors | 150/150 histories terminate, but only 36/50 scenarios survive the combined coherence gate | v2 fails before activation extraction; authorship effects remain untested |
-| Cross-model confirmatory suite | Freeze two valid controls across three current model families | All models pass exact temporal controls; Llama/Qwen/Ministral establish positive `eval_shared` margins, Gemma ties there and is weaker on matched coherence | Temporal decodability crosses four families, but strength is model-dependent and activation-specific generalization remains unestablished |
-| Nonlinear-capacity audit | Fit nested RBF decoders at the primary-selected layer; add frozen-E5 RBF, five fold seeds, and source-only transfer | All four activation RBFs beat E5 RBF on matched coherence in every seed; shared margins remain heterogeneous and nonlinear transfer does not beat text | Decodable information is consistently present but strongly decoder- and construction-dependent; semantic identity remains unestablished |
-| Dense-Qwen3 scale ladder | Rerun the same pipeline on all six original dense sizes under uniform hardware | One primary slope interval excludes zero and the other does not; nonlinear margins are nearly flat across size | The frozen two-control criterion finds no consistent within-family scale trend; no universal scaling law is established |
+| Cross-model confirmatory suite | Freeze two valid controls across three current model families | All models pass equality checks and show post-divergence decoding; none of eight linear cells beats full-input E5 | Decodability holds at four tested checkpoints without a primary linear advantage over the specified text baseline |
+| Nonlinear-capacity audit | Fit nested RBF decoders at the primary-selected layer; add E5-interaction RBF, five fold seeds, and source-only transfer | Activation RBF exceeds E5-interaction RBF on matched coherence in every seed; shared margins remain heterogeneous and transfer loses to specified text baselines | Within-control decoding is decoder- and construction-dependent; semantic identity and transfer remain unestablished |
+| Dense-Qwen3 scale ladder | Rerun the same pipeline on all six original dense sizes under uniform hardware | Five of six E5-referenced point margins are nonpositive on each control; only one slope interval excludes zero | The frozen two-control criterion finds no consistent within-family scale trend; no universal scaling law is established |
 
 ## 5. What the paper can and cannot claim
 
@@ -1118,22 +1199,26 @@ The repository supports the following statements, provided their qualifications 
 
 1. Llama-3.1-8B-Instruct hidden states strongly distinguish multiple eval-like and deploy-like prompt constructions.
 2. Simple benchmark-versus-user separation is heavily explained by surface form; the project measured and documented this rather than treating high probe accuracy as sufficient.
-3. On the Slice 2b math-free transfer grid, activation directions generalize across independently built pairs better than the tested format and bag-of-words classifiers. The strict completely disjoint margin is `0.04754 ± 0.01538`; the all-off-diagonal margin is `0.07108 ± 0.01341`.
-4. In two paired multi-turn controls, activation separation is at chance throughout a byte-identical prefix and emerges only when the eval/deploy final turn is introduced.
+3. On the Slice 2b math-free transfer grid, activation directions preserve substantial target separability across independently built pairs. On the strict completely disjoint subset, signed AUROC is `0.65209` for the probe versus `0.66565` for bag of words, and probe orientation is less stable. The historical `+0.04754 ± 0.01538` strength margin is secondary because it folds reversed directions.
+4. Two paired multi-turn controls pass exact pre-final activation-equality checks; labels become decodable after the first differing user message. The equality result validates the pipeline rather than providing awareness evidence.
 5. The two multi-turn constructions transfer to one another, but their activation directions do not beat character n-gram classifiers. The earlier positive transfer margin was relative to unigram counts only.
 6. High raw separation remains in matched pairs whose generated replies contain no detected awareness language. On matched-coherence silence pairs, however, the activation probe and final-turn bag-of-words are tied; `eval_shared` retains only a modest activation margin.
 7. Genuine versus reconstructed assistant replies are internally separable across WildChat and LMSYS, but reply-only format baselines explain much of the effect and controls rule out a narrow self-authorship interpretation.
 8. The main activation results survive a second probe estimator and full-pipeline permutation tests.
 9. Steering along the matched-coherence direction monotonically moves an independent readout and explicit eval/deploy self-reports at nondegenerate strengths.
-10. Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B all replicate exact temporal localization and above-chance final-turn separation on the two frozen paired controls. Under the primary linear probe, Qwen and Ministral join the Llama reference in establishing a positive paired advantage on `eval_shared`; Gemma's positive margin is inconclusive, and no replication model beats text on matched coherence or transfer.
-11. A post-result nested RBF probe at the primary-selected layer beats a
-capacity-matched contextual E5 RBF on matched coherence for all four models and
-all five fold seeds. Shared-prefix nonlinear margins remain heterogeneous, and
-source-only nonlinear activation transfer does not beat text. This closes the
-linear-capacity objection for within-control separability without establishing
-construction-invariant transfer or semantic identification.
+10. Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B all pass the exact pre-final leakage check and reproduce above-chance final-turn separation on the two frozen paired controls. Against the same full-input E5 interaction, all eight primary linear point differences favor text; five paired intervals exclude zero in that direction and three include zero. Positive shared-prefix margins against word TF-IDF are secondary sparse-text comparisons.
+11. Under an identical grouped nested pipeline and fold-selected layer, L2
+logistic recovers most of the RBF gain over direction-of-means; every seed-0
+RBF-minus-L2 interval includes zero. Activation RBF still exceeds an RBF over
+the same E5 interaction on matched coherence for all four models and all five
+fold seeds. Shared-prefix RBF margins remain heterogeneous, and source-only RBF
+activation transfer does not beat the source-selected nonlinear text pipeline
+or linear character TF-IDF. This establishes
+estimator-sensitive within-control separability without attributing the full
+recovery to nonlinear geometry or establishing construction-invariant transfer.
 12. Across all six original dense Qwen3 checkpoints from 0.75B to 32.76B exact
-parameters, the prespecified primary scale criterion is not met: the
+parameters, five of six E5-referenced linear point margins are nonpositive on
+each control, and the prespecified primary scale criterion is not met: the
 `eval_shared` slope interval includes zero while the matched-coherence interval
 is positive. Nonlinear activation-over-E5 margins are nearly flat across size.
 
@@ -1146,8 +1231,9 @@ The following would overstate what was done:
 - “The first multi-turn disguised-evaluation experiment proves temporal awareness.” Its signal was already present after the synthetic first turn.
 - “The model knows it is being evaluated.” The experiments identify a robust direction associated with these constructions, but do not uniquely identify its semantic content.
 - “No lexical information remains.” Bag-of-words is strong in several contrasts, and the coherent final-turn-mean probe selects the embedding layer.
-- “The primary linear matched-coherence activation probe meaningfully beats words in-distribution.” The grouped cross-model primary analysis does not; only the post-result nonlinear sensitivity audit establishes a within-control advantage over the tested capacity-matched nonlinear text baseline.
-- “Cross-control activation transfer beats text baselines.” It beats unigram counts, but the stronger grouped audit finds character TF-IDF at `0.86614/0.84854` versus probe `0.84496/0.71874` in the two directions.
+- “The primary direction-of-means probe outperforms the strongest full-input text view.” None of the eight model-control comparisons beats the E5 interaction; only post-result learned-decoder sensitivity analyses establish a within-control advantage over the tested E5 RBF on matched coherence.
+- “The RBF recovery establishes specifically nonlinear geometry.” Nested L2 logistic recovers most of the same-layer gain, and every seed-0 RBF-minus-L2 interval includes zero.
+- “Cross-control activation transfer outperforms the specified text baselines.” It exceeds unigram counts, but character TF-IDF reaches `0.86614/0.84854` versus probe `0.84496/0.71874` in the two directions.
 - “The observed-silence subset proves unconscious or unverbalized awareness.” Absence of detected disclosure does not reveal the model’s full internal semantics.
 - “Slice 5 demonstrates self-recognition.” The signal survives a different generator and strengthens under context ablation.
 - “Steering the direction improves safety behavior.” It changed self-report, but the refusal test showed no predicted increase.
@@ -1246,6 +1332,8 @@ This map lists the paper-relevant implementation rather than every operational f
   audit and capacity-matched nonlinear TF-IDF comparison.
 - `src/vnaa/run_nonlinear_followup.py`: contextual E5 RBF comparison,
   five-seed stability, and source-only nonlinear cross-control transfer.
+- `src/vnaa/run_decoder_comparison.py`: CPU-only, five-seed same-layer
+  direction-of-means, nested L2-logistic, and nested RBF comparison.
 - `scripts/cross_model_confirmatory.md`: local smoke, rented-GPU execution, compute envelope, and artifact-copy checklist.
 - `results/cross_model/v2/{Qwen,google-gemma,mistralai-Ministral}*/full`: the four full activation caches, analysis, extraction log, and per-model SHA-256 manifest for each replication.
 - `results/readout_audit/`: post-result cross-model mean-readout caches and
@@ -1255,6 +1343,9 @@ This map lists the paper-relevant implementation rather than every operational f
 - `results/nonlinear_followup/`: E5 feature cache, fixed-interaction inference,
   five-seed combined analyses, and per-model nonlinear transfer outputs;
   ignored with other reproducible result artifacts.
+- `results/decoder_comparison/`: per-model and combined same-layer decoder
+  comparisons with seed-0 pair-cluster inference; ignored with other
+  reproducible result artifacts.
 
 ### Dense-Qwen3 scale audit
 
@@ -1272,12 +1363,12 @@ This map lists the paper-relevant implementation rather than every operational f
 
 ### Verification
 
-The current test suite contains 153 passing tests covering probes, estimator splitting, nested pair-grouped layer selection, stronger text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, cross-model dataset fingerprints, revision pinning, artifact isolation, native Qwen/Gemma/Ministral chat boundaries, causal-prefix extraction, cross-platform manifest hashing, alternate-readout audit validation, nonlinear grouped-capacity validation, contextual-E5 RBF selection, source-only nonlinear transfer, dense-Qwen3 scale-ladder validation and inference, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved reference-model activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
+The current test suite contains 157 passing tests covering probes, estimator splitting, nested pair-grouped layer selection, same-layer L2/RBF comparison, strongest full-input E5 inference, stronger sparse-text baselines, pair-grouped folds, paired margin inference, deterministic authorship-pilot selection and gating, independent-reviewer diagnostics, cross-model dataset fingerprints, revision pinning, artifact isolation, native Qwen/Gemma/Ministral chat boundaries, causal-prefix extraction, cross-platform manifest hashing, alternate-readout audit validation, nonlinear grouped-capacity validation, contextual-E5 RBF selection, source-only nonlinear transfer, dense-Qwen3 scale-ladder validation and inference, read-point indexing, paired surface views, judge batches, silence artifact paths, Slice 5 context handling, and steering hooks/scorers. The saved reference-model activation arrays consistently contain 33 layers of 4,096-dimensional `float32` vectors, matching the 8B model’s embedding plus 32-block hidden-state interface.
 
 ## 8. Recommended paper-level summary
 
 A concise and accurate paper summary, updated after the completed primary model panel, would be:
 
-> We progressively tested whether hidden states distinguish evaluation-like from deployment-like interactions after accounting for surface cues. Initial Llama-3.1-8B-Instruct benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences, so we evaluated cross-construction transfer; on completely disjoint math-free transfers, activation-probe separation exceeded unigram counts by `0.0475 ± 0.0154` across five splits. In two multi-turn paired controls, activations were indistinguishable throughout byte-identical prefixes and separated only after the differing final turn. Three prespecified replications—Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B—reproduced this exact temporal localization and above-chance final-turn decodability. The primary linear comparison is heterogeneous, but a post-result nested RBF audit reaches `0.9811`--`0.9879` on matched coherence in every model and beats a capacity-matched contextual E5 RBF with positive paired intervals in every one of five fold seeds. The same nonlinear probes do not beat text under cross-control transfer. A uniform ladder over all six original dense Qwen3 checkpoints from 0.75B to 32.76B does not meet the prespecified two-control criterion for a consistent primary scale trend, while nonlinear margins are nearly flat across size. On Llama, raw separation also remains among terminated pairs without detected awareness disclosure, and a pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports but did not increase safety refusals. These results identify cross-family, behaviorally accessible and nonlinearly decodable differences associated with the studied constructions while showing that current evidence does not isolate an architecture-invariant evaluation-awareness variable from textual task structure.
+> We progressively tested whether hidden states distinguish evaluation-like from deployment-like interactions after accounting for surface cues. Initial Llama-3.1-8B-Instruct benchmark-versus-user probes were nearly perfect but were largely reproduced by format and lexical baselines. Newly constructed single-turn contrasts also retained surface differences. Their activation directions preserve substantial target separability, but on completely disjoint transfers signed AUROC is `0.6521` for the probe versus `0.6656` for unigrams and probe orientation is less stable. Two multi-turn paired controls pass exact pre-final activation-equality checks, validating their construction and extraction; labels become decodable after the differing final turn. Three prespecified replications—Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B—pass the same leakage check and reproduce above-chance final-turn decodability. Against the strongest full-input E5 interaction, all eight primary linear point differences favor text; five paired intervals exclude zero and three include it. Under the same grouped nested pipeline and fold-selected layer, L2 logistic recovers most of the apparent RBF gain; activation RBF still reaches `0.9811`--`0.9879` on matched coherence in every model and exceeds E5-interaction RBF with positive paired intervals in every one of five fold seeds. Activation RBF does not beat specified text baselines under cross-control transfer. A uniform ladder over all six original dense Qwen3 checkpoints from 0.75B to 32.76B does not meet the prespecified two-control criterion for a consistent scale trend, while E5-referenced RBF margins are nearly flat across size. On Llama, raw separation also remains among terminated pairs without detected awareness disclosure, and a pre-specified residual intervention moved an independent readout and explicit eval/deploy self-reports but did not increase safety refusals. These results identify cross-checkpoint, behaviorally accessible and estimator-sensitive decodable differences associated with the studied constructions while showing that current evidence does not isolate an architecture-invariant evaluation-awareness variable from textual task structure.
 
 That language reflects what the repository demonstrates without turning unsuccessful matching, conditional silence, provenance detection, or a self-report steering effect into stronger claims than the experiments justify.
