@@ -184,8 +184,9 @@ never be written to committed files.
 ## Paper figures
 
 - `paper/make_fig1.py` through `paper/make_fig6.py`: source for the paired-
-  control schematic, anchor results, disjoint transfer, steering effects, and
-  failed-control figures, plus the Qwen3 scale ladder.
+  control schematic; separate leakage-check, text-hierarchy, and cross-model
+  results figures; disjoint transfer; steering effects; failed controls; and
+  the Qwen3 scale ladder.
 - `paper/build_figures.ps1`: regenerate all figure PDFs and ignored preview
   PNGs independently of the LaTeX build.
 - `paper/build.ps1`: build the manuscript from the current figure PDFs without

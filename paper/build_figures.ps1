@@ -26,4 +26,4 @@ foreach ($script in $scripts) {
     }
 }
 
-Write-Host "`nGenerated $($scripts.Count) paper figures in $(Join-Path $paperDirectory 'figures')." -ForegroundColor Green
+Write-Host "`nRan $($scripts.Count) paper figure builders; outputs are in $(Join-Path $paperDirectory 'figures')." -ForegroundColor Green

@@ -1,4 +1,9 @@
-"""Figure 2: leakage check, text-comparator hierarchy, cross-model margins."""
+"""Reference-model diagnostics and the central cross-model comparison.
+
+This builder writes three separate figures so each result can sit beside the
+text that explains it: the Llama leakage check, the Llama text-baseline
+hierarchy, and the four-model linear/nonlinear comparison.
+"""
 
 from __future__ import annotations
 
@@ -6,13 +11,13 @@ import json
 from pathlib import Path
 
 import numpy as np
-from matplotlib.ticker import FuncFormatter
 
 import figstyle
 from figstyle import BLUE, GRID, NEUTRAL, ORANGE, RESULTS_DIR
 
 # figstyle selects a non-interactive backend on import.
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 
 
 CONTROLS = [
@@ -29,6 +34,10 @@ COMPARATORS = [
 ]
 
 FULL_CONTEXT_PATH = RESULTS_DIR / "full_context_linear_comparison/analysis.json"
+DECODER_PATH = RESULTS_DIR / "decoder_comparison/combined_analysis.json"
+NONLINEAR_TEXT_PATH = (
+    RESULTS_DIR / "nonlinear_followup/e5_prefix_ending_interaction_analysis.json"
+)
 MODEL_REPOSITORIES = {
     "Llama-3.1-8B": "meta-llama/Llama-3.1-8B-Instruct",
     "Qwen3-8B": "Qwen/Qwen3-8B",
@@ -43,11 +52,7 @@ def load_json(path: Path) -> dict:
 
 
 def panel_temporal(axis, estimator: dict) -> None:
-    """Read-point contrast, drawn as chance-anchored stems.
-
-    The two read points are categories, not samples of a continuum, so nothing
-    is drawn between them.
-    """
+    """Reference-model read-point contrast, drawn as chance-anchored stems."""
     for control_index, (key, label, color, marker) in enumerate(CONTROLS):
         offset = -0.17 + 0.34 * control_index
         for position, read_point in enumerate(
@@ -84,9 +89,9 @@ def panel_temporal(axis, estimator: dict) -> None:
     axis.set_ylim(0.45, 1.04)
     axis.set_yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
     axis.set_ylabel("Probe AUROC")
+    axis.set_title("Reference-model leakage check", loc="left", pad=6.0)
     axis.grid(axis="y", color=GRID, linewidth=0.5)
     axis.set_axisbelow(True)
-    figstyle.panel_label(axis, "a", "Leakage check")
     figstyle.despine(axis)
 
 
@@ -118,7 +123,6 @@ def panel_hierarchy(axis, within: dict, full_context: dict) -> None:
             edgecolor="none",
             label=label,
         )
-        # E5 is the main text comparator; sparse baselines provide the hierarchy.
         for bar_index, bar in enumerate(bars):
             if rows[bar_index][0] in dict(COMPARATORS):
                 bar.set_alpha(0.30)
@@ -131,88 +135,104 @@ def panel_hierarchy(axis, within: dict, full_context: dict) -> None:
     axis.set_xlim(0.44, 1.02)
     axis.set_xticks([0.5, 0.75, 1.0])
     axis.set_xlabel("AUROC")
+    axis.set_title("Reference-model text baseline hierarchy", loc="left", pad=6.0)
     axis.grid(axis="x", color=GRID, linewidth=0.5)
     axis.set_axisbelow(True)
-    figstyle.panel_label(axis, "b", "Text baseline hierarchy")
     figstyle.despine(axis)
     axis.tick_params(axis="y", length=0)
 
 
-def panel_cross_model(axis_outlier, axis_main, models: dict) -> None:
-    """Paired probe-minus-E5-interaction margins, on a broken axis.
+def setup_margin_axis(axis, names: list[str], letter: str, title: str) -> None:
+    y = np.arange(len(names))
+    axis.axvline(0.0, color=NEUTRAL, linewidth=0.7)
+    axis.set_xlim(-0.13, 0.055)
+    axis.set_xticks([-0.10, -0.05, 0.0, 0.05])
+    axis.set_ylim(len(names) - 0.5, -0.5)
+    axis.set_yticks(y, names)
+    axis.set_xlabel(r"Activation $-$ matched-text AUROC")
+    axis.grid(axis="x", color=GRID, linewidth=0.5)
+    axis.set_axisbelow(True)
+    axis.tick_params(axis="y", length=0)
+    figstyle.panel_label(axis, letter, title)
+    figstyle.despine(axis)
 
-    Gemma's coherence-matched margin remains separated from the near-zero
-    margins, so the break keeps those intervals legible.
-    """
+
+def panel_linear(axis, models: dict) -> None:
+    """Primary linear probe minus fixed-logistic E5 interaction."""
     names = list(models.keys())
     y = np.arange(len(names))
 
     for control_index, (key, label, color, marker) in enumerate(CONTROLS):
-        offset = -0.16 + 0.32 * control_index
+        offset = -0.14 + 0.28 * control_index
         for index, name in enumerate(names):
             bootstrap = models[name][key]["probe_minus_text"]["bootstrap"]
             difference = bootstrap["difference"]
             low, high = bootstrap["ci_low"], bootstrap["ci_high"]
             significant = low > 0 or high < 0
-            for axis in (axis_outlier, axis_main):
-                axis.errorbar(
-                    difference,
-                    y[index] + offset,
-                    xerr=[[difference - low], [high - difference]],
-                    color=color,
-                    marker=marker,
-                    markerfacecolor=color if significant else "white",
-                    markeredgecolor=color,
-                    markeredgewidth=0.9,
-                    markersize=4.2,
-                    linewidth=0,
-                    elinewidth=1.0,
-                    capsize=2.0,
-                    label=label if index == 0 and axis is axis_main else None,
-                )
-
-    for axis in (axis_outlier, axis_main):
-        axis.set_ylim(len(names) - 0.5, -0.5)
-        axis.grid(axis="x", color=GRID, linewidth=0.5)
-        axis.set_axisbelow(True)
-        axis.spines["top"].set_visible(False)
-        axis.tick_params(axis="y", length=0)
-
-    # Labels are stripped of their leading zero: the split axis leaves each
-    # half too narrow for two full-width tick labels.
-    formatter = FuncFormatter(
-        lambda value, _: f"{value:.2f}".replace("0.", ".").replace("-", "$-$")
-    )
-    axis_outlier.xaxis.set_major_formatter(formatter)
-    axis_main.xaxis.set_major_formatter(formatter)
-
-    axis_outlier.set_xlim(-0.125, -0.060)
-    axis_outlier.set_xticks([-0.10])
-    axis_outlier.set_yticks(y, names)
-    axis_outlier.spines["right"].set_visible(False)
-
-    axis_main.set_xlim(-0.050, 0.012)
-    axis_main.set_xticks([-0.04, 0.0])
-    axis_main.set_yticks(y, [])
-    axis_main.spines["left"].set_visible(False)
-    axis_main.axvline(0.0, color=NEUTRAL, linewidth=0.7)
-
-    # Diagonal break marks on the two inner edges of the split axis.
-    for axis, x in ((axis_outlier, 1.0), (axis_main, 0.0)):
-        for shift in (-0.028, 0.028):
-            axis.plot(
-                [x - 0.075 + shift, x + 0.075 + shift],
-                [-0.045, 0.045],
-                transform=axis.transAxes,
-                color=NEUTRAL,
-                linewidth=0.7,
-                solid_capstyle="butt",
-                clip_on=False,
-                zorder=5,
+            axis.errorbar(
+                difference,
+                y[index] + offset,
+                xerr=[[difference - low], [high - difference]],
+                color=color,
+                marker=marker,
+                markerfacecolor=color if significant else "white",
+                markeredgecolor=color,
+                markeredgewidth=0.9,
+                markersize=4.5,
+                linewidth=0,
+                elinewidth=1.0,
+                capsize=2.0,
+                label=label if index == 0 else None,
             )
 
-    figstyle.panel_label(axis_outlier, "c", "Relative to E5 interaction")
-    axis_main.set_xlabel(r"Probe $-$ E5 interaction AUROC", x=0.05)
+    setup_margin_axis(axis, names, "a", "Primary linear comparison")
+
+
+def panel_nonlinear(axis, decoder: dict, nonlinear_text: dict) -> None:
+    """Activation RBF minus E5-interaction RBF across five fold seeds."""
+    names = list(MODEL_REPOSITORIES.keys())
+    y = np.arange(len(names))
+    seeds = [int(seed) for seed in decoder["seeds"]]
+    seed_jitter = np.linspace(-0.045, 0.045, len(seeds))
+
+    for control_index, (key, label, color, marker) in enumerate(CONTROLS):
+        offset = -0.14 + 0.28 * control_index
+        text_values = np.asarray(
+            [nonlinear_text["seeds"][str(seed)][key]["auroc"] for seed in seeds]
+        )
+        for index, name in enumerate(names):
+            repository = MODEL_REPOSITORIES[name]
+            activation_values = np.asarray(
+                decoder["models"][repository][key]["aurocs"]["rbf"]["values"]
+            )
+            if len(activation_values) != len(text_values):
+                raise ValueError("Activation and E5 analyses use different seed counts")
+            margins = activation_values - text_values
+            center = y[index] + offset
+            axis.scatter(
+                margins,
+                center + seed_jitter,
+                s=8,
+                color=color,
+                alpha=0.28,
+                linewidths=0,
+                zorder=2,
+            )
+            axis.plot(
+                np.mean(margins),
+                center,
+                color=color,
+                marker=marker,
+                markerfacecolor=color,
+                markeredgecolor=color,
+                markeredgewidth=0.9,
+                markersize=4.5,
+                linewidth=0,
+                label=label if index == 0 else None,
+                zorder=3,
+            )
+
+    setup_margin_axis(axis, names, "b", "Post-result RBF audit")
 
 
 def main() -> None:
@@ -229,31 +249,39 @@ def main() -> None:
         label: full_context[repository]
         for label, repository in MODEL_REPOSITORIES.items()
     }
+    decoder = load_json(DECODER_PATH)
+    nonlinear_text = load_json(NONLINEAR_TEXT_PATH)
 
-    fig = plt.figure(figsize=(figstyle.TEXT_WIDTH_IN, 2.05))
-    outer = fig.add_gridspec(
-        1, 3, width_ratios=[0.78, 1.02, 1.40], wspace=0.58, bottom=0.26
+    leakage_fig, leakage_axis = plt.subplots(figsize=(2.75, 1.75))
+    panel_temporal(leakage_axis, estimator)
+    handles, labels = leakage_axis.get_legend_handles_labels()
+    leakage_fig.legend(
+        handles, labels, loc="lower center", bbox_to_anchor=(0.5, 0.0), ncol=2
     )
-    axis_temporal = fig.add_subplot(outer[0])
-    axis_hierarchy = fig.add_subplot(outer[1])
-    inner = outer[2].subgridspec(1, 2, width_ratios=[1.0, 1.0], wspace=0.10)
-    axis_outlier = fig.add_subplot(inner[0])
-    axis_main = fig.add_subplot(inner[1])
+    leakage_fig.subplots_adjust(left=0.19, right=0.98, top=0.82, bottom=0.28)
+    figstyle.save(leakage_fig, "leakage_check")
 
-    panel_temporal(axis_temporal, estimator)
-    panel_hierarchy(axis_hierarchy, llama, models["Llama-3.1-8B"])
-    panel_cross_model(axis_outlier, axis_main, models)
-
-    handles, labels = axis_temporal.get_legend_handles_labels()
-    fig.legend(
-        handles,
-        labels,
-        loc="lower center",
-        bbox_to_anchor=(0.5, 0.0),
-        ncol=2,
+    hierarchy_fig, hierarchy_axis = plt.subplots(figsize=(4.15, 1.80))
+    panel_hierarchy(hierarchy_axis, llama, models["Llama-3.1-8B"])
+    handles = [Patch(facecolor=BLUE, alpha=0.72), Patch(facecolor=ORANGE, alpha=0.72)]
+    labels = ["Retained-history", "Coherence-matched"]
+    hierarchy_fig.legend(
+        handles, labels, loc="lower center", bbox_to_anchor=(0.5, 0.0), ncol=2
     )
+    hierarchy_fig.subplots_adjust(left=0.25, right=0.99, top=0.83, bottom=0.27)
+    figstyle.save(hierarchy_fig, "text_baseline_hierarchy")
 
-    figstyle.save(fig, "anchor_results")
+    cross_model_fig, axes = plt.subplots(1, 2, figsize=(figstyle.TEXT_WIDTH_IN, 2.05))
+    panel_linear(axes[0], models)
+    panel_nonlinear(axes[1], decoder, nonlinear_text)
+    handles, labels = axes[0].get_legend_handles_labels()
+    cross_model_fig.legend(
+        handles, labels, loc="lower center", bbox_to_anchor=(0.5, 0.0), ncol=2
+    )
+    cross_model_fig.subplots_adjust(
+        left=0.18, right=0.99, wspace=0.55, top=0.84, bottom=0.27
+    )
+    figstyle.save(cross_model_fig, "cross_model_comparison")
 
 
 if __name__ == "__main__":

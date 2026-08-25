@@ -358,8 +358,9 @@ rates were `[0.1389,0.6111,0.6667,0.7778,0.8056,0.8889,0.8889]`, with Spearman
 correlation `0.991`. Safety-refusal rates were
 `[0.0833,0.1042,0.1042,0.1250,0.1042,0.0833,0.0625]`, with correlation
 `-0.356`, opposite the predicted increase. With only 48 safety prompts and a
-12.5% baseline refusal rate, the experiment rules out a large predicted effect
-but is underpowered for small effects.
+12.5% baseline refusal rate, the design had about 80% power only for an increase
+to roughly 37%. This is a sensitivity calculation, not an exclusion bound; the
+result remains inconclusive for smaller effects.
 
 A post-result mentor-requested audit preserves prompts as the inference unit.
 For self-report, the paired `+2` minus `-2` risk difference is `+0.7500`, with
