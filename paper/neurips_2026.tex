@@ -111,38 +111,36 @@
 \begin{abstract}
 Language models may behave differently when they recognize that they are being
 evaluated, motivating efforts to detect evaluation awareness in their
-activations. Prior studies have reported high probe accuracy, but evaluation
-and ordinary-use prompts often differ in wording, format, and topic. Accuracy
+activations. Prior studies have reported high probe accuracy, but evaluation-like
+and deployment-like prompts often differ in wording, format, and topic. Accuracy
 on a single prompt construction may therefore reflect these differences rather
 than evaluation awareness itself. We propose paired multi-turn conversation
 controls as an investigative framework for determining what activation probes
 measure. We test whether activation probes outperform text-only baselines,
 generalize across constructions and four selected checkpoints spanning four
 model families, show a consistent within-Qwen3 scaling trend, and causally
-affect behavior. The results reveal a mixed picture: a
-benchmark-versus-user probe is nearly perfect, but text-only classifiers perform
-almost as well, indicating that surface differences explain much of the
-separation. Across independently constructed single-turn contrasts, activation
+affect behavior. The results reveal a mixed picture: on the initial diagnostic
+contrast, the activation probe is nearly perfect, but text-only classifiers perform
+almost as well, showing that much of the separation is recoverable from text
+alone. Across independently constructed single-turn contrasts, activation
 directions preserve target separability but reverse label orientation more
-often than unigram classifiers. In paired conversations, exact equality of
+often than simple word-based classifiers. In paired conversations, exact equality of
 pre-final activations verifies the byte-identical construction and extraction
 pipeline; labels become highly decodable only after the first differing user
-message. The strongest full-input E5 interaction matches or exceeds the primary
-linear probe on both controls at all four tested checkpoints. At the same
-fold-selected layers, regularized logistic probes recover most of the gain
-previously attributed to nonlinear capacity. RBF probes still outperform a
-capacity-matched E5-interaction RBF on the coherence-matched control
-at all four tested checkpoints, but do not transfer better than text between
+message. The strongest full-context text baseline matches or exceeds the primary
+linear probe on both controls at all four tested checkpoints. More flexible
+activation probes outperform capacity-matched text baselines only within the
+coherence-matched control; this advantage does not survive transfer between
 controls. Across six tested dense Qwen3 checkpoints from 0.75B to 32.76B, the
 results fail our prespecified criterion for a consistent scaling trend.
 Steering the decoded direction moves an
 independent readout and shifts evaluation self-reports, but two of five
 norm-matched orthogonal random directions produce larger self-report shifts;
 neither learned nor control directions produce the predicted increase in safety
-refusals. Taken together, these results
-show decodability of evaluation-like versus deployment-like situations across
-the tested constructions and checkpoints without establishing a universal,
-content-independent representation of evaluation awareness.
+refusals. Taken together, these results show decodability of evaluation-like
+versus deployment-like prompt categories across the tested constructions and
+checkpoints, but do not establish a content-independent representation of
+evaluation awareness.
 \end{abstract}
 
 \section{Introduction}
@@ -173,9 +171,9 @@ model's evaluation report, and refusal steering as one narrow test of policy
 use.
 
 Linear probes offer one possible white-box diagnostic, and recent work finds
-that evaluation and deployment prompts are separable in residual-stream
-activations \citep{nguyen2025probing}. But benchmark and ordinary-use prompts
-differ in format, topic, vocabulary, and conversational structure. Controlled
+that evaluation-like and deployment-like prompts are separable in residual-stream
+activations \citep{nguyen2025probing}. But these prompt categories differ in
+format, topic, vocabulary, and conversational structure. Controlled
 rewrites show that benchmark-canonical structure can dominate the measured
 direction \citep{devbunova2026format}; a highly accurate probe may therefore
 identify benchmark-like form without representing evaluation status.
@@ -188,24 +186,23 @@ across independently constructed contrasts, repeat the analysis across model
 families, probe types, and model sizes, and finally intervene through activation
 steering.
 
-Four findings define the paper's contributions. First, the standard
-benchmark-versus-user contrast is nearly perfectly decodable, but text-only
-classifiers are almost as accurate; across independently constructed
-single-turn contrasts, activation transfer preserves separability without a
-more consistent label orientation than unigram transfer. Second, the paired
-controls pass an exact pre-final equality check, and labels become decodable
-after the first differing user message. Third, primary linear probes do not
-outperform the strongest full-input E5 interaction on either control in any of
-the four model families. Regularized logistic probes recover most of the
-same-layer RBF gain; activation RBF exceeds a capacity-matched E5-interaction
-RBF under coherence matching but not text baselines in cross-control transfer;
-and margins do not vary consistently with Qwen3 model size across both
-controls. Fourth, steering the learned direction specifically moves an
-independent readout, but its self-report effect is not specific relative to
-norm-matched orthogonal directions, and no predicted safety-refusal effect
-appears. Together, these results establish widespread post-divergence
-decodability without identifying a universal, content-independent
-representation of evaluation awareness.
+Four findings define the paper's contributions. First, activation and text
+classifiers nearly perfectly decode the initial diagnostic
+contrast, while activation directions are no more orientation-consistent across
+independent contrasts than simple word-based classifiers. Second, paired
+conversations have identical histories and activation states until their final
+messages diverge; only then do the conditions become decodable. Third, at four
+tested checkpoints spanning four model families, primary linear probes never
+outperform our strongest full-context text baseline. Flexible activation
+classifiers beat capacity-matched text only within the coherence-matched
+control, not in transfer, and relative performance shows no consistent trend
+across six Qwen3 sizes.
+Fourth, steering moves an independent activation readout, but two of five
+orthogonal control directions produce larger self-report shifts, and safety
+refusals do not change as predicted. Together, these results establish
+post-divergence decodability across the tested constructions and checkpoints,
+but do not establish a content-independent representation of evaluation
+awareness.
 
 \section{Related work}
 
@@ -219,7 +216,7 @@ task recognizability, model recognition, and propensity to act; and
 \citet{nayan2026notone} reports that detection, behavioral manifestation, and
 controllability can vary independently. We therefore treat self-report and
 policy use as distinct from activation decodability. White-box work decodes
-evaluation and deployment contexts from activations \citep{nguyen2025probing}
+evaluation-like and deployment-like prompt categories from activations \citep{nguyen2025probing}
 and reports size- and depth-dependent trends in probe separability
 \citep{chaudhary2025scaling,manek2026depth}. Concurrent deployment-simulation
 work holds a production conversation prefix fixed and regenerates the
@@ -251,10 +248,11 @@ proof that the direction represents evaluation awareness.
 
 \subsection{Evidence hierarchy}
 
-We distinguish \emph{evaluation} inputs constructed to measure a model from
-\emph{deployment} inputs arising from ordinary user needs. Because these
-categories naturally differ in topic, vocabulary, formatting, speech act, and
-authorship, we organize the evidence in three stages of increasing control.
+We call inputs constructed to measure a model \emph{evaluation-like} and inputs
+arising from ordinary user needs \emph{deployment-like}. These prompt-category
+labels do not verify evaluation status, and the categories naturally differ in
+topic, vocabulary, formatting, speech act, and authorship. We therefore organize
+the evidence in three stages of increasing control.
 
 The first stage is diagnostic: 200 SAD stages-oversight prompts
 \citep{laine2024sad} versus 200 WildChat user prompts
@@ -310,7 +308,7 @@ closes each user turn. Exact checkpoints and extraction details are given in
 Appendix~\ref{app:details}.
 
 At each layer, the primary linear probe is the normalized difference between
-the evaluation and deployment training means. For activation $x$, its score is
+the evaluation-like and deployment-like training means. For activation $x$, its score is
 
 \begin{equation}
   s(x) = x^\top d, \qquad
@@ -363,8 +361,8 @@ analysis.
 Finally, we test whether the reference-model direction is causally accessible
 by adding the coherence-matched direction to the residual stream during
 generation. An independent readout trained on the other control checks that the
-intervention moves the intended quantity. We then score explicit
-evaluation/deployment self-reports and safety refusals under a protocol fixed
+intervention moves the intended quantity. We then score explicit self-reports
+of evaluation status and safety refusals under a protocol fixed
 before behavioral generation. A post-result robustness audit adds paired
 prompt-level inference and five seeded, norm-matched random directions projected
 orthogonal to the learned direction.
@@ -374,14 +372,13 @@ orthogonal to the learned direction.
 
 \subsection{Surface confounding}
 
-On the initial benchmark-evaluation versus real-user contrast, the primary
+On the initial SAD-versus-WildChat diagnostic contrast, the primary
 activation probe reaches AUROC $0.9918\mathbin{\pm}0.0085$. However, the labels
 are also highly predictable from the prompt text alone. A standardized logistic
 regression trained on 13 hand-engineered structural features, including line
 breaks, punctuation, digit density, and option markers, reaches AUROC $0.9675$.
 A second logistic-regression baseline trained on unigram counts reaches
-$0.9517$. On the historical held-out split, the activation probe therefore
-exceeds the strongest of these simple text baselines by only $0.0269$.
+$0.9517$.
 
 These comparisons do not show that the activation probe uses the same cues as
 the text classifiers. They show that this dataset does not separate evaluation
@@ -535,29 +532,14 @@ an exclusion bound; smaller policy changes remain unresolved.
 
 \subsection{What the direction may represent}
 
-Under the hierarchy above, our experiments establish widespread prompt-category
-decodability and direction-specific control of an independent activation
-readout. They do not establish direction-specific causal control over evaluation
-self-report, a construction-invariant representation of evaluation status, or
-task-policy use. Exact pre-final equality is an expected pipeline check, not
-awareness evidence. The post-divergence result shows only that labels become
-decodable after the texts first differ; it does not determine whether the
-representation concerns evaluation status, benchmark genre, question type,
-topic transition, or contextualized speech act. Strong text baselines make
-these alternatives empirically consequential, but text-level predictability
-does not make the activation difference spurious; it means that the contrasts
-do not identify which abstraction the model uses.
-
-The cross-model, estimator, and scale results reinforce this distinction. All
-four families create decodable final-turn differences, but none of their
-primary linear probes outperforms the full-input E5 interaction. Regularized L2
-and RBF probes bring all four close to ceiling within each control without
-improving cross-control transfer, while the Qwen3 ladder shows no consistent
-trend across both controls. Single-turn
-separability transfers more reliably than label orientation. Together with the
-nonspecific self-report steering result, these findings support architecture-
-and construction-dependent directions rather than a shared, unitary measure of
-``awareness'' or a demonstrated behavioral policy variable.
+Post-divergence decoding localizes when labels become recoverable but not whether
+the representation concerns evaluation status, benchmark genre, question type,
+topic transition, or speech act. Text-level predictability does not make the
+activation difference spurious, but shows that the contrasts do not identify
+which abstraction the model uses. Variation across settings, unstable transfer
+orientation, and nonspecific self-report steering support architecture- and
+construction-dependent directions rather than a shared measure of ``awareness''
+or a demonstrated behavioral policy variable.
 
 \subsection{Implications for AI evaluation}
 
@@ -574,7 +556,7 @@ capacity-matched text comparators and treated as sensitivity analyses unless
 specified before data inspection.
 
 These requirements also change how evaluation-awareness monitors should be
-used. A monitor trained on a benchmark-versus-user contrast may be useful for
+used. A monitor trained on the initial diagnostic contrast may be useful for
 detecting benchmark-like inputs, even if it does not isolate recognition of
 evaluation. That operational use should be stated directly and validated under
 the distribution where the monitor will run. Stronger semantic claims require
@@ -625,17 +607,17 @@ differing user message. The primary linear probes do not outperform the
 full-input E5 interaction; activation RBF exceeds E5-interaction RBF only in the
 coherence-matched within-control analysis and does not beat specified text
 baselines in cross-control transfer. Separability transfers more reliably than
-orientation, the Qwen3 ladder shows no consistent trend across both controls.
-Learned-direction steering specifically moves an independent readout, but its
-self-report shift is matched or exceeded by orthogonal directions, and no
+orientation; the Qwen3 ladder shows no consistent trend across both controls.
+Learned-direction steering specifically moves an independent readout, but two
+of five orthogonal control directions produce larger self-report shifts, and no
 predicted safety-refusal effect appears.
 
 The evidence therefore reaches different levels: it is strong for
 prompt-category decodability, limited for construct-level generalization,
 positive for causal control of the independent readout, insufficient for
 direction-specific causal control of evaluation self-report, and inconclusive
-for task-policy use. Probe accuracy alone therefore does not identify evaluation
-awareness or which abstraction the model represents. Probe-based auditing
+for task-policy use. Probe accuracy alone therefore does not establish
+evaluation awareness or identify which abstraction the model represents. Probe-based auditing
 remains promising, but stronger semantic claims require
 controls that separate evaluation status from textual form, competitive text
 baselines, generalization across independent constructions, and interventions
@@ -653,22 +635,22 @@ controls that identify it.
 \subsection{Dataset construction and sampling}
 
 The diagnostic contrast uses the SAD stages-oversight task without adding a
-multiple-choice wrapper. Its 200 evaluation examples comprise samples from
-three evaluation sources included in SAD; its 200 deployment examples are
+multiple-choice wrapper. Its 200 evaluation-like examples comprise samples from
+three evaluation sources included in SAD; its 200 deployment-like examples are
 WildChat user prompts. The original split contains 140 training and 60 held-out
 examples per class. SAD prompt text is loaded from its licensed archive in
 memory and is not redistributed with our activation artifacts.
 
 The single-turn transfer grid contains six binary constructions. Two are the
 standard and format-controlled pairs from \citet{devbunova2026format}; four
-cross two casually rewritten evaluation styles with either rewritten WildChat
+cross two casually rewritten evaluation-like styles with either rewritten WildChat
 requests or same-topic practical requests. Each new cell contains 250 examples.
 The initial source mixture is 95 ARC, 58 MMLU, and 97 GSM8K items. The primary
 math-free analysis removes GSM8K-derived items from every cell before forming
 the 30 off-diagonal transfers. This leaves 153 items (95 ARC and 58 MMLU) in
 each newly written cell. In the two public constructions, the math-free
 benchmark cell contains 744 items (383 ARC and 361 MMLU), while the casual and
-benchmark-form deployment cells retain 1,076 and 835 items, respectively.
+benchmark-form deployment-like cells retain 1,076 and 835 items, respectively.
 
 The retained-history control begins with 250 filtered WildChat conversations.
 The screen requires English, alternating user/assistant roles, a user message
@@ -677,7 +659,7 @@ coursework or quiz cues in either role, and a question-form final user turn.
 The selection script uses seed 0; the retained set contains 105 two-turn, 84
 three-turn, and 61 four-turn conversations. Each history is then rewritten as
 a label-neutral dialogue, and only its final user message differs between the
-evaluation and deployment versions. Thus ``WildChat-derived'' describes the
+evaluation-like and deployment-like versions. Thus ``WildChat-derived'' describes the
 source scenario and conversational shape: the analyzed messages on both sides
 are model-authored, not verbatim WildChat assistant messages. The
 coherence-matched control instead jointly constructs a shared everyday prefix
@@ -689,7 +671,7 @@ Constructed cells were written in iterative, label-balanced interactive Claude
 sessions. For the coherence-matched control, the writer received one structured
 request per source item: produce two complete conversations with byte-identical
 prefinal messages, an ordinary shared prefix, a casual but faithful benchmark
-ending, and a practical same-topic deployment ending, while matching register,
+ending, and a practical same-topic deployment-like ending, while matching register,
 length, and punctuation. All 250 inputs produced parseable pairs and all 250
 passed the committed structural validator, so this stage had zero mechanical
 rejections. The exact hosted Claude checkpoint, decoding settings, and session
@@ -712,8 +694,8 @@ language-model audit. An isolated \texttt{gpt-5.6-luna} reviewer saw randomized
 A/B endings without source identifiers or condition labels and rated coherence,
 topic match, and naturalness. Both endings in all 250 pairs were rated coherent,
 topic-matched, and at least 3/5 in naturalness; mean ratings were 4.28 for
-evaluation endings and 4.22 for deployment endings. The reviewer judged the
-evaluation ending more benchmark-like in 198 pairs, the deployment ending in
+evaluation-like endings and 4.22 for deployment-like endings. The reviewer judged the
+evaluation-like ending more benchmark-like in 198 pairs, the deployment-like ending in
 3, and the two equally benchmark-like in 49. Thus, the audit supports the
 intended coherence and topic matching, while confirming that task-form cues
 remain.
@@ -842,7 +824,7 @@ correction.
 
 Steering uses the reference Llama checkpoint and the coherence-matched
 last-user activations. The direction is the unit difference between the
-evaluation and deployment class means. At residual block output $L$, the hook
+evaluation-like and deployment-like class means. At residual block output $L$, the hook
 applies
 $h_L\leftarrow h_L+\alpha\lVert\mu_{\mathrm{eval}}-
 \mu_{\mathrm{deploy}}\rVert_2\hat d$; it acts once during the prompt pass and
@@ -897,7 +879,7 @@ attainable value is $1/501$.
     \toprule
     Contrast/readout & Direction of means & L2 logistic & Permutation $p$ \\
     \midrule
-    Diagnostic benchmark/user, final & $0.9918\pm0.0085$ & $0.9933\pm0.0077$ & 0.002 \\
+    Diagnostic SAD/WildChat, final & $0.9918\pm0.0085$ & $0.9933\pm0.0077$ & 0.002 \\
     Retained-history, final & $0.9917\pm0.0033$ & $0.9976\pm0.0017$ & 0.002 \\
     Retained-history, pre-final & $0.4985\pm0.0011$ & $0.5001\pm0.0003$ & 0.990 \\
     Coherence-matched, final & $0.9513\pm0.0115$ & $0.9894\pm0.0081$ & 0.002 \\
@@ -989,12 +971,12 @@ boundary; the near-$0.5$ probe summaries are secondary consequences.
     \cmidrule(lr){2-3}\cmidrule(lr){4-5}
     Exact size & Shared & Coherent & Shared & Coherent \\
     \midrule
-    0.75B & $-0.0283$ & $-0.0120$ & $-0.0024$ & $+0.0380$ \\
-    2.03B & $-0.0072$ & $-0.0146$ & $+0.0024$ & $+0.0378$ \\
-    4.02B & $-0.0085$ & $-0.0131$ & $+0.0017$ & $+0.0358$ \\
-    8.19B & $-0.0035$ & $-0.0066$ & $+0.0035$ & $+0.0362$ \\
-    14.77B & $-0.0429$ & $+0.0007$ & $+0.0036$ & $+0.0383$ \\
-    32.76B & $+0.0009$ & $-0.0066$ & $+0.0027$ & $+0.0358$ \\
+    0.75B & $-0.0283$ & $-0.0120$ & $-0.0024$ & $+0.0408$ \\
+    2.03B & $-0.0072$ & $-0.0146$ & $+0.0024$ & $+0.0406$ \\
+    4.02B & $-0.0085$ & $-0.0131$ & $+0.0017$ & $+0.0386$ \\
+    8.19B & $-0.0035$ & $-0.0066$ & $+0.0035$ & $+0.0390$ \\
+    14.77B & $-0.0429$ & $+0.0007$ & $+0.0036$ & $+0.0411$ \\
+    32.76B & $+0.0009$ & $-0.0066$ & $+0.0027$ & $+0.0386$ \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1233,8 +1215,8 @@ screen. Table~\ref{tab:steering-controls} reports the paired effects.
   \end{tabular}
 \end{table}
 
-The learned direction moves the independent readout by $+1.045$ eval--deploy
-gap units, versus $-0.094$ to $+0.084$ for the controls. It therefore passes
+The learned direction moves the independent readout by $+1.045$ class-gap
+units, versus $-0.094$ to $+0.084$ for the controls. It therefore passes
 readout specificity but fails the frozen behavioral-specificity criterion:
 two orthogonal directions cause larger self-report shifts. The result supports
 causal accessibility of the decoded readout, not a direction-specific causal
@@ -1252,8 +1234,9 @@ Length matching succeeds in the four new cells, but format and lexical matching
 do not. Five-fold out-of-fold surface AUROCs are:
 
 \begin{table}[h]
-  \caption{Surface gate for the four new single-turn contrasts. WC denotes the
-  WildChat-derived deployment cell and TM the topic-matched deployment cell.}
+  \caption{Surface gate for the four new single-turn contrasts. EL denotes the
+  two evaluation-like styles, WC the WildChat-derived deployment-like cell, and
+  TM the topic-matched deployment-like cell.}
   \label{tab:appendix-surface-gate}
   \centering
   \small
@@ -1261,10 +1244,10 @@ do not. Five-fold out-of-fold surface AUROCs are:
     \toprule
     Contrast & Character length & Word length & Format & Unigram \\
     \midrule
-    Eval A vs. WC & 0.4726 & 0.4932 & 0.6627 & 0.9319 \\
-    Eval A vs. TM & 0.4764 & 0.4673 & 0.8326 & 0.9783 \\
-    Eval B vs. WC & 0.4923 & 0.5222 & 0.7818 & 0.9056 \\
-    Eval B vs. TM & 0.4964 & 0.4954 & 0.7435 & 0.9135 \\
+    EL A vs. WC & 0.4726 & 0.4932 & 0.6627 & 0.9319 \\
+    EL A vs. TM & 0.4764 & 0.4673 & 0.8326 & 0.9783 \\
+    EL B vs. WC & 0.4923 & 0.5222 & 0.7818 & 0.9056 \\
+    EL B vs. TM & 0.4964 & 0.4954 & 0.7435 & 0.9135 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1290,7 +1273,7 @@ Figure~\ref{fig:leak} contrasts the two constructions.
 \end{figure}
 
 \paragraph{Rejected coherence attempt.}
-An initial attempt appended unrelated benchmark items to deployment histories
+An initial attempt appended unrelated benchmark items to deployment-like histories
 but failed manual coherence review. We report only the jointly constructed
 replacement.
 

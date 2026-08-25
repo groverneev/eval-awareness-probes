@@ -567,7 +567,7 @@ pipeline, not a universal scaling law.
 
 The five-seed nonlinear sensitivity result does not reveal a hidden size trend.
 Activation RBF minus fixed contextual E5 ranges from `-0.0024` to `+0.0036` on
-shared prefix and from `+0.0358` to `+0.0383` on matched coherence across all
+shared prefix and from `+0.0386` to `+0.0411` on matched coherence across all
 sizes. Thus nonlinear capacity changes the control-specific comparison at every
 scale, while the paper's heterogeneity and semantic non-identification claims
 remain intact.

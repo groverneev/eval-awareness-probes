@@ -2,8 +2,9 @@
 
 Panel a reports primary linear margins against the strongest full-input E5
 interaction and paired-bootstrap intervals. Panel b reports the post-result
-nonlinear sensitivity comparison as mean plus SD over five grouped-fold seeds.
-The latter is descriptive rather than a second scale-trend test.
+nonlinear sensitivity comparison against the fixed E5 interaction as mean plus
+SD over five grouped-fold seeds. The latter is descriptive rather than a
+second scale-trend test.
 """
 
 from __future__ import annotations
@@ -21,6 +22,9 @@ import matplotlib.pyplot as plt
 
 SCALE_PATH = RESULTS_DIR / "qwen_scale/v1/scale_analysis.json"
 NONLINEAR_PATH = RESULTS_DIR / "qwen_scale/nonlinear_followup_v1/combined_analysis.json"
+FIXED_E5_PATH = (
+    RESULTS_DIR / "nonlinear_followup/e5_prefix_ending_interaction_analysis.json"
+)
 FULL_CONTEXT_PATH = RESULTS_DIR / "full_context_linear_comparison/analysis.json"
 CONTROLS = [
     ("eval_shared", "Retained-history", BLUE, "o"),
@@ -116,20 +120,29 @@ def panel_linear(axis, scale, full_context_scale):
     axis.set_ylim(-0.060, 0.022)
 
 
-def panel_nonlinear(axis, scale, nonlinear):
+def panel_nonlinear(axis, scale, nonlinear, fixed_e5):
     models = scale["models"]
     x = np.log10([model["parameter_count"] for model in models])
     labels = [size_label(model["parameter_billions"]) for model in models]
+    seeds = [int(seed) for seed in nonlinear["seeds"]]
 
     for control_key, label, color, marker in CONTROLS:
+        text_values = np.asarray(
+            [fixed_e5["seeds"][str(seed)][control_key]["auroc"] for seed in seeds]
+        )
         means = []
         errors = []
         for model in models:
-            aggregate = nonlinear["models"][model["repository"]]["aggregate"]["within"][
-                control_key
-            ]["rbf_minus_text"]
-            means.append(aggregate["mean"])
-            errors.append(aggregate["sd"])
+            activation_values = np.asarray(
+                nonlinear["models"][model["repository"]]["aggregate"]["within"][
+                    control_key
+                ]["activation_rbf_auroc"]["values"]
+            )
+            if len(activation_values) != len(text_values):
+                raise ValueError("Activation and fixed-E5 analyses use different seeds")
+            margins = activation_values - text_values
+            means.append(float(np.mean(margins)))
+            errors.append(float(np.std(margins, ddof=0)))
         means = np.asarray(means)
         axis.errorbar(
             x,
@@ -155,6 +168,7 @@ def main() -> None:
     figstyle.use_paper_style()
     scale = load_json(SCALE_PATH)
     nonlinear = load_json(NONLINEAR_PATH)
+    fixed_e5 = load_json(FIXED_E5_PATH)
     full_context_scale = load_json(FULL_CONTEXT_PATH)["qwen_scale"]
 
     fig, axes = plt.subplots(
@@ -164,7 +178,7 @@ def main() -> None:
         gridspec_kw={"wspace": 0.34, "bottom": 0.27},
     )
     panel_linear(axes[0], scale, full_context_scale)
-    panel_nonlinear(axes[1], scale, nonlinear)
+    panel_nonlinear(axes[1], scale, nonlinear, fixed_e5)
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", bbox_to_anchor=(0.5, 0.0), ncol=2)
     figstyle.save(fig, "qwen_scale_ladder")

@@ -1216,8 +1216,8 @@ transfer is also asymmetric: shared-to-coherent declines with size
 (-0.0002 [-0.0156,+0.0149]).
 
 The five-seed nonlinear audit remains nearly flat across size. Activation RBF
-minus fixed contextual E5 spans -0.0024 to +0.0036 on shared prefix and +0.0358
-to +0.0383 on matched coherence. This strengthens the claim that the
+minus fixed contextual E5 spans -0.0024 to +0.0036 on shared prefix and +0.0386
+to +0.0411 on matched coherence. This strengthens the claim that the
 E5-referenced activation margin is control- and decoder-dependent rather than
 consistently scale-predictable. Six checkpoints within one family do not
 establish a universal scaling law.
