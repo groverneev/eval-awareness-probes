@@ -68,7 +68,7 @@
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 
 % Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote. 
-\title{Paired Conversation Controls Reveal Prompt-Category Decodability but Limited Evidence for Evaluation Awareness}
+\title{Evaluation Awareness or Prompt Content? Stress-Testing Activation Probes with Paired Conversations}
 \workshoptitle{TAE (Trust-AI-Eval): Can We Trust AI Evaluation?}
 
 % The \author macro works with any number of authors. There are two commands
@@ -298,7 +298,8 @@ instead, together they progressively restrict prompt-content explanations.
 
 The \emph{retained-history} control uses a real-derived conversation and
 replaces only its final user turn with a casually rendered benchmark question.
-It preserves real-world history but may introduce a topic or speech-act shift.
+It preserves a real-derived, rewritten history but may introduce a topic or
+speech-act shift.
 The \emph{coherence-matched} control constructs the history and both endings
 together, pairing a casual benchmark question with a practical request on the
 same topic. It trades provenance for endings matched on topic, register, and
@@ -778,6 +779,92 @@ Ministral replication runs used separate NVIDIA A40 48GB GPUs; the Qwen
 replication ran locally. Sparse MoE checkpoints, later Qwen generations, and
 quantized weights are excluded before execution. Exact software and GPU
 metadata were not embedded in the early reference-model arrays.
+
+\subsection{Compute resources}
+
+Compute accounting combines retained pod records with reconstructed estimates
+for early runs whose exact wall-clock logs were not preserved. The initial
+reference-model extraction, diagnostic contrasts, paired controls, pilots,
+failed controls, and reruns used a local RTX 5070 Ti 16GB, free 2$\times$T4
+16GB workers, and rented GPUs with at least 24GB; together these early and
+preliminary experiments used approximately 15 GPU-hours. The cross-family
+panel used the local worker for Qwen and separate A40 48GB RunPod pods for Gemma and
+Ministral. Their measured full extractions took 11m09s and 12m15s, followed by
+approximately 4.5 and 5.3 minutes of CPU analysis, respectively; including
+setup, downloads, smoke tests, and artifact transfer, the two A40 pods were
+allocated for about two hours in total. The six-checkpoint Qwen3 ladder used one
+A100-SXM4-80GB pod for approximately six wall-clock hours, including model
+downloads, extraction, analysis, and artifact transfer. Generation-heavy
+silence and steering runs used rented 24GB-or-larger GPUs, including an RTX
+4090 24GB for the 840-generation orthogonal-control audit; these runs required
+approximately 2--4 GPU-hours in aggregate. Cross-model pods provisioned 100GB
+of disk, while large activation artifacts were copied to local storage after
+validation.
+
+Across all reported, pilot, failed, and preliminary work, we estimate roughly
+40 allocated GPU-hours. CPU-only probe fitting, text baselines, bootstrap and
+permutation inference, figure generation, and validation required an additional
+approximately 10--15 CPU-hours on a local desktop. These figures are
+project-level resource estimates rather than exact utilization measurements:
+pod allocations include download and transfer overhead, and the total is not
+the sum of fully saturated accelerator time.
+
+\subsection{Asset licenses and terms}
+
+Table~\ref{tab:asset-licenses} records the licenses or provider terms for the
+third-party datasets, model weights, embedding model, and hosted model services
+used in the study. Dataset and model creators are credited in the main text and
+references. We use these assets subject to their upstream terms, preserve
+required attribution and notices, and do not redistribute third-party model
+weights, licensed SAD prompt text, or raw WildChat conversations.
+
+\begin{table}[h]
+  \caption{Third-party asset licenses and use restrictions. Exact model
+  revisions are listed in Appendix~\ref{app:details}.}
+  \label{tab:asset-licenses}
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3.5pt}
+  \begin{tabularx}{\linewidth}{p{0.21\linewidth}p{0.24\linewidth}Y}
+    \toprule
+    Asset & License or terms & Use and redistribution treatment \\
+    \midrule
+    SAD stages-oversight
+      & \href{https://github.com/LRudL/sad/blob/main/LICENSE.txt}{CC BY 4.0}; upstream anti-contamination protocol
+      & Loaded from the licensed archive in memory; prompt text is not redistributed. \\
+    WildChat-1M
+      & \href{https://huggingface.co/datasets/allenai/WildChat-1M/blob/main/LICENSE.md}{ODC Attribution 1.0} for the database; separate content and privacy rights may apply
+      & Used under gated-access and privacy controls; raw conversations are not redistributed. \\
+    ARC
+      & \href{https://huggingface.co/datasets/allenai/ai2_arc}{CC BY-SA 4.0}
+      & Source items are credited; constructed derivatives retain provenance. \\
+    MMLU and GSM8K
+      & MIT licenses (\href{https://github.com/hendrycks/test/blob/master/LICENSE}{MMLU}; \href{https://github.com/openai/grade-school-math/blob/master/LICENSE}{GSM8K})
+      & Source items are credited; constructed derivatives retain provenance. \\
+    Evaluation-awareness $2\!\times\!2$
+      & \href{https://huggingface.co/datasets/viliana-dev/eval-awareness-2x2}{MIT}
+      & Public comparison cells are used with attribution. \\
+    Llama-3.1-8B-Instruct
+      & \href{https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct}{Llama 3.1 Community License}
+      & Accessed under the model license; weights are not redistributed. \\
+    Qwen3 checkpoints
+      & \href{https://huggingface.co/Qwen/Qwen3-8B}{Apache 2.0}
+      & Accessed under the model license; weights are not redistributed. \\
+    Gemma-3-12B-IT
+      & \href{https://huggingface.co/google/gemma-3-12b-it}{Gemma Terms of Use}
+      & Accessed under the model terms; weights are not redistributed. \\
+    Ministral-3-8B-Instruct
+      & \href{https://huggingface.co/mistralai/Ministral-3-8B-Instruct-2512-BF16}{Apache 2.0}
+      & Accessed under the model license; weights are not redistributed. \\
+    E5-base-v2
+      & \href{https://huggingface.co/intfloat/e5-base-v2}{MIT}
+      & Frozen embeddings are computed locally; weights are not redistributed. \\
+    Hosted Claude and OpenAI models
+      & Applicable provider service terms
+      & Used only for constructed-text authoring and blinded review; no hosted-model weights are accessed or redistributed. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
 
 For the replication suite, each user-turn boundary is rendered and processed
 as an independent causal prefix. This was frozen after a full-sequence smoke

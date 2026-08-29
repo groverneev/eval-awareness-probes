@@ -111,8 +111,8 @@
 
 \item {\bf Experiments compute resources}
     \item[] Question: For each experiment, does the paper provide sufficient information on the computer resources (type of compute workers, memory, time of execution) needed to reproduce the experiments?
-    \item[] Answer: \answerNo{}
-    \item[] Justification: Appendix~A reports the available GPU models, memory, precision, and the fully recorded scale-ladder software environment. Exact runtimes, total compute, and complete environment metadata for some early reference-model runs were not retained.
+    \item[] Answer: \answerYes{}
+    \item[] Justification: Appendix~A reports GPU models and memory, storage, measured timings where retained, reconstructed runtime estimates for early runs, and an estimated project total covering reported, pilot, failed, and preliminary experiments. It explicitly distinguishes allocated wall-clock estimates from exact accelerator utilization.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not include experiments.
@@ -161,8 +161,8 @@
 
 \item {\bf Licenses for existing assets}
     \item[] Question: Are the creators or original owners of assets (e.g., code, data, models), used in the paper, properly credited and are the license and terms of use explicitly mentioned and properly respected?
-    \item[] Answer: \answerNo{}
-    \item[] Justification: The paper cites the benchmark, conversation-data, model, and prior-code sources and follows the access restrictions for SAD and WildChat. It does not yet enumerate every asset's license and terms of use explicitly.
+    \item[] Answer: \answerYes{}
+    \item[] Justification: The paper credits the benchmark, conversation-data, model, embedding, and prior-dataset creators. Appendix~A enumerates the applicable licenses or provider terms and explains the access, attribution, and non-redistribution treatment for each third-party asset.
     \item[] Guidelines:
     \begin{itemize}
         \item The answer \answerNA{} means that the paper does not use existing assets.
