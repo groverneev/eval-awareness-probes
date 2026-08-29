@@ -2,17 +2,46 @@
 
 set -euo pipefail
 
+venue=""
 no_open=false
-if [[ "${1:-}" == "--no-open" ]]; then
-    no_open=true
+for argument in "$@"; do
+    case "${argument}" in
+        --no-open)
+            no_open=true
+            ;;
+        *)
+            if [[ -n "${venue}" ]]; then
+                echo "Usage: $0 <venue> [--no-open]" >&2
+                exit 2
+            fi
+            venue="${argument}"
+            ;;
+    esac
+done
+
+if [[ -z "${venue}" ]]; then
+    echo "Usage: $0 <venue> [--no-open]" >&2
+    echo "Available venues are the directories under paper/versions/." >&2
+    exit 2
+fi
+
+if [[ ! "${venue}" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; then
+    echo "Invalid venue name: ${venue}" >&2
+    exit 2
 fi
 
 paper_directory="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-document_name="neurips_2026"
-source_file="${document_name}.tex"
-build_directory="${paper_directory}/.build"
+document_name="main"
+source_file="${paper_directory}/versions/${venue}/${document_name}.tex"
+build_directory="${paper_directory}/.build/${venue}"
 build_pdf="${build_directory}/${document_name}.pdf"
-output_pdf="${paper_directory}/${document_name}.pdf"
+output_directory="${paper_directory}/out/${venue}"
+output_pdf="${output_directory}/paper.pdf"
+
+if [[ ! -f "${source_file}" ]]; then
+    echo "Could not find venue manuscript: ${source_file}" >&2
+    exit 2
+fi
 
 # MacTeX installs its command-line tools here. Keeping the existing PATH as a
 # fallback also supports TeX Live on Linux and custom installations.
@@ -36,6 +65,7 @@ run_tex_command() {
 
 cd "${paper_directory}"
 mkdir -p "${build_directory}"
+mkdir -p "${output_directory}"
 cp "${paper_directory}/references.bib" "${build_directory}/references.bib"
 
 pdflatex_arguments=(

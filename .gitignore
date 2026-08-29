@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 *.egg-info/
-/.DS_Store
+.DS_Store
 
 # Cached activations and datasets are large and reproducible.
 data/
@@ -21,6 +21,8 @@ VNAA-Proposal.pdf
 # Paper source is versioned here and synced manually with Overleaf.
 # Ignore only local LaTeX build products and redundant rendered previews.
 /paper/.build/
+/paper/out/
+/paper/submissions/**/*.pdf
 /paper/*.aux
 /paper/*.bbl
 /paper/*.blg

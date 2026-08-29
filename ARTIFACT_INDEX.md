@@ -189,8 +189,13 @@ never be written to committed files.
   the Qwen3 scale ladder.
 - `paper/build_figures.ps1`: regenerate all figure PDFs and ignored preview
   PNGs independently of the LaTeX build.
-- `paper/build.ps1`: build the manuscript from the current figure PDFs without
-  rerunning the figure scripts.
+- `paper/versions/<venue>/main.tex`: independently editable manuscript source
+  for each workshop submission; TAE, IAEval, and Verify-Agents currently have
+  versions.
+- `paper/build.ps1 -Venue <venue>` or `paper/build.sh <venue>`: build the
+  selected manuscript from the shared figure PDFs and bibliography without
+  rerunning the figure scripts. Outputs are written to
+  `paper/out/<venue>/paper.pdf`.
 
 ## Verification expectations
 

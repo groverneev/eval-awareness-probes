@@ -1,5 +1,9 @@
 [CmdletBinding()]
 param(
+    [Parameter(Mandatory = $true)]
+    [ValidatePattern('^[a-z0-9][a-z0-9_-]*$')]
+    [string]$Venue,
+
     [switch]$NoOpen
 )
 
@@ -7,11 +11,16 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
 $paperDirectory = $PSScriptRoot
-$documentName = 'neurips_2026'
-$sourceFile = "$documentName.tex"
-$buildDirectory = Join-Path $paperDirectory '.build'
+$documentName = 'main'
+$sourceFile = Join-Path $paperDirectory "versions\$Venue\$documentName.tex"
+$buildDirectory = Join-Path $paperDirectory ".build\$Venue"
 $buildPdf = Join-Path $buildDirectory "$documentName.pdf"
-$outputPdf = Join-Path $paperDirectory "$documentName.pdf"
+$outputDirectory = Join-Path $paperDirectory "out\$Venue"
+$outputPdf = Join-Path $outputDirectory 'paper.pdf'
+
+if (-not (Test-Path -LiteralPath $sourceFile)) {
+    throw "Could not find venue manuscript at $sourceFile."
+}
 
 function Resolve-MiKTeXTool {
     param(
@@ -91,6 +100,7 @@ $pdfLaTeX = Resolve-MiKTeXTool -Name 'pdflatex'
 $bibTeX = Resolve-MiKTeXTool -Name 'bibtex'
 
 New-Item -ItemType Directory -Force -Path $buildDirectory | Out-Null
+New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
 Copy-Item -LiteralPath (Join-Path $paperDirectory 'references.bib') -Destination $buildDirectory -Force
 
 Push-Location $paperDirectory

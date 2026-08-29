@@ -7,8 +7,10 @@ complete.
 
 Do not preload these files. Read only the files relevant to the current task:
 
-- For manuscript edits, read `paper/neurips_2026.tex`. It is the active
-  manuscript and the primary source of truth for current paper work.
+- For manuscript edits, read the relevant venue source under
+  `paper/versions/<venue>/main.tex`. TAE, IAEval, and Verify-Agents are
+  independent manuscript versions; shared figures, bibliography, checklist,
+  and style remain in `paper/`.
 - For questions about the paper's argument, scope, or non-claims, read
   `paper/paper_plan.md`.
 - For experimental conclusions, headline numbers, or claim boundaries, read
@@ -42,8 +44,9 @@ was run, what results were obtained, or the paper's current claims.
 - Run `paper/build_figures.ps1` to regenerate all paper figure PDFs and preview
   PNGs. Figure generation is separate from the manuscript build so routine
   LaTeX rebuilds stay fast.
-- Run `paper/build.ps1` to build the manuscript on Windows using the existing
-  figure PDFs.
+- Run `paper/build.ps1 -Venue <venue>` to build a venue manuscript on Windows
+  using the existing figure PDFs. On macOS/Linux, run
+  `paper/build.sh <venue>`. Outputs are written to `paper/out/<venue>/paper.pdf`.
 - Run `.venv\Scripts\python -m pytest` for the project test suite when code
   changes warrant it.
 - Do not commit files without explicit permission
