@@ -7,7 +7,7 @@
 % The authors should use one of these tracks.
 % Before accepting by the NeurIPS conference, select one of the options below.
 % 0. "default" for submission
-\usepackage[dblblindworkshop]{neurips_2026}
+\usepackage[dblblindworkshop, final]{neurips_2026}
 % the "default" option is equal to the "main" option, which is used for the Main Track with double-blind reviewing.
 % 1. "main" option is used for the Main Track
 %  \usepackage[main]{neurips_2026}
@@ -80,7 +80,28 @@
 % \AND instead of \And before the third author name.
 
 
-\author{Anonymous Authors}
+% TODO: replace placeholders with the five authors' details.
+\author{%
+  Author 1 \\
+  Affiliation \\
+  \texttt{email} \\
+  \And
+  Author 2 \\
+  Affiliation \\
+  \texttt{email} \\
+  \And
+  Author 3 \\
+  Affiliation \\
+  \texttt{email} \\
+  \AND
+  Author 4 \\
+  Affiliation \\
+  \texttt{email} \\
+  \And
+  Author 5 \\
+  Affiliation \\
+  \texttt{email} \\
+}
 % examples of more authors
   % \And
   % Coauthor \\
@@ -131,7 +152,8 @@ Steering shifts evaluation self-reports, but two of five norm-matched random
 directions orthogonal to the learned direction produce larger shifts, and no
 direction increases safety refusals. Together, we find prompt-category
 decodability across the tested constructions and checkpoints, but not a
-content-independent representation of evaluation awareness.
+content-independent representation of evaluation awareness. Code and
+constructed prompts: \url{https://github.com/groverneev/eval-awareness-probes}.
 \end{abstract}
 
 \section{Introduction}
@@ -715,7 +737,9 @@ in the repository rather than reconstructed here.
 Constructed single-turn records expose a stable \texttt{uid}, batch, and style;
 paired multi-turn records expose \texttt{item\_id} (for example,
 \texttt{sk\_0000}). These are the grouping keys used by every split and
-bootstrap. The repository releases all constructed prompts and these
+bootstrap. The repository
+(\url{https://github.com/groverneev/eval-awareness-probes}) releases all
+constructed prompts and these
 identifiers. Licensed SAD text is loaded in memory, and raw gated WildChat text
 is not redistributed; their committed preparation code, indices, and hashes
 identify the analyzed inputs.
