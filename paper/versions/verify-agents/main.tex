@@ -139,10 +139,10 @@ evaluating text baselines and cross-construction transfer at four selected
 checkpoints, scaling trends across six Qwen3 model sizes, and causal steering. On an initial
 contrast, the activation probe is nearly perfect, but text classifiers perform
 almost as well. Across independent contrasts, activation
-directions preserve separability yet reverse label orientation more often than
-word-based classifiers. In paired conversations, byte-identical histories yield
-identical pre-final activations, and labels become highly decodable after the
-differing user message. The strongest full-context text baseline matches or
+directions still separate the classes but flip which class scores higher more
+often than word-based classifiers do. In paired conversations, byte-identical histories leave
+labels undecodable before the differing user message and highly decodable after
+it. The strongest full-context text baseline matches or
 exceeds the primary linear probe on both controls at every checkpoint. A
 post-result decoder-sensitivity audit finds that flexible activation probes
 outperform capacity-matched text baselines within one control but not across
@@ -335,10 +335,13 @@ same topic. It trades provenance for endings matched on topic, register, and
 length. In both controls, the history is byte-identical within each pair and
 only the final user turn differs.
 
-Under deterministic evaluation, identical serialized prefixes must produce
-identical hidden states. Before fitting, we verify exact paired equality as a
-construction, rendering, and extraction leakage check---not evidence about
-evaluation awareness. Inference begins after the texts diverge.
+Identical serialized prefixes should produce identical hidden states. Before
+fitting, we compare paired pre-final states as a construction, rendering, and
+extraction leakage check---not evidence about evaluation awareness. Replication
+models use independent causal-prefix passes, so equality is exact; the Llama
+reference used full-sequence passes, where suffix-length-dependent bfloat16
+arithmetic can perturb otherwise identical states (Appendix~\ref{app:results}).
+Inference begins after the texts diverge.
 
 \begin{figure}[h]
   \centering
@@ -483,8 +486,10 @@ diagnostic.
 
 The first written multi-turn dataset separated the classes before the benchmark
 question and was rejected (Appendix~\ref{app:failures}). For the Llama reference
-model, every paired pre-final state in the repaired retained-history and
-coherence-matched controls is exactly equal, passing the leakage check. In the
+model, all paired pre-final inputs in the repaired retained-history and
+coherence-matched controls are token-identical; bfloat16 extraction differences
+affect 24 and 14 of 250 pairs, and pre-final AUROC stays at chance, passing the
+leakage check. In the
 repeated-holdout trajectory analysis, AUROC after the differing final turn
 reaches $0.992\mathbin{\pm}0.003$ and $0.951\mathbin{\pm}0.012$,
 respectively. This confines decoding to the post-divergence text but does not
@@ -518,7 +523,8 @@ transfer, and observed-silence analyses.
 
 \subsection{Cross-model, estimator-sensitivity, and scale results}
 
-All three replication models pass the leakage check and decode both controls.
+All three replication models pass the exact-equality leakage check and decode
+both controls.
 Nested train-only reruns prompted by unstable in-sample layer selection preserve
 the Llama, Qwen, and Ministral conclusions and correct Gemma
 (Figure~\ref{fig:crossmodel}; Appendix~\ref{app:crossmodel}).
@@ -570,7 +576,9 @@ However, the self-report effect is not direction-specific. All five
 norm-matched orthogonal controls pass the output-quality screen; their risk
 differences range from $0$ to $+1.000$, and two exceed the learned effect. Their
 independent-readout changes are only $-0.094$ to $+0.084$, versus $+1.045$ for
-the learned direction. Thus the learned direction specifically moves the
+the learned direction. A post-result check finds that the steering and readout
+directions are far from parallel (cosine $0.31$), so this movement is not a
+near-tautology. Thus the learned direction specifically moves the
 readout, but the report may respond generically to residual-stream perturbation.
 
 Safety refusals remain $0.062$--$0.125$ and trend slightly opposite to the
@@ -601,7 +609,10 @@ activations with text views matched to what the model has observed, test whether
 the signal predates the purported cause, and preserve pairing in both data
 splits and uncertainty estimates. Character n-grams and explicit
 prefix--ending interactions are important escalation steps because each
-overturns a conclusion supported by a weaker comparator. Cross-model
+overturns a conclusion supported by a weaker comparator. Because activations are a
+deterministic function of the input text, a sufficiently strong text model can
+in principle match any probe; text baselines therefore bound what a probe adds
+beyond the text rather than identify what it represents. Cross-model
 replications should report effect sizes relative to the same baseline, not only
 whether each probe exceeds chance. Nonlinear probes should be paired with
 capacity-matched text comparators and treated as sensitivity analyses unless
@@ -624,8 +635,9 @@ activation-based monitoring \citep{mcguinness2025chameleons}.
 Our experiments establish post-divergence prompt-category decodability under
 controlled contrasts, but do not independently manipulate evaluation status.
 Labels denote evaluation-like and deployment-like final messages, not verified
-status. Exact pre-final equality is only a deterministic leakage check, not
-evidence of awareness. Paired controls remove history differences and coherence
+status. Pre-final equality (exact for replication models, up to bfloat16
+differences for the Llama reference) is only a leakage check, not evidence of
+awareness. Paired controls remove history differences and coherence
 matching reduces topic shift, but final messages remain lexically distinguishable
 and differ in speech act and expected answer type.
 
@@ -634,7 +646,10 @@ Our scope covers four selected instruction-tuned open-weight checkpoints in the
 a universal scaling law nor direct applicability to proprietary frontier systems.
 Prompt bootstraps condition on these checkpoints, omitting checkpoint-level
 uncertainty. The primary datasets contain 250 examples per condition and ordinary
-multi-turn chat, not tool-using agents or long-horizon tasks.
+multi-turn chat, not tool-using agents or long-horizon tasks. Constructed
+prompts were authored in interactive Claude sessions whose checkpoint and
+decoding settings were not logged; the released prompts, not the authoring
+process, are the reproducible artifact.
 
 Conclusions also depend on the readout and comparator. Regularized L2 logistic
 recovers most apparent RBF gains; cross-control transfer remains weak, and
@@ -653,7 +668,7 @@ validity, not definitive evaluation awareness or policy use.
 
 \section{Conclusion}
 
-Across four tested checkpoints, the paired controls pass an exact pre-final
+Across four tested checkpoints, the paired controls pass a pre-final
 leakage check, and prompt-category labels become decodable after the first
 differing user message. The primary linear probes do not outperform the
 full-input E5 interaction. A post-result decoder audit finds that activation RBF
@@ -903,6 +918,8 @@ test exposed suffix-length-dependent bfloat16 differences at otherwise
 identical earlier tokens. Rejected smoke caches are isolated from the full-run
 artifacts. Each completed model processes all 250 scenarios under both paired
 controls, and every pre-final equality check is performed before probe fitting.
+The Llama reference caches predate this change and retain small pre-final
+differences (Appendix~\ref{app:results}).
 
 \subsection{Probe fitting and inference details}
 \label{app:fitting-details}
@@ -955,6 +972,12 @@ prefix--ending interaction was promoted to the main full-input comparator after
 the initial results because it was the strongest fixed E5 view; it was not
 refit or retuned. No analysis was externally preregistered. Frozen repository
 prespecifications distinguish confirmatory analyses from post-result audits.
+Prespecified analyses are the primary paired-control probes, the single-turn
+transfer grid, the three cross-model replications, the Qwen3 scaling criterion,
+and the steering protocol. Post-result analyses are the full-input E5 audit, the
+decoder-sensitivity (L2-logistic and RBF) audit, the steering robustness audit
+(prompt-level inference and orthogonal directions), and the steering--readout
+cosine.
 The direct probe-over-baseline randomization test uses a one-sided alternative;
 other reported intervals and tests are per endpoint. We report all tested
 cells, directions, and steering outcomes without family-wise multiplicity
@@ -1033,17 +1056,22 @@ attainable value is $1/501$.
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.55\linewidth]{figures/leakage_check.pdf}
-  \caption{Reference-model paired-control leakage check. Identical serialized
-  prefixes yield identical pre-final states; the near-chance AUROCs are a
-  secondary consequence of that equality. Labels become decodable only after
+  \caption{Reference-model paired-control leakage check. Token-identical
+  prefixes yield pre-final states equal up to bfloat16 differences from
+  full-sequence extraction; pre-final AUROCs are at chance. Labels become decodable only after
   the differing final turn (mean $\mathbin{\pm}$ SD over five splits).}
   \label{fig:leakage-check}
 \end{figure}
 
 The full retained-history trajectory is $0.9917$ at the final turn and $0.4975$,
 $0.5003$, and $0.5003$ at one, two, and three turns before the end, with 250,
-250, 145, and 61 available pairs. Exact equality holds at every pre-final
-boundary; the near-$0.5$ probe summaries are secondary consequences.
+250, 145, and 61 available pairs. Embedding-layer states are identical in every
+pair. At later layers, 34 of 456 retained-history pre-final states (24 pairs)
+and 14 of 250 coherence-matched pairs differ, by at most 10\% and 12\% in
+relative norm. These differences arise from suffix-length-dependent bfloat16
+arithmetic in full-sequence extraction, the effect that led us to extract the
+replication suite with independent causal-prefix passes, and they explain why
+pre-final AUROCs deviate slightly from exactly $0.5$.
 
 \subsection{Cross-model paired-control comparisons}
 \label{app:crossmodel}
@@ -1410,7 +1438,7 @@ Figure~\ref{fig:leak} contrasts the two constructions.
   pairs are byte-identical before the final turn. \textbf{(b)} Reference-model
   probe AUROC (mean $\mathbin{\pm}$ standard deviation over five splits). Both
   rejected cells are near ceiling pre-final and fail the check; retained history
-  passes exact equality.}
+  passes the leakage check.}
   \label{fig:leak}
 \end{figure}
 

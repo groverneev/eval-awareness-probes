@@ -26,10 +26,14 @@ Status terms used here:
 
 Llama-3.1-8B-Instruct hidden states linearly distinguish several independently
 constructed evaluation-like and deployment-like situations. In two paired
-multi-turn controls, exact equality of pre-final hidden states verifies the
-byte-identical construction and extraction pipeline; labels become decodable
-after the class-defining final user turn. Qwen3-8B, Gemma-3-12B-IT, and
-Ministral-3-8B pass the same leakage check and reproduce above-chance final-turn
+multi-turn controls, prefixes are token-identical and pre-final probe AUROC is
+at chance; labels become decodable after the class-defining final user turn.
+The Llama reference caches were extracted in full-sequence passes, so their
+pre-final hidden states are equal only up to suffix-length-dependent bfloat16
+differences (24/250 retained-history and 14/250 coherence-matched pairs differ;
+embedding-layer states are identical). Qwen3-8B, Gemma-3-12B-IT, and
+Ministral-3-8B, extracted with independent causal-prefix passes, pass an exact
+pre-final equality check and reproduce above-chance final-turn
 decodability.
 
 The experiments do **not** isolate a single architecture-invariant variable
