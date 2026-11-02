@@ -4,7 +4,10 @@
 - Track: General Track
 - Page limit: 2--9 main-text pages, excluding references and appendices
 - Target length: 9 main-text pages
-- Status: Draft
+- Status: Accepted (poster); camera-ready in progress
+- Camera-ready deadline: 2026-11-29 (Anywhere on Earth)
+- Workshop: Paris, Palais des Congres, 2026-12-12
+- Original submitted source: `paper/submissions/ai4good/2026-09-01/main.tex` (PDF rebuilt locally alongside it)
 - Submission deadline: 2026-09-01 (Anywhere on Earth)
 - Source: `paper/versions/ai4good/main.tex`
 - Build output: `paper/out/ai4good/paper.pdf`

@@ -3,7 +3,10 @@
 - Venue: Who Verifies the Agents? Toward Reliable Agent Development
 - Page limit: 4--9 main-text pages
 - Target length: 8 main-text pages
-- Status: Submitted
+- Status: Accepted (poster); camera-ready in progress
+- Camera-ready deadline: 2026-11-15 (Anywhere on Earth)
+- Workshop: Sydney, 2026-12-12
+- Original submitted source: `paper/submissions/verify-agents/2026-08-29/main.tex` (PDF rebuilt locally alongside it)
 - Submission deadline: 2026-08-29 (Anywhere on Earth)
 - Source: `paper/versions/verify-agents/main.tex`
 - Build output: `paper/out/verify-agents/paper.pdf`
