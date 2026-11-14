@@ -29,8 +29,10 @@ was run, what results were obtained, or the paper's current claims.
 - Keep the paper's claims aligned with `EXPERIMENT_REPORT.md` and its explicit
   limitations. Use `EXPERIMENT_LEDGER.md` to resolve detailed audit questions,
   not to broaden the concise report's claim boundaries.
-- Preserve double-blind review: do not add names, usernames, repository
-  handles, or other identifying information to repository files.
+- Double-blind review is over for Verify-Agents and AI4Good; their camera-ready
+  versions carry author names, and the repository is public. Do not add names,
+  usernames, or other identifying information to any manuscript that is still
+  under anonymous review.
 - Do not add `Co-Authored-By: Claude` trailers or other AI self-attribution to
   commits.
 - `data/` and `results/` are gitignored. Treat them as local artifacts; do not

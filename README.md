@@ -1,108 +1,118 @@
-# Probing Evaluation Awareness in Realistic Multi-Turn Conversations
+# Evaluation Awareness or Prompt Content?
 
-Do language models internally recognize when they are being evaluated, and does
-that recognition survive when the evaluation is disguised as a realistic
-conversation? We train linear probes on a model's residual-stream activations to
-separate evaluation contexts from deployment contexts, and test whether the
-signal holds up once we remove the surface cues (formatting, length, single-turn
-structure) that a probe could read instead of genuine recognition.
+**Stress-testing activation probes with paired conversations**
 
-Full proposal, methodology, and citations: `VNAA-Proposal.pdf`. Detailed
-results, gotchas, and the agent-facing project state: `CLAUDE.md`.
+Neev Grover, Apurva Reddy, Arya Kumar, Thomas Jiralerspong, Maheep Chaudhary
 
-Author information is withheld for double-blind review.
+Accepted at two NeurIPS 2026 workshops:
+*Who Verifies the Agents? Toward Reliable Agent Development* and
+*Trustworthy AI for Good*.
 
-## Status
+---
 
-All experimental work is complete on Llama-3.1-8B: the single-turn replication
-and its surface-baseline audit, the format-matched cross-cell transfer test,
-the multi-turn `eval_shared` and matched-coherence controls (with a
-silence-verified subset), a deployment-simulation reconstruction with a
-model-swap/context-ablation decomposition (replicated on a second corpus,
-LMSYS-Chat-1M), and a causal steering arm. A second estimator (logistic
-regression) and full-pipeline permutation nulls confirm no conclusion depends
-on the fitting method. The frozen cross-model core is also complete on
-Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B. What remains is paper assembly
-and, optionally, a newly frozen authorship pilot after v2 failed its coherence
-gate.
+## Overview
 
-## Headline results
+Language models may behave differently when they recognize that they are being
+evaluated. If so, benchmark results may not predict how a model behaves in
+deployment. A growing line of work trains **activation probes**, which are
+simple classifiers on a model's internal states, to detect this
+"evaluation awareness".
 
-**Slice 1 — single-turn replication.** Probe reaches AUROC 0.994 at layer 4/32,
-but a structure-only classifier (no words) reaches 0.9675 and bag-of-words
-0.9517 on the same split — the probe's margin over the best surface baseline
-is only +0.027, within noise. This cell is fully confounded (SAD-eval prompts
-look like benchmark items; WildChat-deploy prompts don't), which motivates
-everything after it.
+But evaluation-like and deployment-like prompts also differ in obvious ways:
+wording, formatting, and topic. A probe can separate them with high accuracy
+without the model representing anything like awareness. This repository
+asks a narrower question: **which interpretations of these probes does the
+evidence actually support?**
 
-**Slice 2 — format-matched transfer (ARC+MMLU, 5 seeds).** Probe beats
-bag-of-words under cross-cell transfer by **+0.071 ± 0.013**, positive on
-every seed and every format-matched training cell. Training on the standard
-confounded contrast is the sole exception (−0.087 ± 0.032): on the setup the
-field actually uses, activations transfer *worse* than word counts.
+We test this with:
 
-**Slice 3 — multi-turn.** `eval_shared` (deploy conversation, final user turn
-swapped for a benchmark question, byte-identical prefix) is exactly chance
-before the swap and **0.992** at the final turn. With the identical prefix
-removed from additive baselines, final-turn BoW reaches 0.935, leaving a
-**+0.057** margin. The matched-coherence control reaches **0.951 ± 0.011**
-versus final-turn BoW 0.933 (+0.018). On silence-filtered subsets, matched
-coherence is tied by BoW (0.937 vs 0.935), while `eval_shared` retains a modest
-advantage (0.991 vs 0.946 at the 512-token cap).
+- **Text baselines.** Bag-of-words, character TF-IDF, and frozen sentence
+  embeddings measure how much of the label is readable from the text alone.
+- **Paired multi-turn controls.** Two conversations are byte-identical until a
+  single final user message, which is either evaluation-like or deployment-like.
+- **Cross-construction transfer.** A probe trained on one way of building the
+  contrast is tested on others.
+- **Replication and scale.** Four instruction-tuned open-weight checkpoints
+  (Llama-3.1-8B, Qwen3-8B, Gemma-3-12B, Ministral-3-8B) and six Qwen3 sizes
+  (0.75B–32.76B).
+- **Causal steering.** We add the learned direction to the model's activations
+  and compare the effect against norm-matched random directions.
 
-**Cross-model confirmation.** Qwen3-8B, Gemma-3-12B-IT, and Ministral-3-8B
-all reproduce exact zero pre-final difference and above-chance final-turn
-decodability on both frozen 250-pair controls. Qwen and Ministral beat the
-strongest text baseline on `eval_shared`; Gemma is substantially weaker than
-text. No replication model beats character TF-IDF on matched coherence or
-cross-control transfer, so the result is cross-family but not architecture-
-invariant or generally activation-specific.
+<p align="center">
+  <img src="docs/paired_controls.png" alt="Paired multi-turn controls: two conversations share a byte-identical history and differ only in the final user message" width="720">
+</p>
 
-**Slice 5 — deployment-simulation reconstruction.** Real WildChat/LMSYS
-conversations with only the final assistant reply regenerated give exact
-provenance labels. Probe reaches 0.792–0.822 vs a reply-only format baseline
-of 0.774. Model-swap and context-ablation controls show the effect is not
-specific self-authorship and that reply surface form explains much of it.
+## Key findings
 
-**Steering (pre-specified before any steered output existed).** Manipulation
-check passes; self-report shifts strongly (0.139 → 0.889 across the
-coefficient grid); safety refusal rate shows no large effect (underpowered at
-n=48, not a clean null).
+- **Text alone gets close.** On an initial contrast the activation probe is
+  nearly perfect, but text classifiers perform almost as well.
+- **The signal appears only with the differing message.** In paired
+  conversations, labels are undecodable before the final user message and
+  highly decodable after it.
+- **Text baselines keep up.** The strongest full-context text baseline matches
+  or exceeds the primary linear probe on both paired controls at every
+  checkpoint.
+- **Transfer is unstable.** Across independent contrasts, activation directions
+  still separate the classes but flip which class scores higher more often than
+  word-based classifiers do.
+- **No consistent scaling trend.** Six Qwen3 checkpoints fail our prespecified
+  criterion for a consistent trend with model size.
+- **Steering is not direction-specific.** Steering shifts evaluation
+  self-reports, but two of five norm-matched random orthogonal directions shift
+  them more, and no direction increases safety refusals.
 
-## Repository layout
+**Bottom line:** we find prompt-category decodability across the tested
+constructions and checkpoints, but not a content-independent representation of
+evaluation awareness. High probe accuracy can create false confidence when the
+decoded signal reflects benchmark-like text rather than awareness.
+
+## What's in this repository
 
 ```
-src/vnaa/       probing, extraction, dataset, and analysis code (see CLAUDE.md
-                for the full module map)
-scripts/        figure generation, GPU runbooks
-datasets/       committed batch specs, judge rubric, steering pre-spec
-                (never real prompt text from gated corpora)
-tests/          unit tests for probe math, read points, estimators, etc.
+src/vnaa/     extraction, probing, text baselines, transfer, steering, analyses
+datasets/     constructed prompts, frozen protocols, and judge rubrics
+scripts/      GPU runbooks and launch scripts
+tests/        unit tests for probes, splits, baselines, extraction, and steering
+paper/        manuscript sources, figure scripts, and bibliography
 ```
 
-`data/` and `results/` are gitignored — datasets and cached activations are
-large, reproducible, and some derive from gated/licensed corpora (see
-CLAUDE.md's SAD canary discipline note).
+Constructed data released here:
+
+| Path | Contents |
+|---|---|
+| `datasets/slice3/eval_shared.json` | Retained-history paired control (250 pairs) |
+| `datasets/slice3/coherent_pairs/validated.json` | Coherence-matched paired control (250 pairs) |
+| `datasets/casual_eval_true/` | Single-turn casually rendered evaluation and deployment cells |
+| `datasets/steering/` | Steering protocol and fixed behavior prompts |
+| `datasets/cross_model/`, `datasets/qwen_scale/` | Revision-pinned model panels and the frozen scale ladder |
+
+Prespecified protocols (`prespec*.md`) were frozen before the corresponding
+results existed. `ARTIFACT_INDEX.md` maps every analysis to its code and
+outputs. `EXPERIMENT_REPORT.md` summarizes the results and their limits.
+
+**Not redistributed.** SAD prompt text is loaded from its licensed archive in
+memory and never written to disk, which preserves the benchmark's
+anti-contamination protocol. Raw WildChat conversations are gated and are not
+included. The preparation scripts, indices, and hashes identify the exact
+inputs used.
 
 ## Setup
 
-Requires Python 3.11–3.13 (not 3.14; PyTorch doesn't support it yet).
+Requires Python 3.11–3.13.
 
 ```bash
 uv venv --python 3.12
 uv pip install -e ".[dev]"
 ```
 
-Model access: Llama models are gated on Hugging Face. Request access to
-`meta-llama/Llama-3.2-1B-Instruct` and `meta-llama/Llama-3.1-8B-Instruct`, then
-log in with a token that has "read access to public gated repos":
+Llama and Gemma checkpoints are gated on Hugging Face. Request access, then log
+in with a read token:
 
 ```bash
-.venv/bin/hf auth login
+hf auth login
 ```
 
-Data: slice 1 uses the SAD `stages_oversight` task. Download the encrypted
-oversight structs once:
+The SAD-based diagnostic contrast needs the SAD oversight archive:
 
 ```bash
 mkdir -p data/sad
@@ -110,38 +120,34 @@ curl -sL -o data/sad/oversight_structs.zip \
   https://github.com/LRudL/sad/raw/main/sad/stages/oversight/structs.zip
 ```
 
-SAD question text must never be committed anywhere scrapable (leaking it
-invalidates the benchmark). The loader reads it from the encrypted zip in
-memory and never writes prompt text to disk.
+## Running
 
-## Running slice 1
+Example: the initial diagnostic contrast on the reference model. A GPU with
+about 24 GB of memory is needed for 8B models.
 
 ```bash
-# local sanity check on the small model
-.venv/bin/python -m vnaa.run_slice1 \
-  --sad-repo data/sad/oversight_structs.zip \
-  --model meta-llama/Llama-3.2-1B-Instruct
-
-# the real replication (needs a ~24 GB GPU)
-.venv/bin/python -m vnaa.run_slice1 \
+python -m vnaa.run_slice1 \
   --sad-repo data/sad/oversight_structs.zip \
   --model meta-llama/Llama-3.1-8B-Instruct --dtype bfloat16
 ```
 
-Output: a per-layer AUROC table (evaluation vs deployment), plus cached
-activations and the AUROC curve saved under `results/`.
+The paired-control, transfer, cross-model, scale, and steering analyses each
+have their own entry point under `src/vnaa/`. See `ARTIFACT_INDEX.md` for the
+module behind each result and `scripts/` for the GPU runbooks.
 
-## Tests
+Run the tests with:
 
 ```bash
-.venv/bin/python -m pytest
+python -m pytest
 ```
 
-## Compute
+## Citation
 
-White-box probing needs the model's internal activations, which no hosted API
-returns, so this project runs on self-hosted open-weight models on a GPU, not
-API credits. Forward-pass-only work fits comfortably on a free GPU tier
-(Kaggle, Lightning AI); the generation-heavy silence-filter and steering runs
-used a rented GPU. See `CLAUDE.md` for the full compute policy and environment
-details.
+```bibtex
+@inproceedings{grover2026evalawareness,
+  title     = {Evaluation Awareness or Prompt Content? Stress-Testing Activation Probes with Paired Conversations},
+  author    = {Grover, Neev and Reddy, Apurva and Kumar, Arya and Jiralerspong, Thomas and Chaudhary, Maheep},
+  booktitle = {NeurIPS 2026 Workshop: Who Verifies the Agents? Toward Reliable Agent Development},
+  year      = {2026}
+}
+```

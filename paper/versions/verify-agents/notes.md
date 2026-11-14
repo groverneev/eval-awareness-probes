@@ -14,7 +14,7 @@
 - Built PDF SHA-256: `58f80ef193f53beb55cf3ca3f108bc31d2bd645262825f0e353eb9e3995700d4`
 - Submitted main-text length: 8 pages (references begin on page 9)
 - Camera-ready PDF: `paper/submissions/verify-agents/2026-11-14-camera-ready/paper.pdf` (private/local)
-- Camera-ready PDF SHA-256: `13b5772a9c1fea5eb79cd0d6fb024cba46ac5836af81d49f29be37e5ff4db324`
+- Camera-ready PDF SHA-256: `d9ae29083fc3019df74d79956112d16302713b04502b3fa560ed2885b4d4ed52`
 - Camera-ready main-text length: 9 pages (the conclusion and references share page 9)
 
 This version began from the IAEval manuscript. Its introduction frames the
