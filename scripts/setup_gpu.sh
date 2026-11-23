@@ -3,7 +3,7 @@
 #
 # Run this from a Studio terminal AFTER cloning the repo:
 #   git clone <repository-url>
-#   cd Algoverse-VNAA
+#   cd eval-awareness-probes
 #   bash scripts/setup_gpu.sh
 #
 # It installs deps ON TOP OF the environment's existing (CUDA) PyTorch, logs in

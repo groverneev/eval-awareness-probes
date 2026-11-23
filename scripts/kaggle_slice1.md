@@ -21,7 +21,7 @@ Paste each block into its own cell and run top to bottom.
 **Cell 1 — get the code**
 ```python
 !git clone <repository-url>
-%cd Algoverse-VNAA
+%cd eval-awareness-probes
 ```
 
 **Cell 2 — install deps (Kaggle already has CUDA torch; do not reinstall it)**

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root=${VNAA_REPO_ROOT:-/workspace/Algoverse-VNAA}
+repo_root=${VNAA_REPO_ROOT:-/workspace/eval-awareness-probes}
 python_bin=${VNAA_PYTHON:-/root/vnaa-venv/bin/python}
 
 cd "$repo_root"

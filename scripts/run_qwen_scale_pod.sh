@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /workspace/Algoverse-VNAA
+cd /workspace/eval-awareness-probes
 
 export PYTHONPATH=.
 export HF_HOME=/workspace/hf-cache

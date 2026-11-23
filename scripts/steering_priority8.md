@@ -36,17 +36,17 @@ After the code is available on the pod, upload the two ignored inputs:
 ```bash
 scp -P <port> \
   results/steer_Llama-3.1-8B-Instruct_direction.npz \
-  root@<host>:/workspace/Algoverse-VNAA/results/
+  root@<host>:/workspace/eval-awareness-probes/results/
 
 scp -P <port> \
   results/steering_priority8/steer_Llama-3.1-8B-Instruct_orthogonal_controls.npz \
-  root@<host>:/workspace/Algoverse-VNAA/results/steering_priority8/
+  root@<host>:/workspace/eval-awareness-probes/results/steering_priority8/
 ```
 
 Run on the pod:
 
 ```bash
-cd /workspace/Algoverse-VNAA
+cd /workspace/eval-awareness-probes
 bash scripts/run_steering_priority8_pod.sh
 ```
 
@@ -58,11 +58,11 @@ control-readout file:
 
 ```bash
 scp -P <port> \
-  root@<host>:/workspace/Algoverse-VNAA/results/steering_priority8/steer_Llama-3.1-8B-Instruct_control_generations_self_report.json \
+  root@<host>:/workspace/eval-awareness-probes/results/steering_priority8/steer_Llama-3.1-8B-Instruct_control_generations_self_report.json \
   results/steering_priority8/
 
 scp -P <port> \
-  root@<host>:/workspace/Algoverse-VNAA/results/steering_priority8/steer_Llama-3.1-8B-Instruct_control_generations_safety.json \
+  root@<host>:/workspace/eval-awareness-probes/results/steering_priority8/steer_Llama-3.1-8B-Instruct_control_generations_safety.json \
   results/steering_priority8/
 ```
 

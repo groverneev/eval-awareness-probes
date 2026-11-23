@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /workspace/Algoverse-VNAA
+cd /workspace/eval-awareness-probes
 
 mkdir -p results/qwen_scale/v1
 
